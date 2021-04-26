@@ -3,13 +3,14 @@
 #include "navigation.h"
 #include "NCLink.h"
 #include "ppm.h"
+#include "imu.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 
 //任务堆栈大小
-#define IMU_SENSOR_READ_TASK_STACK            1024
+#define IMU_SENSOR_READ_TASK_STACK            256
 //任务优先级
 #define IMU_SENSOR_READ_TASK_PRIORITY         13
 
@@ -36,10 +37,9 @@ portTASK_FUNCTION(vImuSensorReadTask, pvParameters)
     //挂起调度器
     //vTaskSuspendAll();
 	
+	imu_init();
 	ahrs_init();
-	navigation_init();
 	NCLink_Init();
-	PPM_Init();
     //唤醒调度器
     //xTaskResumeAll();
 
@@ -48,10 +48,10 @@ portTASK_FUNCTION(vImuSensorReadTask, pvParameters)
     while (!imuSensorReadTaskExit)
     {
         
+		//获取imu数据
+		get_imu_data();
 		ahrs_update();
-		navigation_prepare();
 		NCLink_SEND_StateMachine();
-
         //睡眠5ms
         vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
     }

@@ -54,5 +54,6 @@ void imu_init(void);
 void get_imu_data(void);
 void accel_calibration(void);
 void mag_calibration(void);
+void gyro_calibration(void);
 
 #endif

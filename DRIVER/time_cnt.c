@@ -42,24 +42,20 @@ void Get_Time_Init(void)
 void TIM7_IRQHandler(void)
 {
 	static uint16_t Microsecond_Cnt = 0;
-	if (__HAL_TIM_GET_FLAG(&htim7, TIM_FLAG_UPDATE) != RESET)
-	{
+	if (__HAL_TIM_GET_FLAG(&htim7, TIM_FLAG_UPDATE) != RESET) {
 		//每10ms自加
 		TIME_ISR_CNT++;
 		Microsecond_Cnt += 10;
 		//1秒
-		if (Microsecond_Cnt >= 1000)
-		{
+		if (Microsecond_Cnt >= 1000) {
 			Microsecond_Cnt = 0;
 			Time_Sys.second++;
 			//1分钟
-			if (Time_Sys.second >= 60)
-			{
+			if (Time_Sys.second >= 60) {
 				Time_Sys.second = 0;
 				Time_Sys.minute++;
 				//1小时
-				if (Time_Sys.minute >= 60)
-				{
+				if (Time_Sys.minute >= 60) {
 					Time_Sys.minute = 0;
 					Time_Sys.hour++;
 				}

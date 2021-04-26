@@ -39,6 +39,9 @@ void save_paramer_init()
 	paramer_save_data.mag_x_offset = 0;
 	paramer_save_data.mag_y_offset = 0;
 	paramer_save_data.mag_z_offset = 0;
+	paramer_save_data.gyro_x_offset = 0;
+	paramer_save_data.gyro_y_offset = 0;
+	paramer_save_data.gyro_y_offset = 0;
 	paramer_save_data.esc_calibration_flag = 0;
 }
 

@@ -4,6 +4,7 @@
 #include "remote_control.h"
 #include "time_cnt.h"
 #include "imu.h"
+#include "ahrs_aux.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -31,7 +32,24 @@ portTASK_FUNCTION(display_task,  parameters)
 	oled_init();
 	while (!display_task_exit) {
 		//Ò£¿ØÆ÷½ÃÕýÏÔÊ¾Ò³
-		if(page_number == 14) {
+		if(page_number == 1) {
+			oled_clear_line(0, 0);
+			oled_6x8_str(0, 0, (uint8_t *)"Basic");
+			oled_6x8_number(70, 0, page_number+1);
+			oled_clear_line(0, 1);
+			oled_6x8_str(0, 1, (uint8_t *)"Yaw:");
+			oled_6x8_number(40, 1, Yaw);
+			oled_6x8_number(90, 1, gyroDataFilter.z * GYRO_CALIBRATION_COFF);
+			oled_clear_line(0, 2);
+			oled_6x8_str(0, 2, (uint8_t *)"Pitch:");
+			oled_6x8_number(40, 2, Pitch);
+			oled_6x8_number(90, 2, gyroDataFilter.x * GYRO_CALIBRATION_COFF);
+			oled_clear_line(0, 3);
+			oled_6x8_str(0, 3, (uint8_t *)"Roll:");
+			oled_6x8_number(40, 3, Roll);
+			oled_6x8_number(90, 3, gyroDataFilter.y * GYRO_CALIBRATION_COFF);
+			oled_clear_line(0, 4);
+		} else if(page_number == 14) {
 			oled_clear_line(0, 0);
 			oled_6x8_str(0, 0, (uint8_t *)"ch1:");
 			oled_6x8_number(25, 0, rc_raw_data[0]);
@@ -194,7 +212,7 @@ portTASK_FUNCTION(display_task,  parameters)
 			else if(mag_calibration_flag == 3)
 				oled_6x8_str(0, 7, (uint8_t *)"Start With Yaw Move");
 		}
-		vTaskDelay(20);
+		vTaskDelay(100);
 	}
 }
 

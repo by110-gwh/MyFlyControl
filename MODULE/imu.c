@@ -53,6 +53,8 @@ uint8_t mag_360_flag[3][36];
 uint8_t mag_calibration_flag;
 //磁力计校准当前角度
 float mag_correct_yaw;
+//陀螺仪校准状态
+uint16_t gyro_calibration_flag;
 //磁力计矫正遍历角度，确保数据采集充分
 const int16_t mag_360_define[36]={
   0,10,20,30,40,50,60,70,80,90,
@@ -114,17 +116,24 @@ void get_imu_data()
 	}
 	
 	//数据校准
-	gyroRawData.x = paramer_save_data.accel_x_offset * gyroRawData.x - paramer_save_data.accel_x_offset * ACCEL_SCALE;
-	gyroRawData.y = paramer_save_data.accel_y_offset * gyroRawData.y - paramer_save_data.accel_y_offset * ACCEL_SCALE;
-	gyroRawData.z = paramer_save_data.accel_z_offset * gyroRawData.z - paramer_save_data.accel_z_offset * ACCEL_SCALE;
-	MagRawData.x = gyroRawData.x - paramer_save_data.mag_x_offset;
-	MagRawData.y = gyroRawData.y - paramer_save_data.mag_y_offset;
-	MagRawData.z = gyroRawData.z - paramer_save_data.mag_z_offset;
+	accRawData.x = paramer_save_data.accel_x_scale * accRawData.x - paramer_save_data.accel_x_offset * ACCEL_SCALE;
+	accRawData.y = paramer_save_data.accel_y_scale * accRawData.y - paramer_save_data.accel_y_offset * ACCEL_SCALE;
+	accRawData.z = paramer_save_data.accel_z_scale * accRawData.z - paramer_save_data.accel_z_offset * ACCEL_SCALE;
+	MagRawData.x = MagRawData.x - paramer_save_data.mag_x_offset;
+	MagRawData.y = MagRawData.y - paramer_save_data.mag_y_offset;
+	MagRawData.z = MagRawData.z - paramer_save_data.mag_z_offset;
+	gyroRawData.x = gyroRawData.x - paramer_save_data.gyro_x_offset;
+	gyroRawData.y = gyroRawData.y - paramer_save_data.gyro_y_offset;
+	gyroRawData.z = gyroRawData.z - paramer_save_data.gyro_z_offset;
 	
 	//陀螺仪数据带阻滤波
 	gyroDataFilter.x = Butterworth_Filter(gyroRawData.x, &Gyro_BufferData_BPF[0], &Bandstop_Filter_Parameter_30_98);
 	gyroDataFilter.y = Butterworth_Filter(gyroRawData.y, &Gyro_BufferData_BPF[1], &Bandstop_Filter_Parameter_30_98);
 	gyroDataFilter.z = Butterworth_Filter(gyroRawData.z, &Gyro_BufferData_BPF[2], &Bandstop_Filter_Parameter_30_98);
+	
+	gyroDataFilter.x = gyroRawData.x;
+	gyroDataFilter.y = gyroRawData.y;
+	gyroDataFilter.z = gyroRawData.z;
 	
 	//加速计矫正数据带阻滤波
 	acceCorrectFilter.x = Butterworth_Filter(accRawData.x, &Butter_Buffer_Correct[0], &Acce_Correct_Parameter);
@@ -331,6 +340,12 @@ void accel_calibration(void)
 		acce_calibration_data[i].y = 0;
 		acce_calibration_data[i].z = 0;
     }
+	paramer_save_data.accel_x_offset = 0;
+	paramer_save_data.accel_y_offset = 0;
+	paramer_save_data.accel_z_offset = 0;
+	paramer_save_data.accel_x_scale = 1;
+	paramer_save_data.accel_y_scale = 1;
+	paramer_save_data.accel_z_scale = 1;
 	
 	//初始化imu
 	imu_init();
@@ -343,18 +358,21 @@ void accel_calibration(void)
 	//第六面飞控平放，Z轴正向朝着正下方
 	while (acce_calibration_flag < 6) {
 		uint8_t key;
+		//等待遥控器指令
 		key = rc_scan();
 		if (key == 0x01) {
 			uint16_t num_samples=0;
 			
-			this_task_priority = uxTaskPriorityGet(NULL);
 			//提高本任务优先级
+			this_task_priority = uxTaskPriorityGet(NULL);
 			vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);
 			
+			//累计归零
 			acce_sample_sum.x = 0;
 			acce_sample_sum.y = 0;
 			acce_sample_sum.z = 0;
 			
+			//初始化时间
 			xLastWakeTime = xTaskGetTickCount();
 			while(num_samples<1000) {
 				get_imu_data();
@@ -377,6 +395,7 @@ void accel_calibration(void)
 	}
 	//用所得6面数据计算加速度校准数据
 	if(Calibrate_accel(acce_calibration_data, &new_offset, &new_scales)) {
+		//参数保存
 		paramer_save_data.accel_x_offset = new_offset.x;
 		paramer_save_data.accel_y_offset = new_offset.y;
 		paramer_save_data.accel_z_offset = new_offset.z;
@@ -573,14 +592,13 @@ void LS_Calculate(Least_Squares_Intermediate_Variable * pLSQ,
 **********************************************************************************************************/
 void mag_calibration(void)
 {
-	//用于计算时间差的结构体
 	static Testime Time_Delta;
-	//时间差
 	float dt;
 	float mag_a, mag_b, mag_c, mag_r;
 	uint8_t i, j;
 	UBaseType_t this_task_priority;
     portTickType xLastWakeTime;
+	
 	//清空磁力计校准全部标志
 	mag_calibration_flag = 0;
 	for (i = 0; i < 3; i++) {
@@ -588,22 +606,28 @@ void mag_calibration(void)
 			mag_360_flag[i][j] = 0;
 		}
 	}
+	paramer_save_data.mag_x_offset = 0;
+	paramer_save_data.mag_y_offset = 0;
+	paramer_save_data.mag_z_offset = 0;
 	//初始化imu
 	imu_init();
-	ahrs_init();
-	
+	//等待遥控器给出相应
 	while (rc_scan() != 0x07);
-	this_task_priority = uxTaskPriorityGet(NULL);
 	//提高本任务优先级
+	this_task_priority = uxTaskPriorityGet(NULL);
 	vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);
+	//当前角度归0
 	mag_correct_yaw = 0;
+	//得到初始时间
 	xLastWakeTime = xTaskGetTickCount();
 	Get_Time_Period(&Time_Delta);
 	while(mag_calibration_one_is_ok(mag_360_flag[0]) == 0) {
 		//更新计算时间差
 		Get_Time_Period(&Time_Delta);
 		dt = Time_Delta.Time_Delta / 1000000.0;
+		//获取imu数据
 		get_imu_data();
+		//更新角度
 		mag_correct_yaw += gyroDataFilter.z * GYRO_CALIBRATION_COFF * dt;
 		
 		if(mag_correct_yaw < 0)
@@ -611,7 +635,7 @@ void mag_calibration(void)
 		if(mag_correct_yaw > 360)
 			mag_correct_yaw -= 360;
 		for (i = 0; i < 36; i++) {
-			if(fabsf(mag_correct_yaw - mag_360_define[i]) <= 5.0 && acceCorrectFilter.z >= ACCEL_MAX_1G / 2) {
+			if(mag_360_flag[0][i] == 0 && fabsf(mag_correct_yaw - mag_360_define[i]) <= 5.0 && acceCorrectFilter.z >= ACCEL_MAX_1G / 2) {
 				mag_360_flag[0][i] = 1;
 				LS_Accumulate(&Mag_LS, MagDataFilter.x, MagDataFilter.y, MagDataFilter.z);
 				LS_Calculate(&Mag_LS, 36*3, 0.0f, &mag_a, &mag_b, &mag_c,&mag_r);
@@ -623,18 +647,23 @@ void mag_calibration(void)
 	//恢复本任务优先级
 	vTaskPrioritySet(NULL, this_task_priority);
 	
+	//等待遥控器给出相应
 	while (rc_scan() != 0x07);
-	this_task_priority = uxTaskPriorityGet(NULL);
 	//提高本任务优先级
+	this_task_priority = uxTaskPriorityGet(NULL);
 	vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);
+	//当前角度归0
 	mag_correct_yaw = 0;
+	//得到初始时间
 	xLastWakeTime = xTaskGetTickCount();
 	Get_Time_Period(&Time_Delta);
 	while(mag_calibration_one_is_ok(mag_360_flag[1]) == 0) {
 		//更新计算时间差
 		Get_Time_Period(&Time_Delta);
 		dt = Time_Delta.Time_Delta / 1000000.0;
+		//获取imu数据
 		get_imu_data();
+		//更新角度
 		mag_correct_yaw += gyroDataFilter.y * GYRO_CALIBRATION_COFF * dt;
 		
 		if(mag_correct_yaw < 0)
@@ -642,7 +671,7 @@ void mag_calibration(void)
 		if(mag_correct_yaw > 360)
 			mag_correct_yaw -= 360;
 		for (i = 0; i < 36; i++) {
-			if(fabsf(mag_correct_yaw - mag_360_define[i]) <= 5.0 && acceCorrectFilter.y >= ACCEL_MAX_1G / 2) {
+			if(mag_360_flag[1][i] == 0 && fabsf(mag_correct_yaw - mag_360_define[i]) <= 5.0 && acceCorrectFilter.y >= ACCEL_MAX_1G / 2) {
 				mag_360_flag[1][i] = 1;
 				LS_Accumulate(&Mag_LS, MagDataFilter.x, MagDataFilter.y, MagDataFilter.z);
 				LS_Calculate(&Mag_LS, 36*3, 0.0f, &mag_a, &mag_b, &mag_c,&mag_r);
@@ -654,18 +683,23 @@ void mag_calibration(void)
 	//恢复本任务优先级
 	vTaskPrioritySet(NULL, this_task_priority);
 	
+	//等待遥控器给出相应
 	while (rc_scan() != 0x07);
-	this_task_priority = uxTaskPriorityGet(NULL);
 	//提高本任务优先级
+	this_task_priority = uxTaskPriorityGet(NULL);
 	vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);
+	//当前角度归0
 	mag_correct_yaw = 0;
+	//得到初始时间
 	xLastWakeTime = xTaskGetTickCount();
 	Get_Time_Period(&Time_Delta);
 	while(mag_calibration_one_is_ok(mag_360_flag[2]) == 0) {
 		//更新计算时间差
 		Get_Time_Period(&Time_Delta);
 		dt = Time_Delta.Time_Delta / 1000000.0;
+		//获取imu数据
 		get_imu_data();
+		//更新角度
 		mag_correct_yaw += gyroDataFilter.x * GYRO_CALIBRATION_COFF * dt;
 		
 		if(mag_correct_yaw < 0)
@@ -673,10 +707,10 @@ void mag_calibration(void)
 		if(mag_correct_yaw > 360)
 			mag_correct_yaw -= 360;
 		for (i = 0; i < 36; i++) {
-			if(fabsf(mag_correct_yaw - mag_360_define[i]) <= 5.0 && acceCorrectFilter.x >= ACCEL_MAX_1G / 2) {
+			if(mag_360_flag[2][i] == 0 && fabsf(mag_correct_yaw - mag_360_define[i]) <= 5.0 && acceCorrectFilter.x >= ACCEL_MAX_1G / 2) {
 				mag_360_flag[2][i] = 1;
 				LS_Accumulate(&Mag_LS, MagDataFilter.x, MagDataFilter.y, MagDataFilter.z);
-				LS_Calculate(&Mag_LS, 36*3, 0.0f, &mag_a, &mag_b, &mag_c,&mag_r);
+				LS_Calculate(&Mag_LS, 36 * 3, 0.0f, &mag_a, &mag_b, &mag_c,&mag_r);
 			}
 		}
 		//5ms周期定时
@@ -684,9 +718,52 @@ void mag_calibration(void)
 	}
 	//恢复本任务优先级
 	vTaskPrioritySet(NULL, this_task_priority);
-	
+	//保存参数
 	paramer_save_data.mag_x_offset = mag_a;
 	paramer_save_data.mag_y_offset = mag_b;
 	paramer_save_data.mag_z_offset = mag_c;
 	write_save_paramer();
+}
+
+/**********************************************************************************************************
+*函 数 名: gyro_calibration
+*功能说明: 陀螺仪校准校准
+*形    参: 无
+*返 回 值: 无
+**********************************************************************************************************/
+void gyro_calibration()
+{
+	Vector3i_t gyroSumData;
+	Vector3i_t gyroRawData;
+	UBaseType_t this_task_priority;
+    portTickType xLastWakeTime;
+	
+	//IMU初始化
+	imu_init();
+	//提高本任务优先级
+	this_task_priority = uxTaskPriorityGet(NULL);
+	vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);
+	//得到初始时间
+	xLastWakeTime = xTaskGetTickCount();
+	for (gyro_calibration_flag = 0; gyro_calibration_flag < 400; gyro_calibration_flag++) {
+		//读取陀螺仪传感器
+		MPU6050_ReadGyro(&gyroRawData);
+		//将陀螺仪数据累加
+		gyroSumData.x += gyroRawData.x;
+		gyroSumData.y += gyroRawData.y;
+		gyroSumData.z += gyroRawData.z;
+		//5ms周期定时
+		vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
+	}
+	//取平均
+	gyroSumData.x = gyroSumData.x / 400;
+	gyroSumData.y = gyroSumData.y / 400;
+	gyroSumData.z = gyroSumData.z / 400;
+	//恢复本任务优先级
+	vTaskPrioritySet(NULL, this_task_priority);
+	//保存参数
+	paramer_save_data.gyro_x_offset = gyroSumData.x;
+	paramer_save_data.gyro_y_offset = gyroSumData.y;
+	paramer_save_data.gyro_z_offset = gyroSumData.z;
+	//write_save_paramer();
 }

@@ -2,6 +2,7 @@
 #include "remote_control.h"
 #include "key.h"
 #include "display_task.h"
+#include "module_task.h"
 #include "esc_task.h"
 #include "imu.h"
 #include "i2c.h"
@@ -61,11 +62,15 @@ portTASK_FUNCTION(main_task, parameters)
 			mag_calibration();
 			page_number = 0;
 		//下内八进行解锁
-		} else if (key == 0x07) {
+		} else if (key == 0x08) {
+			gyro_calibration();
 			page_number = 1;
-			
+			ModuleTaskCreate();
+			while(1)
+				vTaskDelay(1000);
 			page_number = 0;
 		}
+		vTaskDelay(6);
     }
 	vTaskDelete(NULL);
 }

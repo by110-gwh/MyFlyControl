@@ -244,10 +244,11 @@ void NCLink_Send_Status(float roll, float pitch, float yaw,
 *形    参: 无
 *返 回 值: 无
 **********************************************************************************************************/
+#include "imu.h"
 void NCLink_SEND_StateMachine(void)
 {
 	//NCLink_Send_Status(Roll, Pitch, Yaw, 0, 0, 0, tempDataFilter, 0, 0, 0);
-	//NCLink_Send_Fusion_NE(0, 0, 0, 0, navigation_acce.x, navigation_acce.y);
-	NCLink_Send_RCData(rc_raw_data[0], rc_raw_data[1], rc_raw_data[2], rc_raw_data[3],
-		rc_raw_data[4], rc_raw_data[5], rc_raw_data[6], rc_raw_data[7]);
+	NCLink_Send_Fusion_NE(0, 0, 0, 0, gyroDataFilter.x, gyroDataFilter.y);
+//	NCLink_Send_RCData(rc_raw_data[0], rc_raw_data[1], rc_raw_data[2], rc_raw_data[3],
+//		rc_raw_data[4], rc_raw_data[5], rc_raw_data[6], rc_raw_data[7]);
 }

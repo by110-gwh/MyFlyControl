@@ -31,6 +31,9 @@ typedef struct {
 	float mag_x_offset;
 	float mag_y_offset;
 	float mag_z_offset;
+	short gyro_x_offset;
+	short gyro_y_offset;
+	short gyro_z_offset;
 	uint8_t esc_calibration_flag;
 	uint8_t inited;
 } paramer_save_t;

@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "freertos.h": "c",
-        "task.h": "c",
-        "filter.h": "c"
-    }
-}

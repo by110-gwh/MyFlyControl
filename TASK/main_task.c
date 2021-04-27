@@ -2,11 +2,11 @@
 #include "remote_control.h"
 #include "key.h"
 #include "display_task.h"
-#include "module_task.h"
+#include "fly_task.h"
 #include "esc_task.h"
 #include "imu.h"
 #include "i2c.h"
-#include "control.h"
+#include "motor_output.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -32,7 +32,7 @@ portTASK_FUNCTION(main_task, parameters)
 	key_init();
 	rc_init();
 	i2c_init();
-	control_init();
+	motor_output_init();
 	//检测遥控器是否连接
 	page_number = 17;
 	while (!rc_is_on())
@@ -67,11 +67,11 @@ portTASK_FUNCTION(main_task, parameters)
 		} else if (key == 0x08) {
 			gyro_calibration();
 			page_number = 1;
-			control_unlock();
-			ModuleTaskCreate();
+			motor_output_unlock();
+			fly_task_create();
 			while(1)
 				vTaskDelay(1000);
-			control_lock();
+			motor_output_lock();
 			page_number = 0;
 		}
 		vTaskDelay(6);

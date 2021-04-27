@@ -1,37 +1,32 @@
-#include "module_task.h"
+#include "fly_task.h"
 #include "ahrs_aux.h"
 #include "navigation.h"
 #include "NCLink.h"
 #include "ppm.h"
 #include "imu.h"
-#include "control.h"
+#include "motor_output.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 
 //任务堆栈大小
-#define IMU_SENSOR_READ_TASK_STACK            256
+#define FLY_TASK_STACK 256
 //任务优先级
-#define IMU_SENSOR_READ_TASK_PRIORITY         13
+#define FLY_TASK_PRIORITY 13
 
 //声明任务句柄
-xTaskHandle imuSensorReadTask;
+xTaskHandle fly_task_handle;
 //任务退出标志
-uint8_t imuSensorReadTaskExit;
-//系统消息队列
-QueueHandle_t acce_raw_queue;
-QueueHandle_t acce_correct_raw_queue;
-QueueHandle_t gyro_raw_queue;
-QueueHandle_t temp_raw_queue;
+uint8_t fly_task_exit;
 
 /**********************************************************************************************************
-*函 数 名: vImuSensorReadTask
-*功能说明: IMU传感器数据读取任务，此任务具有最高优先级，运行频率为1KHz
+*函 数 名: fly_task
+*功能说明: 飞行定时任务
 *形    参: 无
 *返 回 值: 无
 **********************************************************************************************************/
-portTASK_FUNCTION(vImuSensorReadTask, pvParameters)
+portTASK_FUNCTION(fly_task, pvParameters)
 {
     portTickType xLastWakeTime;
 
@@ -46,13 +41,13 @@ portTASK_FUNCTION(vImuSensorReadTask, pvParameters)
 
 
     xLastWakeTime = xTaskGetTickCount();
-    while (!imuSensorReadTaskExit)
+    while (!fly_task_exit)
     {
         
 		//获取imu数据
 		get_imu_data();
 		ahrs_update();
-		control_output();
+		motor_output_output();
 		NCLink_SEND_StateMachine();
         //睡眠5ms
         vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
@@ -62,13 +57,13 @@ portTASK_FUNCTION(vImuSensorReadTask, pvParameters)
 
 
 /**********************************************************************************************************
-*函 数 名: ModuleTaskCreate
+*函 数 名: fly_task_create
 *功能说明: 传感器组件相关任务创建
 *形    参: 无
 *返 回 值: 无
 **********************************************************************************************************/
-void ModuleTaskCreate(void)
+void fly_task_create(void)
 {
-	imuSensorReadTaskExit = 0;
-    xTaskCreate(vImuSensorReadTask, "imuSensorRead", IMU_SENSOR_READ_TASK_STACK, NULL, IMU_SENSOR_READ_TASK_PRIORITY, &imuSensorReadTask);
+	fly_task_exit = 0;
+    xTaskCreate(fly_task, "fly_task", FLY_TASK_STACK, NULL, FLY_TASK_PRIORITY, &fly_task_handle);
 }

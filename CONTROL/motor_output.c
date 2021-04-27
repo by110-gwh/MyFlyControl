@@ -1,4 +1,4 @@
-#include "control.h"
+#include "motor_output.h"
 #include "pwm.h"
 #include "remote_control.h"
 
@@ -10,8 +10,8 @@
 //待机油门
 #define Thr_Idle 1100
 
-uint16_t throttle_motor_output = 1500;
-uint16_t roll_motor_output = 500;
+uint16_t throttle_motor_output;
+uint16_t roll_motor_output;
 uint16_t pitch_motor_output;
 uint16_t yaw_motor_output;
 
@@ -26,7 +26,7 @@ static uint8_t urgent_stop_flag;
 *形    参: 最小值 最大值 数据
 *返 回 值: 限定后的数据
 **********************************************************************************************************/
-uint16_t value_limit(uint16_t min,uint16_t max,uint16_t data)
+static uint16_t value_limit(uint16_t min,uint16_t max,uint16_t data)
 {
 	if(data >= max)
 		data = max;
@@ -36,12 +36,12 @@ uint16_t value_limit(uint16_t min,uint16_t max,uint16_t data)
 }
 
 /**********************************************************************************************************
-*函 数 名: control_init
+*函 数 名: motor_output_init
 *功能说明: 控制器初始化
 *形    参: 无
 *返 回 值: 无
 **********************************************************************************************************/
-void control_init(void)
+void motor_output_init(void)
 {
 	//PWM初始化
 	pwm_init();
@@ -54,12 +54,12 @@ void control_init(void)
 }
 
 /**********************************************************************************************************
-*函 数 名: control_unlock
+*函 数 名: motor_output_unlock
 *功能说明: 控制器解锁过度过程
 *形    参: 无
 *返 回 值: 无
 **********************************************************************************************************/
-void control_unlock(void)
+void motor_output_unlock(void)
 {
 	uint8_t idel_cnt;
 	
@@ -87,12 +87,12 @@ void control_unlock(void)
 }
 
 /**********************************************************************************************************
-*函 数 名: control_output
+*函 数 名: motor_output_output
 *功能说明: 控制器PWM输出
 *形    参: 无
 *返 回 值: 无
 **********************************************************************************************************/
-void control_output(void)
+void motor_output_output(void)
 {
 	//紧急停机
 	if (rc_raw_data[5] > rc_calibration_data[6].middle || urgent_stop_flag == 1) {
@@ -119,12 +119,12 @@ void control_output(void)
 }
 
 /**********************************************************************************************************
-*函 数 名: control_lock
+*函 数 名: motor_output_lock
 *功能说明: 控制器停机上锁
 *形    参: 无
 *返 回 值: 无
 **********************************************************************************************************/
-void control_lock(void)
+void motor_output_lock(void)
 {
 	Motor_PWM_1 = Thr_Min;
 	Motor_PWM_2 = Thr_Min;

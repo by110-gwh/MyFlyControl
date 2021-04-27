@@ -398,9 +398,9 @@
           <GroupName>control</GroupName>
           <Files>
             <File>
-              <FileName>control.c</FileName>
+              <FileName>motor_output.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\CONTROL\control.c</FilePath>
+              <FilePath>..\CONTROL\motor_output.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -643,11 +643,6 @@
           <GroupName>task</GroupName>
           <Files>
             <File>
-              <FileName>module_task.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\TASK\module_task.c</FilePath>
-            </File>
-            <File>
               <FileName>main_task.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\TASK\main_task.c</FilePath>
@@ -661,6 +656,11 @@
               <FileName>esc_task.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\TASK\esc_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>fly_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\fly_task.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -197,6 +197,8 @@ void ahrs_update()
 	//更新计算时间差
 	Get_Time_Period(&Time_Delta);
 	dt = Time_Delta.Time_Delta / 1000000.0;
+	if (dt > 0.01)
+		return;
 	
 	sync_cnt++;
 	//4*5=20ms滑动一次

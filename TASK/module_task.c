@@ -4,6 +4,7 @@
 #include "NCLink.h"
 #include "ppm.h"
 #include "imu.h"
+#include "control.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -51,6 +52,7 @@ portTASK_FUNCTION(vImuSensorReadTask, pvParameters)
 		//获取imu数据
 		get_imu_data();
 		ahrs_update();
+		control_output();
 		NCLink_SEND_StateMachine();
         //睡眠5ms
         vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));

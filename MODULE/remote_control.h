@@ -18,7 +18,6 @@ typedef struct
 #define RC_DEADBAND_CHANNEL  8
 
 extern rc_calibration_data_t rc_calibration_data[RC_DEADBAND_CHANNEL];
-extern uint16_t rc_data[RC_DEADBAND_CHANNEL];
 extern uint16_t rc_raw_data[RC_DEADBAND_CHANNEL];
 
 void rc_init(void);

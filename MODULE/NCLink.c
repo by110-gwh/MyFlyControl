@@ -185,7 +185,7 @@ void NCLink_Send_Status(float roll, float pitch, float yaw,
 						float imutemp, float vbat, uint8_t fly_model, uint8_t armed)
 {
 	uint8_t cnt = 0;
-	int16_t temp;
+	int32_t temp;
 	uint8_t sum = 0;
 	uint8_t i;
 	nclink_databuf[cnt++] = 0xFF;

@@ -7,6 +7,7 @@
 #include "imu.h"
 #include "i2c.h"
 #include "motor_output.h"
+#include "angle_control.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -19,7 +20,7 @@
 //声明任务句柄
 xTaskHandle main_task_handle;
 //任务退出标志
-uint8_t main_task_exit;
+volatile uint8_t main_task_exit;
 
 /**********************************************************************************************************
 *函 数 名: main_task
@@ -65,12 +66,23 @@ portTASK_FUNCTION(main_task, parameters)
 			page_number = 0;
 		//下内八进行解锁
 		} else if (key == 0x08) {
+			page_number = 2;
 			gyro_calibration();
-			page_number = 1;
-			motor_output_unlock();
+			page_number = 3;
 			fly_task_create();
-			while(1)
-				vTaskDelay(1000);
+			motor_output_unlock();
+			//等待电机启动时间姿态融合完毕后，更新偏航期待
+			yaw_angle_pid.short_circuit_flag = 1;
+			page_number = 1;
+			while(1) {
+				key = rc_scan();
+				if (key == 0x08) {
+					break;
+				}
+				vTaskDelay(10);
+			}
+			fly_task_exit = 1;
+			vTaskDelay(5);
 			motor_output_lock();
 			page_number = 0;
 		}

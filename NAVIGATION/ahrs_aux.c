@@ -18,33 +18,33 @@ typedef struct
 #define PI 3.1415926f
 #define DEG2RAD (PI / 180.0f)
 #define RAD2DEG (180.0f / PI)
-//æ—¶å»¶æ§åˆ¶
+//Ê±ÑÓ¿ØÖÆ
 #define TimeSync_Cnt 9 + 1
-//ä¿å­˜å†å²ä¸ªæ•°
+//±£´æÀúÊ·¸öÊı
 #define Quad_Num  20
-//åŠ¨æ€æ­¥é•¿è´å¡”
+//¶¯Ì¬²½³¤±´Ëş
 #define Beta_Base 0.0075f
 #define Yaw_Fusion_Beta 0.025f
 
-//å››å…ƒæ•°è®¡ç®—å‡ºçš„è§’åº¦
+//ËÄÔªÊı¼ÆËã³öµÄ½Ç¶È
 float Yaw, Pitch, Roll;
 float Sin_Pitch, Sin_Roll, Sin_Yaw;
 float Cos_Pitch, Cos_Roll, Cos_Yaw;
 
-//è½¬æ¢çŸ©é˜µ
+//×ª»»¾ØÕó
 static float rMat[3][3];
 static Butter_Parameter Butter_5HZ_Parameter;
 static float Kp = 0, Ki = 0;
-//å››å…ƒæ•°å†å²å€¼
+//ËÄÔªÊıÀúÊ·Öµ
 static Vector4q quad_history[Quad_Num];
-//æœ¬æ¬¡å››å…ƒæ•°å€¼
+//±¾´ÎËÄÔªÊıÖµ
 static Vector4q this_quad;
 
 /**********************************************************************************************************
-*å‡½ æ•° å: invSqrt
-*åŠŸèƒ½è¯´æ˜: æ±‚1/tan(x)
-*å½¢    å‚: x
-*è¿” å› å€¼: 1/tan(x)
+*º¯ Êı Ãû: invSqrt
+*¹¦ÄÜËµÃ÷: Çó1/tan(x)
+*ĞÎ    ²Î: x
+*·µ »Ø Öµ: 1/tan(x)
 **********************************************************************************************************/
 float invSqrt(float x)
 {
@@ -60,10 +60,10 @@ float invSqrt(float x)
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: ahrs_init
-*åŠŸèƒ½è¯´æ˜: å§¿æ€è§£ç®—åˆå§‹åŒ–å››å…ƒæ•°
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: ahrs_init
+*¹¦ÄÜËµÃ÷: ×ËÌ¬½âËã³õÊ¼»¯ËÄÔªÊı
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void ahrs_init(void)
 {
@@ -80,10 +80,10 @@ void ahrs_init(void)
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: constrain
-*åŠŸèƒ½è¯´æ˜: é™å®švalueçš„æœ€å¤§å€¼å’Œæœ€å°å€¼
-*å½¢    å‚: value
-*è¿” å› å€¼: ä¿®æ­£åçš„value
+*º¯ Êı Ãû: constrain
+*¹¦ÄÜËµÃ÷: ÏŞ¶¨valueµÄ×î´óÖµºÍ×îĞ¡Öµ
+*ĞÎ    ²Î: value
+*·µ »Ø Öµ: ĞŞÕıºóµÄvalue
 **********************************************************************************************************/
 float constrain(float value, const float min_val, const float max_val)
 {
@@ -95,10 +95,10 @@ float constrain(float value, const float min_val, const float max_val)
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: ComputeRotationMatrix
-*åŠŸèƒ½è¯´æ˜: æ›´æ–°åæ ‡ç³»å˜æ¢çŸ©é˜µ
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: ComputeRotationMatrix
+*¹¦ÄÜËµÃ÷: ¸üĞÂ×ø±êÏµ±ä»»¾ØÕó
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void ComputeRotationMatrix(void)
 {
@@ -120,10 +120,10 @@ void ComputeRotationMatrix(void)
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: Vector_From_BodyFrame2EarthFrame
-*åŠŸèƒ½è¯´æ˜: è½½ä½“åæ ‡ç³»è½¬åœ°ç†åæ ‡ç³»
-*å½¢    å‚: è½½ä½“åæ ‡é’ˆ åœ°ç†åæ ‡æŒ‡é’ˆ
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: Vector_From_BodyFrame2EarthFrame
+*¹¦ÄÜËµÃ÷: ÔØÌå×ø±êÏµ×ªµØÀí×ø±êÏµ
+*ĞÎ    ²Î: ÔØÌå×ø±êÕë µØÀí×ø±êÖ¸Õë
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void Vector_From_BodyFrame2EarthFrame(Vector3f_t *bf, Vector3f_t *ef)
 {
@@ -133,10 +133,10 @@ void Vector_From_BodyFrame2EarthFrame(Vector3f_t *bf, Vector3f_t *ef)
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: Vector_From_EarthFrame2BodyFrame
-*åŠŸèƒ½è¯´æ˜: åœ°ç†åæ ‡ç³»è½¬è½½ä½“åæ ‡ç³»
-*å½¢    å‚: åœ°ç†åæ ‡é’ˆ è½½ä½“åæ ‡æŒ‡é’ˆ
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: Vector_From_EarthFrame2BodyFrame
+*¹¦ÄÜËµÃ÷: µØÀí×ø±êÏµ×ªÔØÌå×ø±êÏµ
+*ĞÎ    ²Î: µØÀí×ø±êÕë ÔØÌå×ø±êÖ¸Õë
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void Vector_From_EarthFrame2BodyFrame(Vector3f_t *ef, Vector3f_t *bf)
 {
@@ -146,46 +146,46 @@ void Vector_From_EarthFrame2BodyFrame(Vector3f_t *ef, Vector3f_t *bf)
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: ahrs_update
-*åŠŸèƒ½è¯´æ˜: å§¿æ€è§£ç®—
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: ahrs_update
+*¹¦ÄÜËµÃ÷: ×ËÌ¬½âËã
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void ahrs_update()
 {
 	static uint16_t sync_cnt = 0;
-	//ä¸Šæ¬¡æ¬¡é™€èºä»ªè§’é€Ÿåº¦
+	//ÉÏ´Î´ÎÍÓÂİÒÇ½ÇËÙ¶È
 	static Vector3f_t gyro_history[Quad_Num];
-	//è¿™æ¬¡é™€èºä»ªè§’é€Ÿåº¦
+	//Õâ´ÎÍÓÂİÒÇ½ÇËÙ¶È
 	static Vector3f_t this_gyro;
-	//åŠ é€Ÿåº¦å†å²å€¼
+	//¼ÓËÙ¶ÈÀúÊ·Öµ
 	static Vector3f_t accel_history[Quad_Num];
-	//æœ¬æ¬¡åŠ é€Ÿåº¦
+	//±¾´Î¼ÓËÙ¶È
 	static Vector3f_t this_accel;
-	//è¯¯å·®ç§¯åˆ†
+	//Îó²î»ı·Ö
 	static float exInt = 0, eyInt = 0, ezInt = 0;
 	static float vx, vy, vz;
-	//è§’é€Ÿåº¦æ¨¡é•¿æ»¤æ³¢å†…éƒ¨æ•°æ®
+	//½ÇËÙ¶ÈÄ£³¤ÂË²¨ÄÚ²¿Êı¾İ
 	Butter_BufferData Butter_Buffer_Gyro_Length;
 	uint16_t i;
-	//ç”¨äºè®¡ç®—æ—¶é—´å·®çš„ç»“æ„ä½“
+	//ÓÃÓÚ¼ÆËãÊ±¼ä²îµÄ½á¹¹Ìå
 	static Testime Time_Delta;
-	//æ—¶é—´å·®
+	//Ê±¼ä²î
 	float dt;
-	//è§’é€Ÿåº¦æ¨¡é•¿
+	//½ÇËÙ¶ÈÄ£³¤
 	float Gyro_Length;
 	float Gyro_Length_Filter;
-	//å½’ä¸€åŒ–åŠ é€Ÿåº¦
+	//¹éÒ»»¯¼ÓËÙ¶È
 	Vector3f_t recip_accel;
-	//æ¨¡é•¿
+	//Ä£³¤
 	float recipNorm;
-	//æ¢¯åº¦ä¸‹é™æ­¥é•¿
+	//Ìİ¶ÈÏÂ½µ²½³¤
 	float BETADEF;
-	//è¯¯å·®
+	//Îó²î
 	float ex = 0, ey = 0, ez = 0;
-	//æ¢¯åº¦ä¸‹é™ç®—å­æ±‚å‡ºæ¥çš„å§¿æ€    
+	//Ìİ¶ÈÏÂ½µËã×ÓÇó³öÀ´µÄ×ËÌ¬    
 	float s0, s1, s2, s3;
-	// å››å…ƒæ•°å¾®åˆ†æ–¹ç¨‹æ±‚å¾—çš„å§¿æ€
+	// ËÄÔªÊıÎ¢·Ö·½³ÌÇóµÃµÄ×ËÌ¬
 	float qDot1, qDot2, qDot3, qDot4;
 	float _2q0, _2q1, _2q2, _2q3, _4q0, _4q1, _4q2, _8q1, _8q2, q0q0, q1q1, q2q2, q3q3;
 	static Vector3f_t gyro_tmp;
@@ -194,22 +194,22 @@ void ahrs_update()
 	float Mag_ethx, Mag_ethy;
 	float Mag_Yaw;
 	
-	//æ›´æ–°è®¡ç®—æ—¶é—´å·®
+	//¸üĞÂ¼ÆËãÊ±¼ä²î
 	Get_Time_Period(&Time_Delta);
 	dt = Time_Delta.Time_Delta / 1000000.0;
-	if (dt > 0.01)
+	if (dt == 0)
 		return;
 	
 	sync_cnt++;
-	//4*5=20msæ»‘åŠ¨ä¸€æ¬¡
+	//4*5=20ms»¬¶¯Ò»´Î
 	if (sync_cnt >= 4) {
-		//å°†å››å…ƒæ•°å†å²å€¼ä¿å­˜èµ·æ¥,20*20=400ms
+		//½«ËÄÔªÊıÀúÊ·Öµ±£´æÆğÀ´,20*20=400ms
 		for (i = Quad_Num - 1; i > 0; i--) {
 			quad_history[i] = quad_history[i - 1];
 		}
 		quad_history[0] = this_quad;
 		
-		//å°†åŠ é€Ÿåº¦å†å²å€¼ä¿å­˜èµ·æ¥,20*20=400ms
+		//½«¼ÓËÙ¶ÈÀúÊ·Öµ±£´æÆğÀ´,20*20=400ms
 		accel_history[0] = this_accel;
 		for (i = Quad_Num - 1; i > 0; i--) {
 			accel_history[i] = accel_history[i - 1];
@@ -221,7 +221,7 @@ void ahrs_update()
 	this_accel.y = accDataFilter.y;
 	this_accel.z = accDataFilter.z;
 
-	//ä¿å­˜é™€èºä»ªå€¼
+	//±£´æÍÓÂİÒÇÖµ
 	for (i = Quad_Num; i > 0; i--) {
 		gyro_history[i] = gyro_history[i - 1];
 	}
@@ -230,18 +230,18 @@ void ahrs_update()
 	this_gyro.y = gyroDataFilter.y * GYRO_CALIBRATION_COFF;
 	this_gyro.z = gyroDataFilter.z * GYRO_CALIBRATION_COFF;
 	
-	//è§’é€Ÿåº¦æ¨¡é•¿
+	//½ÇËÙ¶ÈÄ£³¤
 	Gyro_Length = sqrt(this_gyro.x * this_gyro.x + this_gyro.y * this_gyro.y + this_gyro.z * this_gyro.z);
 	Gyro_Length_Filter = Butterworth_Filter(Gyro_Length, &Butter_Buffer_Gyro_Length, &Butter_5HZ_Parameter);
 
-	//å–åŠ é€Ÿåº¦ï¼Œå¹¶å½’ä¸€åŒ–
+	//È¡¼ÓËÙ¶È£¬²¢¹éÒ»»¯
 	recip_accel = accel_history[9];
 	recipNorm = invSqrt(recip_accel.x * recip_accel.x + recip_accel.y * recip_accel.y + recip_accel.z * recip_accel.z);
 	recip_accel.x *= recipNorm;
 	recip_accel.y *= recipNorm;
 	recip_accel.z *= recipNorm;
 
-	/* é¿å…é‡å¤è¿ç®— */
+	/* ±ÜÃâÖØ¸´ÔËËã */
 	_2q0 = 2.0f * quad_history[TimeSync_Cnt].q0;
 	_2q1 = 2.0f * quad_history[TimeSync_Cnt].q1;
 	_2q2 = 2.0f * quad_history[TimeSync_Cnt].q2;
@@ -256,20 +256,20 @@ void ahrs_update()
 	q2q2 = quad_history[TimeSync_Cnt].q2 * quad_history[TimeSync_Cnt].q2;
 	q3q3 = quad_history[TimeSync_Cnt].q3 * quad_history[TimeSync_Cnt].q3;
 
-	//æ¢¯åº¦ä¸‹é™ç®—æ³•,è®¡ç®—è¯¯å·®å‡½æ•°çš„æ¢¯åº¦
+	//Ìİ¶ÈÏÂ½µËã·¨,¼ÆËãÎó²îº¯ÊıµÄÌİ¶È
 	s0 = _4q0 * q2q2 + _2q2 * recip_accel.x + _4q0 * q1q1 - _2q1 * recip_accel.y;
 	s1 = _4q1 * q3q3 - _2q3 * recip_accel.x + 4.0f * q0q0 * quad_history[TimeSync_Cnt].q1 - _2q0 * recip_accel.y - _4q1 + _8q1 * q1q1 + _8q1 * q2q2 + _4q1 * recip_accel.z;
 	s2 = 4.0f * q0q0 * quad_history[TimeSync_Cnt].q2 + _2q0 * recip_accel.x + _4q2 * q3q3 - _2q3 * recip_accel.y - _4q2 + _8q2 * q1q1 + _8q2 * q2q2 + _4q2 * recip_accel.z;
 	s3 = 4.0f * q1q1 * quad_history[TimeSync_Cnt].q3 - _2q1 * recip_accel.x + 4.0f * q2q2 * quad_history[TimeSync_Cnt].q2 - _2q2 * recip_accel.y;
 
-    /* æ¢¯åº¦å½’ä¸€åŒ– */
+    /* Ìİ¶È¹éÒ»»¯ */
     recipNorm = invSqrt(s0 * s0 + s1 * s1 + s2 * s2 + s3 * s3);
     s0 *= recipNorm;
     s1 *= recipNorm;
     s2 *= recipNorm;
     s3 *= recipNorm;
 	
-	//è®¡ç®—åŠ¨æ€æ­¥é•¿
+	//¼ÆËã¶¯Ì¬²½³¤
     BETADEF = Beta_Base + 0.025 * dt * constrain(Gyro_Length_Filter, 0, 400);
     BETADEF -= 0.01 * (constrain(navigation_acce_length, 0, 1000) / 1000); 
     BETADEF = constrain(BETADEF, 0.0075, 0.06);
@@ -285,12 +285,12 @@ void ahrs_update()
     eyInt += ey * Ki * dt;
     ezInt += ez * Ki * dt;
 
-	/* è½¬æ¢ä¸ºå¼§åº¦åˆ¶ï¼Œç”¨äºå§¿æ€æ›´æ–°*/
+	/* ×ª»»Îª»¡¶ÈÖÆ£¬ÓÃÓÚ×ËÌ¬¸üĞÂ*/
 	gyro_tmp.x = this_gyro.x * PI / 180 + exInt + Kp * ex;
 	gyro_tmp.y = this_gyro.y * PI / 180 + eyInt + Kp * ey;
 	gyro_tmp.z = this_gyro.z * PI / 180 + ezInt + Kp * ez;
 
-	/* å››å…ƒæ•°å¾®åˆ†æ–¹ç¨‹è®¡ç®—æœ¬æ¬¡å¾…çŸ«æ­£å››å…ƒæ•° */
+	/* ËÄÔªÊıÎ¢·Ö·½³Ì¼ÆËã±¾´Î´ı½ÃÕıËÄÔªÊı */
 	qDot1 = 0.5f * (-this_quad.q1 * gyro_tmp.x - this_quad.q2 * gyro_tmp.y - this_quad.q3 * gyro_tmp.z);
 	qDot2 = 0.5f * (this_quad.q0 * gyro_tmp.x + this_quad.q2 * gyro_tmp.z - this_quad.q3 * gyro_tmp.y);
 	qDot3 = 0.5f * (this_quad.q0 * gyro_tmp.y - this_quad.q1 * gyro_tmp.z + this_quad.q3 * gyro_tmp.x);
@@ -301,21 +301,21 @@ void ahrs_update()
 	qDot3 -= BETADEF * s2;
 	qDot4 -= BETADEF * s3;
 	
-	//è¡¥å¿ç”±å››å…ƒæ•°å¾®åˆ†æ–¹ç¨‹å¼•å…¥çš„å§¿æ€è¯¯å·®
-	//å°†å››å…ƒæ•°å§¿æ€å¯¼æ•°ç§¯åˆ†,å¾—åˆ°å½“å‰å››å…ƒæ•°å§¿æ€
-	//äºŒé˜¶æ¯•å¡æ±‚è§£å¾®åˆ†æ–¹ç¨‹
+	//²¹³¥ÓÉËÄÔªÊıÎ¢·Ö·½³ÌÒıÈëµÄ×ËÌ¬Îó²î
+	//½«ËÄÔªÊı×ËÌ¬µ¼Êı»ı·Ö,µÃµ½µ±Ç°ËÄÔªÊı×ËÌ¬
+	//¶ş½×±Ï¿¨Çó½âÎ¢·Ö·½³Ì
 	delta = (dt * gyro_tmp.x) * (dt * gyro_tmp.x) + (dt * gyro_tmp.y) * (dt * gyro_tmp.y) + (dt* gyro_tmp.z) * (dt * gyro_tmp.z);
 	this_quad.q0 = (1.0f - delta / 8.0f) * this_quad.q0 + qDot1 * dt;
 	this_quad.q1 = (1.0f - delta / 8.0f) * this_quad.q1 + qDot2 * dt;
 	this_quad.q2 = (1.0f - delta / 8.0f) * this_quad.q2 + qDot3 * dt;
 	this_quad.q3 = (1.0f - delta / 8.0f) * this_quad.q3 + qDot4 * dt;
-	//å•ä½åŒ–å››å…ƒæ•°
+	//µ¥Î»»¯ËÄÔªÊı
 	recipNorm = invSqrt(this_quad.q0 * this_quad.q0 + this_quad.q1 * this_quad.q1 + this_quad.q2 * this_quad.q2 + this_quad.q3 * this_quad.q3);
 	this_quad.q0 *= recipNorm;
 	this_quad.q1 *= recipNorm;
 	this_quad.q2 *= recipNorm;
 	this_quad.q3 *= recipNorm;
-	//å››å…ƒæ•°åˆ°æ¬§æ‹‰è§’è½¬æ¢,è½¬æ¢é¡ºåºä¸ºZ-Y-X,å‚è§<Representing Attitude: Euler Angles, Unit Quaternions, and Rotation Vectors>.pdfä¸€æ–‡,P24 */
+	//ËÄÔªÊıµ½Å·À­½Ç×ª»»,×ª»»Ë³ĞòÎªZ-Y-X,²Î¼û<Representing Attitude: Euler Angles, Unit Quaternions, and Rotation Vectors>.pdfÒ»ÎÄ,P24 */
 	Pitch = atan2(2.0f * this_quad.q2 * this_quad.q3 + 2.0f * this_quad.q0 * this_quad.q1, -2.0f * this_quad.q1 * this_quad.q1 - 2.0f * this_quad.q2 * this_quad.q2 + 1.0f) * RAD2DEG;
 	Roll = asin(2.0f * this_quad.q0 * this_quad.q2 - 2.0f * this_quad.q1 * this_quad.q3) * RAD2DEG;
 	
@@ -326,7 +326,7 @@ void ahrs_update()
 	Yaw += Yaw_Gyro_Earth_Frame * dt;
 	Mag_ethx = MagDataFilter.x * Cos_Roll+ MagDataFilter.z * Sin_Roll;
 	Mag_ethy = MagDataFilter.x * Sin_Pitch*Sin_Roll + MagDataFilter.y * Cos_Pitch- MagDataFilter.z * Cos_Roll*Sin_Pitch;
-	//åæ­£åˆ‡å¾—åˆ°ç£åŠ›è®¡è§‚æµ‹è§’åº¦
+	//·´ÕıÇĞµÃµ½´ÅÁ¦¼Æ¹Û²â½Ç¶È
 	Mag_Yaw=atan2(Mag_ethx, Mag_ethy) * RAD2DEG;
     if ((Mag_Yaw > 90 && Yaw < -90) || (Mag_Yaw < -90 && Yaw > 90))
       Yaw = -Yaw * (1 - Yaw_Fusion_Beta) + Mag_Yaw * Yaw_Fusion_Beta;

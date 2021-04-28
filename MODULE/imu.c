@@ -12,50 +12,50 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-//å·´ç‰¹æ²ƒæ–¯æ»¤æ³¢å‚æ•° 200hz---30hz-98hz é‡‡æ ·-é˜»å¸¦
+//°ÍÌØÎÖË¹ÂË²¨²ÎÊı 200hz---30hz-98hz ²ÉÑù-×è´ø
 static Butter_Parameter Bandstop_Filter_Parameter_30_98={
 	1,					0.6270403082828,	-0.2905268567319,
 	0.354736571634,		0.6270403082828,	0.354736571634
 };
-//å·´ç‰¹æ²ƒæ–¯æ»¤æ³¢å‚æ•° 200hz---30hz-94hz  é‡‡æ ·-é˜»å¸¦
+//°ÍÌØÎÖË¹ÂË²¨²ÎÊı 200hz---30hz-94hz  ²ÉÑù-×è´ø
 static Butter_Parameter Bandstop_Filter_Parameter_30_94={
 	1,   				0.5334540355829,	-0.2235264828971,
 	0.3882367585514,	0.5334540355829,	0.3882367585514
 };
-//å·´ç‰¹æ²ƒæ–¯æ»¤æ³¢å‚æ•°
+//°ÍÌØÎÖË¹ÂË²¨²ÎÊı
 static Butter_Parameter Accel_Parameter;
 static Butter_Parameter Acce_Correct_Parameter;
-//å·´ç‰¹æ²ƒæ–¯æ»¤æ³¢å†…éƒ¨æ•°æ®
+//°ÍÌØÎÖË¹ÂË²¨ÄÚ²¿Êı¾İ
 static Butter_BufferData Gyro_BufferData_BPF[3];
 static Butter_BufferData Accel_BufferData_BPF[3];
 static Butter_BufferData Accel_BufferData[3];
 static Butter_BufferData Butter_Buffer_Correct[3];
-//çª—å£æ»¤æ³¢ä¿å­˜åºåˆ—å¤§å°
+//´°¿ÚÂË²¨±£´æĞòÁĞ´óĞ¡
 #define Filter_Data_SIZE 5
-//çª—å£æ»¤æ³¢ä¿å­˜åºåˆ—
+//´°¿ÚÂË²¨±£´æĞòÁĞ
 static float Filter_Data_X[Filter_Data_SIZE];
 static float Filter_Data_Y[Filter_Data_SIZE];
 static float Filter_Data_Z[Filter_Data_SIZE];
-//ä¼ æ„Ÿå™¨åŸå§‹æ•°æ®
+//´«¸ĞÆ÷Ô­Ê¼Êı¾İ
 Vector3i_t accDataFilter;
 Vector3i_t gyroDataFilter;
 Vector3i_t acceCorrectFilter;
 Vector3i_t MagDataFilter;
 float tempDataFilter;
 
-//åŠ é€Ÿè®¡æ ¡å‡†ï¼Œä¿å­˜6é¢å¾…çŸ«æ­£æ•°æ®
+//¼ÓËÙ¼ÆĞ£×¼£¬±£´æ6Ãæ´ı½ÃÕıÊı¾İ
 Vector3f_t acce_calibration_data[6];
-//åŠ é€Ÿè®¡æ ¡å‡†çŠ¶æ€
+//¼ÓËÙ¼ÆĞ£×¼×´Ì¬
 uint8_t acce_calibration_flag;
-//ç£åŠ›è®¡æ ¡å‡†ä¸‰é¢çš„çŠ¶æ€
+//´ÅÁ¦¼ÆĞ£×¼ÈıÃæµÄ×´Ì¬
 uint8_t mag_360_flag[3][36];
-//ç£åŠ›è®¡æ ¡å‡†çŠ¶æ€
+//´ÅÁ¦¼ÆĞ£×¼×´Ì¬
 uint8_t mag_calibration_flag;
-//ç£åŠ›è®¡æ ¡å‡†å½“å‰è§’åº¦
+//´ÅÁ¦¼ÆĞ£×¼µ±Ç°½Ç¶È
 float mag_correct_yaw;
-//é™€èºä»ªæ ¡å‡†çŠ¶æ€
+//ÍÓÂİÒÇĞ£×¼×´Ì¬
 uint16_t gyro_calibration_flag;
-//ç£åŠ›è®¡çŸ«æ­£éå†è§’åº¦ï¼Œç¡®ä¿æ•°æ®é‡‡é›†å……åˆ†
+//´ÅÁ¦¼Æ½ÃÕı±éÀú½Ç¶È£¬È·±£Êı¾İ²É¼¯³ä·Ö
 const int16_t mag_360_define[36]={
   0,10,20,30,40,50,60,70,80,90,
   100,110,120,130,140,150,160,170,180,190,
@@ -64,30 +64,30 @@ const int16_t mag_360_define[36]={
 };
 
 /**********************************************************************************************************
-*å‡½ æ•° å: imu_init
-*åŠŸèƒ½è¯´æ˜: IMUåˆå§‹åŒ–
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: imu_init
+*¹¦ÄÜËµÃ÷: IMU³õÊ¼»¯
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void imu_init()
 {
-	//è®¾ç½®ä¼ æ„Ÿå™¨æ»¤æ³¢å‚æ•°
+	//ÉèÖÃ´«¸ĞÆ÷ÂË²¨²ÎÊı
 	//Set_Cutoff_Frequency(Sampling_Freq, 50,&Gyro_Parameter);
 	Set_Cutoff_Frequency(Sampling_Freq, 60,&Accel_Parameter);
 	Set_Cutoff_Frequency(Sampling_Freq, 1,&Acce_Correct_Parameter);
-	//MPU6050åˆå§‹åŒ–
+	//MPU6050³õÊ¼»¯
 	MPU6050_Detect();
     MPU6050_Init();
-	//IST83100åˆå§‹åŒ–
+	//IST83100³õÊ¼»¯
 	IST8310_Detect();
     IST8310_Init();
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: get_imu_data
-*åŠŸèƒ½è¯´æ˜: è·å–IMUæ•°æ®å¹¶æ»¤æ³¢
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: get_imu_data
+*¹¦ÄÜËµÃ÷: »ñÈ¡IMUÊı¾İ²¢ÂË²¨
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void get_imu_data()
 {
@@ -96,26 +96,26 @@ void get_imu_data()
 	float tempRawData;
 	static uint8_t IST8310_Sample_Cnt = 0;
 	
-	//è¯»å–ç£åŠ›è®¡ä¼ æ„Ÿå™¨
+	//¶ÁÈ¡´ÅÁ¦¼Æ´«¸ĞÆ÷
 	static Vector3i_t MagRawData;
-	//è¯»å–åŠ é€Ÿåº¦ä¼ æ„Ÿå™¨
+	//¶ÁÈ¡¼ÓËÙ¶È´«¸ĞÆ÷
 	MPU6050_ReadAcc(&accRawData);
-	//è¯»å–é™€èºä»ªä¼ æ„Ÿå™¨
+	//¶ÁÈ¡ÍÓÂİÒÇ´«¸ĞÆ÷
 	MPU6050_ReadGyro(&gyroRawData);
-	//è¯»å–æ¸©åº¦ä¼ æ„Ÿå™¨
+	//¶ÁÈ¡ÎÂ¶È´«¸ĞÆ÷
 	MPU6050_ReadTemp(&tempRawData);
-	//è¯»å–ç£åŠ›è®¡ä¼ æ„Ÿå™¨
+	//¶ÁÈ¡´ÅÁ¦¼Æ´«¸ĞÆ÷
 	IST8310_Sample_Cnt++;
 	if(IST8310_Sample_Cnt == 1) {
-		//å•æ¬¡æµ‹é‡æ¨¡å¼ï¼Œè‡³å°‘é—´éš”6ms
+		//µ¥´Î²âÁ¿Ä£Ê½£¬ÖÁÉÙ¼ä¸ô6ms
 		IST8310_Single_Measurement();
 	} else if(IST8310_Sample_Cnt==4) {
-		//è¯»å–ç£åŠ›è®¡ä¼ æ„Ÿå™¨
+		//¶ÁÈ¡´ÅÁ¦¼Æ´«¸ĞÆ÷
 		IST8310_ReadMag(&MagRawData);
 		IST8310_Sample_Cnt=0;
 	}
 	
-	//æ•°æ®æ ¡å‡†
+	//Êı¾İĞ£×¼
 	accRawData.x = paramer_save_data.accel_x_scale * accRawData.x - paramer_save_data.accel_x_offset * ACCEL_SCALE;
 	accRawData.y = paramer_save_data.accel_y_scale * accRawData.y - paramer_save_data.accel_y_offset * ACCEL_SCALE;
 	accRawData.z = paramer_save_data.accel_z_scale * accRawData.z - paramer_save_data.accel_z_offset * ACCEL_SCALE;
@@ -126,7 +126,7 @@ void get_imu_data()
 	gyroRawData.y = gyroRawData.y - paramer_save_data.gyro_y_offset;
 	gyroRawData.z = gyroRawData.z - paramer_save_data.gyro_z_offset;
 	
-	//é™€èºä»ªæ•°æ®å¸¦é˜»æ»¤æ³¢
+	//ÍÓÂİÒÇÊı¾İ´ø×èÂË²¨
 	gyroDataFilter.x = Butterworth_Filter(gyroRawData.x, &Gyro_BufferData_BPF[0], &Bandstop_Filter_Parameter_30_98);
 	gyroDataFilter.y = Butterworth_Filter(gyroRawData.y, &Gyro_BufferData_BPF[1], &Bandstop_Filter_Parameter_30_98);
 	gyroDataFilter.z = Butterworth_Filter(gyroRawData.z, &Gyro_BufferData_BPF[2], &Bandstop_Filter_Parameter_30_98);
@@ -135,12 +135,12 @@ void get_imu_data()
 	gyroDataFilter.y = gyroRawData.y;
 	gyroDataFilter.z = gyroRawData.z;
 	
-	//åŠ é€Ÿè®¡çŸ«æ­£æ•°æ®å¸¦é˜»æ»¤æ³¢
+	//¼ÓËÙ¼Æ½ÃÕıÊı¾İ´ø×èÂË²¨
 	acceCorrectFilter.x = Butterworth_Filter(accRawData.x, &Butter_Buffer_Correct[0], &Acce_Correct_Parameter);
 	acceCorrectFilter.y = Butterworth_Filter(accRawData.y, &Butter_Buffer_Correct[1], &Acce_Correct_Parameter);
 	acceCorrectFilter.z = Butterworth_Filter(accRawData.z, &Butter_Buffer_Correct[2], &Acce_Correct_Parameter);
 	
-	//åŠ é€Ÿè®¡æ•°æ®å¸¦é˜»æ»¤æ³¢
+	//¼ÓËÙ¼ÆÊı¾İ´ø×èÂË²¨
 	accRawData.x = Butterworth_Filter(accRawData.x, &Accel_BufferData_BPF[0], &Bandstop_Filter_Parameter_30_94);
 	accRawData.y = Butterworth_Filter(accRawData.y, &Accel_BufferData_BPF[1], &Bandstop_Filter_Parameter_30_94);
 	accRawData.z = Butterworth_Filter(accRawData.z, &Accel_BufferData_BPF[2], &Bandstop_Filter_Parameter_30_94);
@@ -149,20 +149,20 @@ void get_imu_data()
 	accDataFilter.y = Butterworth_Filter(accRawData.y, &Accel_BufferData[1], &Accel_Parameter);
 	accDataFilter.z = Butterworth_Filter(accRawData.z, &Accel_BufferData[2], &Accel_Parameter);
 	
-	//æ¸©åº¦æ•°æ®ä¸æ»¤æ³¢
+	//ÎÂ¶ÈÊı¾İ²»ÂË²¨
 	tempDataFilter = tempRawData;
 	
-	//ç£åŠ›è®¡çª—å£å¹³å‡æ»¤æ³¢ï¼Œè®©æ•°æ®å¹³æ»‘
+	//´ÅÁ¦¼Æ´°¿ÚÆ½¾ùÂË²¨£¬ÈÃÊı¾İÆ½»¬
 	MagDataFilter.x = GildeAverageValueFilter(MagRawData.x, Filter_Data_X, Filter_Data_SIZE);
 	MagDataFilter.y = GildeAverageValueFilter(MagRawData.y, Filter_Data_Y, Filter_Data_SIZE);
 	MagDataFilter.z = GildeAverageValueFilter(MagRawData.z, Filter_Data_Z, Filter_Data_SIZE);
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: Calibrate_Reset_Matrices
-*åŠŸèƒ½è¯´æ˜: åˆå§‹åŒ–çŸ©é˜µå˜é‡
-*å½¢    å‚: æ¢¯åº¦çŸ©é˜µ HessiançŸ©é˜µ
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: Calibrate_Reset_Matrices
+*¹¦ÄÜËµÃ÷: ³õÊ¼»¯¾ØÕó±äÁ¿
+*ĞÎ    ²Î: Ìİ¶È¾ØÕó Hessian¾ØÕó
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 static void Calibrate_Reset_Matrices(float dS[6], float JS[6][6])
 {
@@ -176,18 +176,18 @@ static void Calibrate_Reset_Matrices(float dS[6], float JS[6][6])
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: Calibrate_Find_Delta
-*åŠŸèƒ½è¯´æ˜: ä½¿ç”¨é«˜æ–¯æ¶ˆå…ƒæ³•æ±‚è§£â–³
-*å½¢    å‚: æ¢¯åº¦çŸ©é˜µ HessiançŸ©é˜µ è¿­ä»£æ­¥é•¿
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: Calibrate_Find_Delta
+*¹¦ÄÜËµÃ÷: Ê¹ÓÃ¸ßË¹ÏûÔª·¨Çó½â¡÷
+*ĞÎ    ²Î: Ìİ¶È¾ØÕó Hessian¾ØÕó µü´ú²½³¤
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 static void Calibrate_Find_Delta(float dS[6], float JS[6][6], float delta[6])
 {
 	int16_t i, j, k;
 	float mu;
-	//é€æ¬¡æ¶ˆå…ƒï¼Œå°†çº¿æ€§æ–¹ç¨‹ç»„è½¬æ¢ä¸ºä¸Šä¸‰è§’æ–¹ç¨‹ç»„
+	//Öğ´ÎÏûÔª£¬½«ÏßĞÔ·½³Ì×é×ª»»ÎªÉÏÈı½Ç·½³Ì×é
 	for (i = 0; i < 6; i++) {
-		//è‹¥JtJ[i][i]ä¸ä¸º0ï¼Œå°†è¯¥åˆ—åœ¨JtJ[i][i]ä»¥ä¸‹çš„å…ƒç´ æ¶ˆä¸º0
+		//ÈôJtJ[i][i]²»Îª0£¬½«¸ÃÁĞÔÚJtJ[i][i]ÒÔÏÂµÄÔªËØÏûÎª0
 		for (j = i + 1; j < 6; j++) {
 			mu = JS[i][j] / JS[i][i];
 			if (mu != 0.0f) {
@@ -198,7 +198,7 @@ static void Calibrate_Find_Delta(float dS[6], float JS[6][6], float delta[6])
 			}
 		}
 	}
-	//å›ä»£å¾—åˆ°æ–¹ç¨‹ç»„çš„è§£
+	//»Ø´úµÃµ½·½³Ì×éµÄ½â
 	for (i = 5; i >= 0; i--)
 	{
 		dS[i] /= JS[i][i];
@@ -216,10 +216,10 @@ static void Calibrate_Find_Delta(float dS[6], float JS[6][6], float delta[6])
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: Calibrate_Update_Matrices
-*åŠŸèƒ½è¯´æ˜: ç®—æ±‚è§£â–³æ‰€ç”¨åˆ°çš„çŸ©é˜µ
-*å½¢    å‚: æ¢¯åº¦çŸ©é˜µ HessiançŸ©é˜µ æ–¹ç¨‹è§£ æ•°æ®
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: Calibrate_Update_Matrices
+*¹¦ÄÜËµÃ÷: ËãÇó½â¡÷ËùÓÃµ½µÄ¾ØÕó
+*ĞÎ    ²Î: Ìİ¶È¾ØÕó Hessian¾ØÕó ·½³Ì½â Êı¾İ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 static void Calibrate_Update_Matrices(float dS[6], float JS[6][6], float beta[6], float data[3])
 {
@@ -230,28 +230,28 @@ static void Calibrate_Update_Matrices(float dS[6], float JS[6][6], float beta[6]
 	for (j = 0; j < 3; j++) {
 		b = beta[3 + j];
 		dx = (float)data[j] - beta[j];
-		//è®¡ç®—æ®‹å·® (ä¼ æ„Ÿå™¨è¯¯å·®æ–¹ç¨‹çš„è¯¯å·®)
+		//¼ÆËã²Ğ²î (´«¸ĞÆ÷Îó²î·½³ÌµÄÎó²î)
 		residual -= b * b * dx * dx;
-		//è®¡ç®—é›…å¯æ¯”çŸ©é˜µ
+		//¼ÆËãÑÅ¿É±È¾ØÕó
 		jacobian[j] = 2.0f * b * b * dx;
 		jacobian[3 + j] = -2.0f * b * dx * dx;
 	}
 
 	for (j = 0; j < 6; j++) {
-		//è®¡ç®—å‡½æ•°æ¢¯åº¦
+		//¼ÆËãº¯ÊıÌİ¶È
 		dS[j] += jacobian[j] * residual;
 		for (k = 0; k < 6; k++) {
-			//è®¡ç®—HessiançŸ©é˜µï¼ˆç®€åŒ–å½¢å¼ï¼Œçœç•¥äºŒé˜¶åå¯¼ï¼‰ï¼Œå³é›…å¯æ¯”çŸ©é˜µä¸å…¶è½¬ç½®çš„ä¹˜ç§¯
+			//¼ÆËãHessian¾ØÕó£¨¼ò»¯ĞÎÊ½£¬Ê¡ÂÔ¶ş½×Æ«µ¼£©£¬¼´ÑÅ¿É±È¾ØÕóÓëÆä×ªÖÃµÄ³Ë»ı
 			JS[j][k] += jacobian[j] * jacobian[k];
 		}
 	}
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: Calibrate_accel
-*åŠŸèƒ½è¯´æ˜: é«˜æ–¯ç‰›é¡¿æ³•æ±‚è§£ä¼ æ„Ÿå™¨è¯¯å·®æ–¹ç¨‹ï¼Œå¾—åˆ°æ ¡å‡†å‚æ•°
-*å½¢    å‚: ä¼ æ„Ÿå™¨é‡‡æ ·æ•°æ®ï¼ˆ6ç»„ï¼‰ é›¶åè¯¯å·®æŒ‡é’ˆ æ¯”ä¾‹è¯¯å·®æŒ‡é’ˆ
-*è¿” å› å€¼: 0ï¼šå¤±è´¥ 1ï¼šæˆåŠŸ
+*º¯ Êı Ãû: Calibrate_accel
+*¹¦ÄÜËµÃ÷: ¸ßË¹Å£¶Ù·¨Çó½â´«¸ĞÆ÷Îó²î·½³Ì£¬µÃµ½Ğ£×¼²ÎÊı
+*ĞÎ    ²Î: ´«¸ĞÆ÷²ÉÑùÊı¾İ£¨6×é£© ÁãÆ«Îó²îÖ¸Õë ±ÈÀıÎó²îÖ¸Õë
+*·µ »Ø Öµ: 0£ºÊ§°Ü 1£º³É¹¦
 **********************************************************************************************************/
 static uint8_t Calibrate_accel(Vector3f_t accel_sample[6], Vector3f_t *accel_offsets, Vector3f_t *accel_scale)
 {
@@ -260,34 +260,34 @@ static uint8_t Calibrate_accel(Vector3f_t accel_sample[6], Vector3f_t *accel_off
 	float eps = 0.000000001;
 	float change = 100.0;
 	float data[3] = {0};
-	//æ–¹ç¨‹è§£
+	//·½³Ì½â
 	float beta[6] = {0};
-	//è¿­ä»£æ­¥é•¿
+	//µü´ú²½³¤
 	float delta[6] = {0};
-	//æ¢¯åº¦çŸ©é˜µ
+	//Ìİ¶È¾ØÕó
 	float ds[6] = {0};
-	//HessiançŸ©é˜µ
+	//Hessian¾ØÕó
 	float JS[6][6] = {0};
-	//è®¾å®šæ–¹ç¨‹è§£åˆå€¼
+	//Éè¶¨·½³Ì½â³õÖµ
 	beta[0] = beta[1] = beta[2] = 0;
 	beta[3] = beta[4] = beta[5] = 1.0f / GRAVITY_MSS;
-	//å¼€å§‹è¿­ä»£ï¼Œå½“è¿­ä»£æ­¥é•¿å°äºepsæ—¶ç»“æŸè®¡ç®—ï¼Œå¾—åˆ°æ–¹ç¨‹è¿‘ä¼¼æœ€ä¼˜è§£
+	//¿ªÊ¼µü´ú£¬µ±µü´ú²½³¤Ğ¡ÓÚepsÊ±½áÊø¼ÆËã£¬µÃµ½·½³Ì½üËÆ×îÓÅ½â
 	while (num_iterations < 20 && change > eps)
 	{
 		num_iterations++;
-		//çŸ©é˜µåˆå§‹åŒ–
+		//¾ØÕó³õÊ¼»¯
 		Calibrate_Reset_Matrices(ds, JS);
 
-		//è®¡ç®—è¯¯å·®æ–¹ç¨‹å‡½æ•°çš„æ¢¯åº¦JtRå’ŒHessiançŸ©é˜µJtJ
+		//¼ÆËãÎó²î·½³Ìº¯ÊıµÄÌİ¶ÈJtRºÍHessian¾ØÕóJtJ
 		for (i = 0; i < 6; i++) {
 			data[0] = accel_sample[i].x;
 			data[1] = accel_sample[i].y;
 			data[2] = accel_sample[i].z;
 			Calibrate_Update_Matrices(ds, JS, beta, data);
 		}
-		//é«˜æ–¯æ¶ˆå…ƒæ³•æ±‚è§£æ–¹ç¨‹ï¼šJtJ * delta = JtRï¼Œå¾—åˆ°delta
+		//¸ßË¹ÏûÔª·¨Çó½â·½³Ì£ºJtJ * delta = JtR£¬µÃµ½delta
 		Calibrate_Find_Delta(ds, JS, delta);
-		//è®¡ç®—è¿­ä»£æ­¥é•¿
+		//¼ÆËãµü´ú²½³¤
 		change = delta[0] * delta[0] +
 			delta[0] * delta[0] +
 			delta[1] * delta[1] +
@@ -295,12 +295,12 @@ static uint8_t Calibrate_accel(Vector3f_t accel_sample[6], Vector3f_t *accel_off
 			delta[3] * delta[3] / (beta[3] * beta[3]) +
 			delta[4] * delta[4] / (beta[4] * beta[4]) +
 			delta[5] * delta[5] / (beta[5] * beta[5]);
-		//æ›´æ–°æ–¹ç¨‹è§£
+		//¸üĞÂ·½³Ì½â
 		for (i = 0; i < 6; i++) {
 			beta[i] -= delta[i];
 		}
 	}
-	//æ›´æ–°æ ¡å‡†å‚æ•°
+	//¸üĞÂĞ£×¼²ÎÊı
 	accel_scale->x = beta[3] * GRAVITY_MSS;
 	accel_scale->y = beta[4] * GRAVITY_MSS;
 	accel_scale->z = beta[5] * GRAVITY_MSS;
@@ -308,7 +308,7 @@ static uint8_t Calibrate_accel(Vector3f_t accel_sample[6], Vector3f_t *accel_off
 	accel_offsets->y = beta[1] * accel_scale->y;
 	accel_offsets->z = beta[2] * accel_scale->z;
 
-	//è¾ƒå‡†å‚æ•°æ£€æŸ¥
+	//½Ï×¼²ÎÊı¼ì²é
 	if (fabsf(accel_scale->x - 1.0f) > 0.5f || fabsf(accel_scale->y - 1.0f) > 0.5f || fabsf(accel_scale->z - 1.0f) > 0.5f) {
 		return 0;
 	}
@@ -319,10 +319,10 @@ static uint8_t Calibrate_accel(Vector3f_t accel_sample[6], Vector3f_t *accel_off
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: accel_calibration
-*åŠŸèƒ½è¯´æ˜: åŠ é€Ÿè®¡æ ¡å‡†
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: accel_calibration
+*¹¦ÄÜËµÃ÷: ¼ÓËÙ¼ÆĞ£×¼
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void accel_calibration(void)
 {
@@ -333,7 +333,7 @@ void accel_calibration(void)
 	Vector3f_t new_offset;
 	Vector3f_t new_scales;
 	
-	//æ¸…ç©ºç›¸å…³å‚æ•°
+	//Çå¿ÕÏà¹Ø²ÎÊı
 	acce_calibration_flag = 0;
 	for(i = 0; i < 6; i++) {
 		acce_calibration_data[i].x = 0;
@@ -347,55 +347,55 @@ void accel_calibration(void)
 	paramer_save_data.accel_y_scale = 1;
 	paramer_save_data.accel_z_scale = 1;
 	
-	//åˆå§‹åŒ–imu
+	//³õÊ¼»¯imu
 	imu_init();
 	
-	//ç¬¬ä¸€é¢é£æ§å¹³æ”¾ï¼ŒZè½´æ­£å‘æœç€æ­£ä¸Šæ–¹
-	//ç¬¬äºŒé¢é£æ§å¹³æ”¾ï¼ŒXè½´æ­£å‘æœç€æ­£ä¸Šæ–¹
-	//ç¬¬ä¸‰é¢é£æ§å¹³æ”¾ï¼ŒXè½´æ­£å‘æœç€æ­£ä¸‹æ–¹
-	//ç¬¬å››é¢é£æ§å¹³æ”¾ï¼ŒYè½´æ­£å‘æœç€æ­£ä¸‹æ–¹
-	//ç¬¬äº”é¢é£æ§å¹³æ”¾ï¼ŒYè½´æ­£å‘æœç€æ­£ä¸Šæ–¹
-	//ç¬¬å…­é¢é£æ§å¹³æ”¾ï¼ŒZè½´æ­£å‘æœç€æ­£ä¸‹æ–¹
+	//µÚÒ»Ãæ·É¿ØÆ½·Å£¬ZÖáÕıÏò³¯×ÅÕıÉÏ·½
+	//µÚ¶şÃæ·É¿ØÆ½·Å£¬XÖáÕıÏò³¯×ÅÕıÉÏ·½
+	//µÚÈıÃæ·É¿ØÆ½·Å£¬XÖáÕıÏò³¯×ÅÕıÏÂ·½
+	//µÚËÄÃæ·É¿ØÆ½·Å£¬YÖáÕıÏò³¯×ÅÕıÏÂ·½
+	//µÚÎåÃæ·É¿ØÆ½·Å£¬YÖáÕıÏò³¯×ÅÕıÉÏ·½
+	//µÚÁùÃæ·É¿ØÆ½·Å£¬ZÖáÕıÏò³¯×ÅÕıÏÂ·½
 	while (acce_calibration_flag < 6) {
 		uint8_t key;
-		//ç­‰å¾…é¥æ§å™¨æŒ‡ä»¤
+		//µÈ´ıÒ£¿ØÆ÷Ö¸Áî
 		key = rc_scan();
 		if (key == 0x01) {
 			uint16_t num_samples=0;
 			
-			//æé«˜æœ¬ä»»åŠ¡ä¼˜å…ˆçº§
+			//Ìá¸ß±¾ÈÎÎñÓÅÏÈ¼¶
 			this_task_priority = uxTaskPriorityGet(NULL);
 			vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);
 			
-			//ç´¯è®¡å½’é›¶
+			//ÀÛ¼Æ¹éÁã
 			acce_sample_sum.x = 0;
 			acce_sample_sum.y = 0;
 			acce_sample_sum.z = 0;
 			
-			//åˆå§‹åŒ–æ—¶é—´
+			//³õÊ¼»¯Ê±¼ä
 			xLastWakeTime = xTaskGetTickCount();
 			while(num_samples<1000) {
 				get_imu_data();
-				//åŠ é€Ÿåº¦è®¡è½¬åŒ–ä¸º1gé‡ç¨‹ä¸‹
+				//¼ÓËÙ¶È¼Æ×ª»¯Îª1gÁ¿³ÌÏÂ
 				acce_sample_sum.x += acceCorrectFilter.x * ACCEL_SCALE;
 				acce_sample_sum.y += acceCorrectFilter.y * ACCEL_SCALE;
 				acce_sample_sum.z += acceCorrectFilter.z * ACCEL_SCALE;
 				num_samples++;
-				//5mså‘¨æœŸå®šæ—¶
+				//5msÖÜÆÚ¶¨Ê±
 				vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
 			}
-			//ä¿å­˜å¯¹åº”é¢çš„åŠ é€Ÿåº¦è®¡é‡
+			//±£´æ¶ÔÓ¦ÃæµÄ¼ÓËÙ¶È¼ÆÁ¿
 			acce_calibration_data[acce_calibration_flag].x = acce_sample_sum.x / num_samples;
 			acce_calibration_data[acce_calibration_flag].y = acce_sample_sum.y / num_samples;
 			acce_calibration_data[acce_calibration_flag].z = acce_sample_sum.z / num_samples;
 			acce_calibration_flag++;
-			//æ¢å¤æœ¬ä»»åŠ¡ä¼˜å…ˆçº§
+			//»Ö¸´±¾ÈÎÎñÓÅÏÈ¼¶
 			vTaskPrioritySet(NULL, this_task_priority);
 		}
 	}
-	//ç”¨æ‰€å¾—6é¢æ•°æ®è®¡ç®—åŠ é€Ÿåº¦æ ¡å‡†æ•°æ®
+	//ÓÃËùµÃ6ÃæÊı¾İ¼ÆËã¼ÓËÙ¶ÈĞ£×¼Êı¾İ
 	if(Calibrate_accel(acce_calibration_data, &new_offset, &new_scales)) {
-		//å‚æ•°ä¿å­˜
+		//²ÎÊı±£´æ
 		paramer_save_data.accel_x_offset = new_offset.x;
 		paramer_save_data.accel_y_offset = new_offset.y;
 		paramer_save_data.accel_z_offset = new_offset.z;
@@ -407,10 +407,10 @@ void accel_calibration(void)
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: mag_calibration_one_is_ok
-*åŠŸèƒ½è¯´æ˜: åˆ¤æ–­å•é¢é™€èºä»ª
-*å½¢    å‚: å•é¢æ ¡å‡†çŠ¶æ€ä½
-*è¿” å› å€¼: 1ï¼šå®Œæˆ 0ï¼šæœªå®Œæˆ
+*º¯ Êı Ãû: mag_calibration_one_is_ok
+*¹¦ÄÜËµÃ÷: ÅĞ¶Ïµ¥ÃæÍÓÂİÒÇ
+*ĞÎ    ²Î: µ¥ÃæĞ£×¼×´Ì¬Î»
+*·µ »Ø Öµ: 1£ºÍê³É 0£ºÎ´Íê³É
 **********************************************************************************************************/
 static uint8_t mag_calibration_one_is_ok(uint8_t mag_360_flag[36])
 {
@@ -585,10 +585,10 @@ void LS_Calculate(Least_Squares_Intermediate_Variable * pLSQ,
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: mag_calibration
-*åŠŸèƒ½è¯´æ˜: ç£åŠ›è®¡æ ¡å‡†
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: mag_calibration
+*¹¦ÄÜËµÃ÷: ´ÅÁ¦¼ÆĞ£×¼
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void mag_calibration(void)
 {
@@ -599,7 +599,7 @@ void mag_calibration(void)
 	UBaseType_t this_task_priority;
     portTickType xLastWakeTime;
 	
-	//æ¸…ç©ºç£åŠ›è®¡æ ¡å‡†å…¨éƒ¨æ ‡å¿—
+	//Çå¿Õ´ÅÁ¦¼ÆĞ£×¼È«²¿±êÖ¾
 	mag_calibration_flag = 0;
 	for (i = 0; i < 3; i++) {
 		for (j = 0; j < 36; j++) {
@@ -609,25 +609,24 @@ void mag_calibration(void)
 	paramer_save_data.mag_x_offset = 0;
 	paramer_save_data.mag_y_offset = 0;
 	paramer_save_data.mag_z_offset = 0;
-	//åˆå§‹åŒ–imu
+	//³õÊ¼»¯imu
 	imu_init();
-	//ç­‰å¾…é¥æ§å™¨ç»™å‡ºç›¸åº”
+	//µÈ´ıÒ£¿ØÆ÷¸ø³öÏàÓ¦
 	while (rc_scan() != 0x07);
-	//æé«˜æœ¬ä»»åŠ¡ä¼˜å…ˆçº§
+	//Ìá¸ß±¾ÈÎÎñÓÅÏÈ¼¶
 	this_task_priority = uxTaskPriorityGet(NULL);
 	vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);
-	//å½“å‰è§’åº¦å½’0
+	//µ±Ç°½Ç¶È¹é0
 	mag_correct_yaw = 0;
-	//å¾—åˆ°åˆå§‹æ—¶é—´
+	//µÃµ½³õÊ¼Ê±¼ä
 	xLastWakeTime = xTaskGetTickCount();
-	Get_Time_Period(&Time_Delta);
 	while(mag_calibration_one_is_ok(mag_360_flag[0]) == 0) {
-		//æ›´æ–°è®¡ç®—æ—¶é—´å·®
+		//¸üĞÂ¼ÆËãÊ±¼ä²î
 		Get_Time_Period(&Time_Delta);
 		dt = Time_Delta.Time_Delta / 1000000.0;
-		//è·å–imuæ•°æ®
+		//»ñÈ¡imuÊı¾İ
 		get_imu_data();
-		//æ›´æ–°è§’åº¦
+		//¸üĞÂ½Ç¶È
 		mag_correct_yaw += gyroDataFilter.z * GYRO_CALIBRATION_COFF * dt;
 		
 		if(mag_correct_yaw < 0)
@@ -641,29 +640,28 @@ void mag_calibration(void)
 				LS_Calculate(&Mag_LS, 36*3, 0.0f, &mag_a, &mag_b, &mag_c,&mag_r);
 			}
 		}
-		//5mså‘¨æœŸå®šæ—¶
+		//5msÖÜÆÚ¶¨Ê±
 		vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
 	}
-	//æ¢å¤æœ¬ä»»åŠ¡ä¼˜å…ˆçº§
+	//»Ö¸´±¾ÈÎÎñÓÅÏÈ¼¶
 	vTaskPrioritySet(NULL, this_task_priority);
 	
-	//ç­‰å¾…é¥æ§å™¨ç»™å‡ºç›¸åº”
+	//µÈ´ıÒ£¿ØÆ÷¸ø³öÏàÓ¦
 	while (rc_scan() != 0x07);
-	//æé«˜æœ¬ä»»åŠ¡ä¼˜å…ˆçº§
+	//Ìá¸ß±¾ÈÎÎñÓÅÏÈ¼¶
 	this_task_priority = uxTaskPriorityGet(NULL);
 	vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);
-	//å½“å‰è§’åº¦å½’0
+	//µ±Ç°½Ç¶È¹é0
 	mag_correct_yaw = 0;
-	//å¾—åˆ°åˆå§‹æ—¶é—´
+	//µÃµ½³õÊ¼Ê±¼ä
 	xLastWakeTime = xTaskGetTickCount();
-	Get_Time_Period(&Time_Delta);
 	while(mag_calibration_one_is_ok(mag_360_flag[1]) == 0) {
-		//æ›´æ–°è®¡ç®—æ—¶é—´å·®
+		//¸üĞÂ¼ÆËãÊ±¼ä²î
 		Get_Time_Period(&Time_Delta);
 		dt = Time_Delta.Time_Delta / 1000000.0;
-		//è·å–imuæ•°æ®
+		//»ñÈ¡imuÊı¾İ
 		get_imu_data();
-		//æ›´æ–°è§’åº¦
+		//¸üĞÂ½Ç¶È
 		mag_correct_yaw += gyroDataFilter.y * GYRO_CALIBRATION_COFF * dt;
 		
 		if(mag_correct_yaw < 0)
@@ -677,29 +675,28 @@ void mag_calibration(void)
 				LS_Calculate(&Mag_LS, 36*3, 0.0f, &mag_a, &mag_b, &mag_c,&mag_r);
 			}
 		}
-		//5mså‘¨æœŸå®šæ—¶
+		//5msÖÜÆÚ¶¨Ê±
 		vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
 	}
-	//æ¢å¤æœ¬ä»»åŠ¡ä¼˜å…ˆçº§
+	//»Ö¸´±¾ÈÎÎñÓÅÏÈ¼¶
 	vTaskPrioritySet(NULL, this_task_priority);
 	
-	//ç­‰å¾…é¥æ§å™¨ç»™å‡ºç›¸åº”
+	//µÈ´ıÒ£¿ØÆ÷¸ø³öÏàÓ¦
 	while (rc_scan() != 0x07);
-	//æé«˜æœ¬ä»»åŠ¡ä¼˜å…ˆçº§
+	//Ìá¸ß±¾ÈÎÎñÓÅÏÈ¼¶
 	this_task_priority = uxTaskPriorityGet(NULL);
 	vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);
-	//å½“å‰è§’åº¦å½’0
+	//µ±Ç°½Ç¶È¹é0
 	mag_correct_yaw = 0;
-	//å¾—åˆ°åˆå§‹æ—¶é—´
+	//µÃµ½³õÊ¼Ê±¼ä
 	xLastWakeTime = xTaskGetTickCount();
-	Get_Time_Period(&Time_Delta);
 	while(mag_calibration_one_is_ok(mag_360_flag[2]) == 0) {
-		//æ›´æ–°è®¡ç®—æ—¶é—´å·®
+		//¸üĞÂ¼ÆËãÊ±¼ä²î
 		Get_Time_Period(&Time_Delta);
 		dt = Time_Delta.Time_Delta / 1000000.0;
-		//è·å–imuæ•°æ®
+		//»ñÈ¡imuÊı¾İ
 		get_imu_data();
-		//æ›´æ–°è§’åº¦
+		//¸üĞÂ½Ç¶È
 		mag_correct_yaw += gyroDataFilter.x * GYRO_CALIBRATION_COFF * dt;
 		
 		if(mag_correct_yaw < 0)
@@ -713,12 +710,12 @@ void mag_calibration(void)
 				LS_Calculate(&Mag_LS, 36 * 3, 0.0f, &mag_a, &mag_b, &mag_c,&mag_r);
 			}
 		}
-		//5mså‘¨æœŸå®šæ—¶
+		//5msÖÜÆÚ¶¨Ê±
 		vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
 	}
-	//æ¢å¤æœ¬ä»»åŠ¡ä¼˜å…ˆçº§
+	//»Ö¸´±¾ÈÎÎñÓÅÏÈ¼¶
 	vTaskPrioritySet(NULL, this_task_priority);
-	//ä¿å­˜å‚æ•°
+	//±£´æ²ÎÊı
 	paramer_save_data.mag_x_offset = mag_a;
 	paramer_save_data.mag_y_offset = mag_b;
 	paramer_save_data.mag_z_offset = mag_c;
@@ -726,10 +723,10 @@ void mag_calibration(void)
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: gyro_calibration
-*åŠŸèƒ½è¯´æ˜: é™€èºä»ªæ ¡å‡†æ ¡å‡†
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: gyro_calibration
+*¹¦ÄÜËµÃ÷: ÍÓÂİÒÇĞ£×¼Ğ£×¼
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void gyro_calibration()
 {
@@ -738,30 +735,30 @@ void gyro_calibration()
 	UBaseType_t this_task_priority;
     portTickType xLastWakeTime;
 	
-	//IMUåˆå§‹åŒ–
+	//IMU³õÊ¼»¯
 	imu_init();
-	//æé«˜æœ¬ä»»åŠ¡ä¼˜å…ˆçº§
+	//Ìá¸ß±¾ÈÎÎñÓÅÏÈ¼¶
 	this_task_priority = uxTaskPriorityGet(NULL);
 	vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);
-	//å¾—åˆ°åˆå§‹æ—¶é—´
+	//µÃµ½³õÊ¼Ê±¼ä
 	xLastWakeTime = xTaskGetTickCount();
 	for (gyro_calibration_flag = 0; gyro_calibration_flag < 400; gyro_calibration_flag++) {
-		//è¯»å–é™€èºä»ªä¼ æ„Ÿå™¨
+		//¶ÁÈ¡ÍÓÂİÒÇ´«¸ĞÆ÷
 		MPU6050_ReadGyro(&gyroRawData);
-		//å°†é™€èºä»ªæ•°æ®ç´¯åŠ 
+		//½«ÍÓÂİÒÇÊı¾İÀÛ¼Ó
 		gyroSumData.x += gyroRawData.x;
 		gyroSumData.y += gyroRawData.y;
 		gyroSumData.z += gyroRawData.z;
-		//5mså‘¨æœŸå®šæ—¶
+		//5msÖÜÆÚ¶¨Ê±
 		vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
 	}
-	//å–å¹³å‡
+	//È¡Æ½¾ù
 	gyroSumData.x = gyroSumData.x / 400;
 	gyroSumData.y = gyroSumData.y / 400;
 	gyroSumData.z = gyroSumData.z / 400;
-	//æ¢å¤æœ¬ä»»åŠ¡ä¼˜å…ˆçº§
+	//»Ö¸´±¾ÈÎÎñÓÅÏÈ¼¶
 	vTaskPrioritySet(NULL, this_task_priority);
-	//ä¿å­˜å‚æ•°
+	//±£´æ²ÎÊı
 	paramer_save_data.gyro_x_offset = gyroSumData.x;
 	paramer_save_data.gyro_y_offset = gyroSumData.y;
 	paramer_save_data.gyro_z_offset = gyroSumData.z;

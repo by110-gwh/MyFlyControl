@@ -1,10 +1,12 @@
 #ifndef _TIME_CNT_H
 #define _TIME_CNT_H
 
+#include "time_cnt.h"
 #include <stdint.h>
 
 typedef struct
 {
+	uint8_t inited;
 	//µ¥Î»us
 	uint32_t Last_Time;
 	uint32_t Now_Time;

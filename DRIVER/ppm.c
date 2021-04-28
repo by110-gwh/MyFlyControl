@@ -45,7 +45,7 @@ void EXTI9_5_IRQHandler(void)
 		Get_Time_Period(&ppm_time);
 		ppm_time_delta = ppm_time.Time_Delta;
 		//PPM½âÎö¿ªÊ¼
-		if (ppm_time_delta >= 2200) {
+		if (ppm_time_delta >= 2200 || ppm_time_delta == 0) {
 			ppm_sample_cnt = 0;
 		} else if (ppm_time_delta >= 900 && ppm_time_delta <= 2100) {
 			PPM_buf[ppm_sample_cnt++] = ppm_time_delta;

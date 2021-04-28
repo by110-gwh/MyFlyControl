@@ -74,6 +74,13 @@ void TIM7_IRQHandler(void)
 **********************************************************************************************************/
 void Get_Time_Period(Testime *Time_Lab)
 {
+	//如果还未初始化
+	if (Time_Lab->inited == 0) {
+		Time_Lab->inited = 1;
+		Time_Lab->Last_Time = Time_Lab->Now_Time = 10000 * TIME_ISR_CNT + TIM7->CNT;
+		Time_Lab->Time_Delta = 0;
+		Time_Lab->Time_Delta_INT = 0;
+	}
 	Time_Lab->Last_Time = Time_Lab->Now_Time;
 	//单位us
 	Time_Lab->Now_Time = 10000 * TIME_ISR_CNT + TIM7->CNT;

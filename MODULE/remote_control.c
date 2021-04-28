@@ -8,30 +8,30 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-//æœ€å¤§ä¿¯ä»°ã€æ¨ªæ»šæœŸæœ›
+//×î´ó¸©Ñö¡¢ºá¹öÆÚÍû
 #define Pit_Rol_Max 35
-//æœ€å¤§åèˆªæœŸæœ›
+//×î´óÆ«º½ÆÚÍû
 #define Yaw_Max     200
-//æ²¹é—¨åº•éƒ¨å®‰å…¨æ­»åŒº
+//ÓÍÃÅµ×²¿°²È«ËÀÇø
 #define THROTTLE_BUTTOM_SAFE_DEADBAND 50
-//è§¦å‘æ—¶é—´ï¼Œå•ä½ms
+//´¥·¢Ê±¼ä£¬µ¥Î»ms
 #define TOUCH_TIME 1000
 
-//é¥æ§å™¨çŸ«æ­£æ•°æ®
+//Ò£¿ØÆ÷½ÃÕıÊı¾İ
 rc_calibration_data_t rc_calibration_data[RC_DEADBAND_CHANNEL];
-//é¥æ§å™¨åŸå§‹æ•°æ®
+//Ò£¿ØÆ÷Ô­Ê¼Êı¾İ
 uint16_t rc_raw_data[RC_DEADBAND_CHANNEL];
-//é¥æ§å™¨æ»¤æ³¢å‚æ•°
-Butter_Parameter Butter_5HZ_Parameter_RC;
-//é¥æ§è¾“å‡ºæœŸå¾…
+//Ò£¿ØÆ÷ÂË²¨²ÎÊı
+static Butter_Parameter Butter_5HZ_Parameter_RC;
+//Ò£¿ØÊä³öÆÚ´ı
 uint16_t Throttle_Control;
 int16_t Pitch_Control, Roll_Control, Yaw_Control;
 
 /**********************************************************************************************************
-*å‡½ æ•° å: constrain_int16_t
-*åŠŸèƒ½è¯´æ˜: é™åˆ¶æœ€å¤§æœ€å°å€¼
-*å½¢    å‚: è¦é™åˆ¶çš„å€¼ æœ€å°å€¼ æœ€å¤§å€¼
-*è¿” å› å€¼: è¾“å‡ºå€¼
+*º¯ Êı Ãû: constrain_int16_t
+*¹¦ÄÜËµÃ÷: ÏŞÖÆ×î´ó×îĞ¡Öµ
+*ĞÎ    ²Î: ÒªÏŞÖÆµÄÖµ ×îĞ¡Öµ ×î´óÖµ
+*·µ »Ø Öµ: Êä³öÖµ
 **********************************************************************************************************/
 int16_t constrain_int16_t(int16_t amt, int16_t low, int16_t high)
 {
@@ -39,10 +39,10 @@ int16_t constrain_int16_t(int16_t amt, int16_t low, int16_t high)
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: rc_init
-*åŠŸèƒ½è¯´æ˜: é¥æ§å™¨åˆå§‹åŒ–
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: rc_init
+*¹¦ÄÜËµÃ÷: Ò£¿ØÆ÷³õÊ¼»¯
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void rc_init()
 {
@@ -66,22 +66,22 @@ void rc_init()
 	rc_calibration_data[7].max = paramer_save_data.rc_ch8_max;
 	rc_calibration_data[7].min = paramer_save_data.rc_ch8_min;
 	for(i = 0; i < 8; i++) {
-		//è¡Œç¨‹ä¸­ä½
+		//ĞĞ³ÌÖĞÎ»
 		rc_calibration_data[i].middle = (uint16_t)((rc_calibration_data[i].max + rc_calibration_data[i].min) / 2);
-		//è®¾ç½®æ»¡é‡ç¨‹çš„ç™¾åˆ†ä¹‹RC_DEADBAND_PERCENTä¸ºä¸­ä½æ­»åŒº
+		//ÉèÖÃÂúÁ¿³ÌµÄ°Ù·ÖÖ®RC_DEADBAND_PERCENTÎªÖĞÎ»ËÀÇø
 		rc_calibration_data[i].deadband = (uint16_t)((rc_calibration_data[i].max - rc_calibration_data[i].min)*RC_DEADBAND_PERCENT);
 		rc_calibration_data[i].deadband_top = rc_calibration_data[i].middle + rc_calibration_data[i].deadband / 2;
 		rc_calibration_data[i].deadband_buttom = rc_calibration_data[i].middle - rc_calibration_data[i].deadband / 2;
 	}
-	//åˆå§‹åŒ–é¥æ§å™¨æ»¤æ³¢å‚æ•°
+	//³õÊ¼»¯Ò£¿ØÆ÷ÂË²¨²ÎÊı
 	Set_Cutoff_Frequency(50, 10, &Butter_5HZ_Parameter_RC);
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: rc_save_paramer
-*åŠŸèƒ½è¯´æ˜: é¥æ§å™¨æ ¡å‡†å‚æ•°ä¿å­˜
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: rc_save_paramer
+*¹¦ÄÜËµÃ÷: Ò£¿ØÆ÷Ğ£×¼²ÎÊı±£´æ
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 static void rc_save_paramer()
 {
@@ -105,10 +105,10 @@ static void rc_save_paramer()
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: rc_calibration_reset
-*åŠŸèƒ½è¯´æ˜: é¥æ§å™¨è¾ƒå‡†æ•°æ®å¤ä½
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: rc_calibration_reset
+*¹¦ÄÜËµÃ÷: Ò£¿ØÆ÷½Ï×¼Êı¾İ¸´Î»
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 static void rc_calibration_reset()
 {
@@ -121,10 +121,10 @@ static void rc_calibration_reset()
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: rc_is_on
-*åŠŸèƒ½è¯´æ˜: åˆ¤æ–­é¥æ§å™¨æ˜¯å¦æ­£å¸¸
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: 1ï¼šæ­£å¸¸ 0ï¼šä¸æ­£å¸¸
+*º¯ Êı Ãû: rc_is_on
+*¹¦ÄÜËµÃ÷: ÅĞ¶ÏÒ£¿ØÆ÷ÊÇ·ñÕı³£
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: 1£ºÕı³£ 0£º²»Õı³£
 **********************************************************************************************************/
 uint8_t rc_is_on()
 {
@@ -137,10 +137,10 @@ uint8_t rc_is_on()
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: rc_callback
-*åŠŸèƒ½è¯´æ˜: åº•å±‚æäº¤æ•°æ®å›è°ƒå‡½æ•°
-*å½¢    å‚: åº•å±‚é¥æ§å™¨æ•°æ®
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: rc_callback
+*¹¦ÄÜËµÃ÷: µ×²ãÌá½»Êı¾İ»Øµ÷º¯Êı
+*ĞÎ    ²Î: µ×²ãÒ£¿ØÆ÷Êı¾İ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void rc_callback(uint16_t buf[8])
 {
@@ -148,11 +148,11 @@ void rc_callback(uint16_t buf[8])
 	uint8_t i=0;
 	static Butter_BufferData RC_LPF_Buffer[4];
 	memcpy(rc_raw_data, buf, sizeof(rc_raw_data));
-	//å¯¹å‰å››é€šé“è¿›è¡Œæ»¤æ³¢
+	//¶ÔÇ°ËÄÍ¨µÀ½øĞĞÂË²¨
 	for(i = 0; i < 4; i++) {
 		rc_data[i] = Butterworth_Filter(buf[i], &RC_LPF_Buffer[i], &Butter_5HZ_Parameter_RC);
 	}
-	//è®¡ç®—ç¼©æ”¾åçš„æ¨ªæ»šæœŸå¾…
+	//¼ÆËãËõ·ÅºóµÄºá¹öÆÚ´ı
 	if(rc_raw_data[0] <= rc_calibration_data[0].deadband_buttom)
 		Roll_Control = (rc_calibration_data[0].deadband_buttom - rc_data[0])
 			* 30 /(rc_calibration_data[0].deadband_buttom - rc_calibration_data[0].min);
@@ -162,7 +162,8 @@ void rc_callback(uint16_t buf[8])
 	else
 		Roll_Control = 0;
 	Roll_Control = constrain_int16_t(Roll_Control, -Pit_Rol_Max, Pit_Rol_Max);
-	//è®¡ç®—ç¼©æ”¾åçš„ä¿¯ä»°æœŸå¾…
+	Roll_Control = -Roll_Control;
+	//¼ÆËãËõ·ÅºóµÄ¸©ÑöÆÚ´ı
 	if(rc_raw_data[1] <= rc_calibration_data[1].deadband_buttom)
 		Pitch_Control = (rc_calibration_data[1].deadband_buttom - rc_data[1])
 			* 30 /(rc_calibration_data[1].deadband_buttom - rc_calibration_data[1].min);
@@ -172,11 +173,11 @@ void rc_callback(uint16_t buf[8])
 	else
 		Pitch_Control = 0;
 	Pitch_Control = constrain_int16_t(Pitch_Control, -Pit_Rol_Max, Pit_Rol_Max);
-	//è®¡ç®—ç¼©æ”¾åçš„æ²¹é—¨æœŸå¾…
-	//ä¸ºäº†å®‰å…¨ï¼Œæ²¹é—¨æ†ä½ä½æ­»åŒºä¸ºButtom_Safe_Deadband
-	Throttle_Control = (rc_data[2]-(rc_calibration_data[2].min + THROTTLE_BUTTOM_SAFE_DEADBAND));
+	//¼ÆËãËõ·ÅºóµÄÓÍÃÅÆÚ´ı
+	//ÎªÁË°²È«£¬ÓÍÃÅ¸ËµÍÎ»ËÀÇøÎªButtom_Safe_Deadband
+	Throttle_Control = (rc_data[2] - (rc_calibration_data[2].min + THROTTLE_BUTTOM_SAFE_DEADBAND));
 	Throttle_Control = constrain_int16_t(Throttle_Control, 0, 1000);
-	//è®¡ç®—ç¼©æ”¾åçš„åèˆªæœŸå¾…
+	//¼ÆËãËõ·ÅºóµÄÆ«º½ÆÚ´ı
 	if(rc_raw_data[3] <= rc_calibration_data[3].deadband_buttom)
 		Yaw_Control = (rc_calibration_data[3].deadband_buttom - rc_data[3])
 			* 30 /(rc_calibration_data[3].deadband_buttom - rc_calibration_data[1].min);
@@ -189,17 +190,17 @@ void rc_callback(uint16_t buf[8])
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: rc_scan
-*åŠŸèƒ½è¯´æ˜: é¥æ§å™¨æ‘‡æ†è§¦å‘æ‰«æ
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: rc_scan
+*¹¦ÄÜËµÃ÷: Ò£¿ØÆ÷Ò¡¸Ë´¥·¢É¨Ãè
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 uint8_t rc_scan(void)
 {
 	static uint8_t touch_flag;
-	//æ—¶é—´è®°å½•
+	//Ê±¼ä¼ÇÂ¼
 	uint32_t press_time;
-	//å¦‚æœå››ä¸ªæ†éƒ½ç§»åˆ°æœ€å¤§æˆ–æœ€å°å€¼
+	//Èç¹ûËÄ¸ö¸Ë¶¼ÒÆµ½×î´ó»ò×îĞ¡Öµ
 	if ((rc_raw_data[0] < rc_calibration_data[0].min * 1.1 || rc_raw_data[0] > rc_calibration_data[0].max * 0.9)
 		&& (rc_raw_data[1] < rc_calibration_data[1].min * 1.1 || rc_raw_data[1] > rc_calibration_data[1].max * 0.9)
 		&& (rc_raw_data[2] < rc_calibration_data[2].min * 1.1 || rc_raw_data[2] > rc_calibration_data[2].max * 0.9)
@@ -207,7 +208,7 @@ uint8_t rc_scan(void)
 		&& touch_flag == 0) {
 		press_time = 0;
 		touch_flag = 1;
-		//å››ä¸ªæ†éƒ½ç§»åˆ°æœ€å¤§æˆ–æœ€å°å€¼ä¿æŒä¸€æ®µæ—¶é—´
+		//ËÄ¸ö¸Ë¶¼ÒÆµ½×î´ó»ò×îĞ¡Öµ±£³ÖÒ»¶ÎÊ±¼ä
 		while((rc_raw_data[0] < rc_calibration_data[0].min * 1.1 || rc_raw_data[0] > rc_calibration_data[0].max * 0.9)
 			&& (rc_raw_data[1] < rc_calibration_data[1].min * 1.1 || rc_raw_data[1] > rc_calibration_data[1].max * 0.9)
 			&& (rc_raw_data[2] < rc_calibration_data[2].min * 1.1 || rc_raw_data[2] > rc_calibration_data[2].max * 0.9)
@@ -216,7 +217,7 @@ uint8_t rc_scan(void)
 			press_time += 100;
 			if (press_time >= TOUCH_TIME) {
 				uint8_t ret = 0;
-				//åˆ¤æ–­è¾“å‡ºå››ä¸ªæ†çš„æ–¹å‘
+				//ÅĞ¶ÏÊä³öËÄ¸ö¸ËµÄ·½Ïò
 				if (rc_raw_data[0] > rc_calibration_data[0].max * 0.9)
 					ret |= 1;
 				if (rc_raw_data[1] > rc_calibration_data[1].max * 0.9)
@@ -228,7 +229,7 @@ uint8_t rc_scan(void)
 				return ret;
 			}
 		}
-	//åˆ¤æ–­å››ä¸ªæ†æ˜¯å¦å½’ä¸­
+	//ÅĞ¶ÏËÄ¸ö¸ËÊÇ·ñ¹éÖĞ
 	} else if ((rc_raw_data[0] > rc_calibration_data[0].middle * 0.9 && rc_raw_data[0] < rc_calibration_data[0].middle * 1.1)
 		&& (rc_raw_data[1] > rc_calibration_data[1].middle * 0.9 && rc_raw_data[1] < rc_calibration_data[1].middle * 1.1)
 		/*&& (rc_raw_data[2] > rc_calibration_data[2].middle * 0.9 && rc_raw_data[2] < rc_calibration_data[2].middle * 1.1)*/
@@ -239,10 +240,10 @@ uint8_t rc_scan(void)
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: rc_calibration_task
-*åŠŸèƒ½è¯´æ˜: é¥æ§å™¨è¾ƒå‡†è¿›ç¨‹
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: rc_calibration_task
+*¹¦ÄÜËµÃ÷: Ò£¿ØÆ÷½Ï×¼½ø³Ì
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void rc_calibration_task(void)
 {
@@ -256,16 +257,16 @@ void rc_calibration_task(void)
 			break;
 		}
 		for(i = 0; i < RC_DEADBAND_CHANNEL; i++) {
-			//è·å–æœ€å¤§è¡Œç¨‹å€¼
+			//»ñÈ¡×î´óĞĞ³ÌÖµ
 			if(rc_raw_data[i] >= rc_calibration_data[i].max)
 				rc_calibration_data[i].max = rc_raw_data[i];
-			//è·å–æœ€å°è¡Œç¨‹å€¼
+			//»ñÈ¡×îĞ¡ĞĞ³ÌÖµ
 			if(rc_raw_data[i] <  rc_calibration_data[i].min)
 				rc_calibration_data[i].min = rc_raw_data[i];
-			//è¡Œç¨‹ä¸­ä½
+			//ĞĞ³ÌÖĞÎ»
 			rc_calibration_data[i].middle =
 				(uint16_t)((rc_calibration_data[i].max + rc_calibration_data[i].min) / 2);
-			//è®¾ç½®æ»¡é‡ç¨‹çš„ç™¾åˆ†ä¹‹RC_DEADBAND_PERCENTä¸ºä¸­ä½æ­»åŒº
+			//ÉèÖÃÂúÁ¿³ÌµÄ°Ù·ÖÖ®RC_DEADBAND_PERCENTÎªÖĞÎ»ËÀÇø
 			rc_calibration_data[i].deadband = (uint16_t)
 				((rc_calibration_data[i].max - rc_calibration_data[i].min)*RC_DEADBAND_PERCENT);
 		}

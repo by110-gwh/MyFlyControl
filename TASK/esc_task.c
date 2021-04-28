@@ -15,7 +15,7 @@
 //声明任务句柄
 static xTaskHandle esc_task_handle;
 //任务退出标志
-uint8_t esc_task_exit;
+volatile uint8_t esc_task_exit;
 
 /**********************************************************************************************************
 *函 数 名: esc_calibration

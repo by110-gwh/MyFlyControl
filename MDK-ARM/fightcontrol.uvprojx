@@ -16,7 +16,7 @@
         <TargetCommonOption>
           <Device>STM32F103RC</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F1xx_DFP.2.3.0</PackID>
+          <PackID>Keil.STM32F1xx_DFP.1.0.5</PackID>
           <PackURL>http://www.keil.com/pack/</PackURL>
           <Cpu>IRAM(0x20000000-0x2000BFFF) IROM(0x8000000-0x803FFFF) CLOCK(8000000) CPUTYPE("Cortex-M3")</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -401,6 +401,21 @@
               <FileName>motor_output.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\CONTROL\motor_output.c</FilePath>
+            </File>
+            <File>
+              <FileName>attitude_self_stabilization.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\CONTROL\attitude_self_stabilization.c</FilePath>
+            </File>
+            <File>
+              <FileName>pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\CONTROL\pid.c</FilePath>
+            </File>
+            <File>
+              <FileName>angle_control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\CONTROL\angle_control.c</FilePath>
             </File>
           </Files>
         </Group>

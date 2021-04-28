@@ -19,6 +19,7 @@ uint16_t yaw_motor_output;
 static uint16_t Motor_PWM_1, Motor_PWM_2, Motor_PWM_3, Motor_PWM_4;
 //电机已经被停转标志
 static uint8_t urgent_stop_flag;
+static uint8_t motor_lock;
 
 /**********************************************************************************************************
 *函 数 名: value_limit
@@ -43,6 +44,7 @@ static uint16_t value_limit(uint16_t min,uint16_t max,uint16_t data)
 **********************************************************************************************************/
 void motor_output_init(void)
 {
+	motor_lock = 1;
 	//PWM初始化
 	pwm_init();
 	//四个电机停转
@@ -84,6 +86,7 @@ void motor_output_unlock(void)
 			vTaskDelay(50);
 		}
 	}
+	motor_lock = 0;
 }
 
 /**********************************************************************************************************
@@ -94,8 +97,11 @@ void motor_output_unlock(void)
 **********************************************************************************************************/
 void motor_output_output(void)
 {
+	//电机锁定
+	if (motor_lock) {
+		
 	//紧急停机
-	if (rc_raw_data[5] > rc_calibration_data[6].middle || urgent_stop_flag == 1) {
+	} else if (rc_raw_data[5] > rc_calibration_data[6].middle || urgent_stop_flag == 1) {
 		urgent_stop_flag = 1;
 		//四个电机停转
 		Motor_PWM_1 = Thr_Min;
@@ -126,6 +132,7 @@ void motor_output_output(void)
 **********************************************************************************************************/
 void motor_output_lock(void)
 {
+	motor_lock = 1;
 	Motor_PWM_1 = Thr_Min;
 	Motor_PWM_2 = Thr_Min;
 	Motor_PWM_3 = Thr_Min;

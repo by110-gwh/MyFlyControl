@@ -17,7 +17,7 @@
 //声明任务句柄
 static xTaskHandle display_task_handle;
 //任务退出标志
-uint8_t display_task_exit;
+volatile uint8_t display_task_exit;
 //当前页
 int16_t page_number;
 
@@ -31,7 +31,6 @@ portTASK_FUNCTION(display_task,  parameters)
 {
 	oled_init();
 	while (!display_task_exit) {
-		//遥控器矫正显示页
 		if(page_number == 1) {
 			oled_clear_line(0, 0);
 			oled_6x8_str(0, 0, (uint8_t *)"Basic");
@@ -49,6 +48,32 @@ portTASK_FUNCTION(display_task,  parameters)
 			oled_6x8_number(40, 3, Roll);
 			oled_6x8_number(90, 3, gyroDataFilter.y * GYRO_CALIBRATION_COFF);
 			oled_clear_line(0, 4);
+			oled_clear_line(0, 5);
+			oled_clear_line(0, 6);
+			oled_clear_line(0, 7);
+		} else if(page_number == 2) {
+			oled_clear_line(0, 0);
+			oled_clear_line(0, 1);
+			oled_8x16_str(0, 0, (uint8_t *)"GYRO cailbration");
+			oled_clear_line(0, 2);
+			oled_clear_line(0, 3);
+			oled_clear_line(0, 4);
+			oled_clear_line(0, 5);
+			oled_clear_line(0, 6);
+			oled_clear_line(0, 7);
+		} else if(page_number == 3) {
+			oled_clear_line(0, 0);
+			oled_clear_line(0, 1);
+			oled_8x16_str(0, 0, (uint8_t *)"GYRO cailbration");
+			oled_clear_line(0, 2);
+			oled_clear_line(0, 3);
+			oled_8x16_str(112, 2, (uint8_t *)"OK");
+			oled_clear_line(0, 4);
+			oled_clear_line(0, 5);
+			oled_8x16_str(0, 4, (uint8_t *)"engine starting");
+			oled_clear_line(0, 6);
+			oled_clear_line(0, 7);
+		//遥控器矫正显示页
 		} else if(page_number == 14) {
 			oled_clear_line(0, 0);
 			oled_6x8_str(0, 0, (uint8_t *)"ch1:");

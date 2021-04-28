@@ -5,38 +5,41 @@
 #include "ppm.h"
 #include "imu.h"
 #include "motor_output.h"
+#include "attitude_self_stabilization.h"
+#include "angle_control.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 
-//ä»»åŠ¡å †æ ˆå¤§å°
+//ÈÎÎñ¶ÑÕ»´óĞ¡
 #define FLY_TASK_STACK 256
-//ä»»åŠ¡ä¼˜å…ˆçº§
+//ÈÎÎñÓÅÏÈ¼¶
 #define FLY_TASK_PRIORITY 13
 
-//å£°æ˜ä»»åŠ¡å¥æŸ„
+//ÉùÃ÷ÈÎÎñ¾ä±ú
 xTaskHandle fly_task_handle;
-//ä»»åŠ¡é€€å‡ºæ ‡å¿—
-uint8_t fly_task_exit;
+//ÈÎÎñÍË³ö±êÖ¾
+volatile uint8_t fly_task_exit;
 
 /**********************************************************************************************************
-*å‡½ æ•° å: fly_task
-*åŠŸèƒ½è¯´æ˜: é£è¡Œå®šæ—¶ä»»åŠ¡
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: fly_task
+*¹¦ÄÜËµÃ÷: ·ÉĞĞ¶¨Ê±ÈÎÎñ
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 portTASK_FUNCTION(fly_task, pvParameters)
 {
     portTickType xLastWakeTime;
 
-    //æŒ‚èµ·è°ƒåº¦å™¨
+    //¹ÒÆğµ÷¶ÈÆ÷
     //vTaskSuspendAll();
 	
 	imu_init();
 	ahrs_init();
 	NCLink_Init();
-    //å”¤é†’è°ƒåº¦å™¨
+    angle_control_init();
+    //»½ĞÑµ÷¶ÈÆ÷
     //xTaskResumeAll();
 
 
@@ -44,12 +47,14 @@ portTASK_FUNCTION(fly_task, pvParameters)
     while (!fly_task_exit)
     {
         
-		//è·å–imuæ•°æ®
+		//»ñÈ¡imuÊı¾İ
 		get_imu_data();
 		ahrs_update();
+		attitude_self_stabilization_control();
+        angle_control();
 		motor_output_output();
 		NCLink_SEND_StateMachine();
-        //ç¡çœ 5ms
+        //Ë¯Ãß5ms
         vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
     }
 	vTaskDelete(NULL);
@@ -57,10 +62,10 @@ portTASK_FUNCTION(fly_task, pvParameters)
 
 
 /**********************************************************************************************************
-*å‡½ æ•° å: fly_task_create
-*åŠŸèƒ½è¯´æ˜: ä¼ æ„Ÿå™¨ç»„ä»¶ç›¸å…³ä»»åŠ¡åˆ›å»º
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: fly_task_create
+*¹¦ÄÜËµÃ÷: ´«¸ĞÆ÷×é¼şÏà¹ØÈÎÎñ´´½¨
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void fly_task_create(void)
 {

@@ -12,21 +12,21 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-//ä»»åŠ¡å †æ ˆå¤§å°
+//ÈÎÎñ¶ÑÕ»´óĞ¡
 #define MAIN_TASK_STACK            1024
-//ä»»åŠ¡ä¼˜å…ˆçº§
+//ÈÎÎñÓÅÏÈ¼¶
 #define MAIN_TASK_PRIORITY         5
 
-//å£°æ˜ä»»åŠ¡å¥æŸ„
+//ÉùÃ÷ÈÎÎñ¾ä±ú
 xTaskHandle main_task_handle;
-//ä»»åŠ¡é€€å‡ºæ ‡å¿—
+//ÈÎÎñÍË³ö±êÖ¾
 volatile uint8_t main_task_exit;
 
 /**********************************************************************************************************
-*å‡½ æ•° å: main_task
-*åŠŸèƒ½è¯´æ˜: ä¸»ä»»åŠ¡
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: main_task
+*¹¦ÄÜËµÃ÷: Ö÷ÈÎÎñ
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 portTASK_FUNCTION(main_task, parameters)
 {
@@ -34,7 +34,7 @@ portTASK_FUNCTION(main_task, parameters)
 	rc_init();
 	i2c_init();
 	motor_output_init();
-	//æ£€æµ‹é¥æ§å™¨æ˜¯å¦è¿æ¥
+	//¼ì²âÒ£¿ØÆ÷ÊÇ·ñÁ¬½Ó
 	page_number = 17;
 	while (!rc_is_on())
 		vTaskDelay(1);
@@ -42,7 +42,7 @@ portTASK_FUNCTION(main_task, parameters)
     while (!main_task_exit) {
         uint8_t key;
 		key = key_scan();
-		//key0é•¿æŒ‰è¿›è¡Œé¥æ§å™¨è¡Œç¨‹æ ¡å‡†
+		//key0³¤°´½øĞĞÒ£¿ØÆ÷ĞĞ³ÌĞ£×¼
 		if ((key & KEY0) << 1 && key & 1) {
 			page_number = 14;
 			rc_calibration_task();
@@ -50,28 +50,28 @@ portTASK_FUNCTION(main_task, parameters)
 		}
 		
 		key = rc_scan();
-		//ä¸Šå†…å…«è¿›è¡Œç”µè°ƒæ ¡å‡†
+		//ÉÏÄÚ°Ë½øĞĞµçµ÷Ğ£×¼
 		if (key == 0x0E) {
 			page_number = 16;
 			esc_calibration();
-		//ä¸‹å¤–å…«è¿›è¡ŒåŠ é€Ÿè®¡æ ¡å‡†
+		//ÏÂÍâ°Ë½øĞĞ¼ÓËÙ¼ÆĞ£×¼
 		} else if (key == 0x01) {
 			page_number = 18;
 			accel_calibration();
 			page_number = 0;
-		//ä¸Šå¤–å…«è¿›è¡Œç£åŠ›è®¡æ ¡å‡†
+		//ÉÏÍâ°Ë½øĞĞ´ÅÁ¦¼ÆĞ£×¼
 		} else if (key == 0x07) {
 			page_number = 19;
 			mag_calibration();
 			page_number = 0;
-		//ä¸‹å†…å…«è¿›è¡Œè§£é”
+		//ÏÂÄÚ°Ë½øĞĞ½âËø
 		} else if (key == 0x08) {
 			page_number = 2;
 			gyro_calibration();
 			page_number = 3;
 			fly_task_create();
 			motor_output_unlock();
-			//ç­‰å¾…ç”µæœºå¯åŠ¨æ—¶é—´å§¿æ€èåˆå®Œæ¯•åï¼Œæ›´æ–°åèˆªæœŸå¾…
+			//µÈ´ıµç»úÆô¶¯Ê±¼ä×ËÌ¬ÈÚºÏÍê±Ïºó£¬¸üĞÂÆ«º½ÆÚ´ı
 			yaw_angle_pid.short_circuit_flag = 1;
 			page_number = 1;
 			while(1) {
@@ -92,10 +92,10 @@ portTASK_FUNCTION(main_task, parameters)
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: main_task_create
-*åŠŸèƒ½è¯´æ˜: ä¸»å‡½æ•°ç›¸å…³ä»»åŠ¡åˆ›å»º
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: main_task_create
+*¹¦ÄÜËµÃ÷: Ö÷º¯ÊıÏà¹ØÈÎÎñ´´½¨
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void main_task_create(void)
 {

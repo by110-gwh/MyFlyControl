@@ -11,11 +11,3 @@ void IST8310_ReadMag(Vector3i_t* mag);
 void IST8310_Single_Measurement(void);
 
 #endif
-
-
-
-
-
-
-
-

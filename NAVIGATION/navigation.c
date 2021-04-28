@@ -10,21 +10,21 @@
 
 #define AcceGravity 9.80665f
 
-//æƒ¯æ€§å¯¼èˆªåŠ é€Ÿåº¦
+//¹ßĞÔµ¼º½¼ÓËÙ¶È
 Vector3f_t navigation_acce;
-//æƒ¯æ€§å¯¼èˆªåŠ é€Ÿåº¦æ¨¡é•¿
+//¹ßĞÔµ¼º½¼ÓËÙ¶ÈÄ£³¤
 float navigation_acce_length;
 
-//ç”¨äºæƒ¯æ€§å¯¼èˆªçš„åŠ é€Ÿåº¦æ»¤æ³¢æ•°æ®
+//ÓÃÓÚ¹ßĞÔµ¼º½µÄ¼ÓËÙ¶ÈÂË²¨Êı¾İ
 static Butter_BufferData Butter_Buffer_Navigation[3];
-//ç”¨äºæƒ¯æ€§å¯¼èˆªçš„åŠ é€Ÿåº¦æ»¤æ³¢å‚æ•°
+//ÓÃÓÚ¹ßĞÔµ¼º½µÄ¼ÓËÙ¶ÈÂË²¨²ÎÊı
 static Butter_Parameter Butter_15HZ_Parameter_Navigation;
 
 /**********************************************************************************************************
-*å‡½ æ•° å: navigation_init
-*åŠŸèƒ½è¯´æ˜: æƒ¯æ€§å¯¼èˆªå‚æ•°åˆå§‹åŒ–
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: navigation_init
+*¹¦ÄÜËµÃ÷: ¹ßĞÔµ¼º½²ÎÊı³õÊ¼»¯
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void navigation_init(void)
 {
@@ -32,10 +32,10 @@ void navigation_init(void)
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: navigation_prepare
-*åŠŸèƒ½è¯´æ˜: æƒ¯æ€§å¯¼èˆªå‡†å¤‡ï¼Œè®¡ç®—ç”¨äºæƒ¯æ€§å¯¼èˆªçš„åŠ é€Ÿåº¦
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: navigation_prepare
+*¹¦ÄÜËµÃ÷: ¹ßĞÔµ¼º½×¼±¸£¬¼ÆËãÓÃÓÚ¹ßĞÔµ¼º½µÄ¼ÓËÙ¶È
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void navigation_prepare(void)
 {
@@ -50,17 +50,17 @@ void navigation_prepare(void)
 	navigation_acce = Earth_Frame;
 
 	navigation_acce.z *= ACCEL_SCALE;
-	//å‡å»é‡åŠ›åŠ é€Ÿåº¦
+	//¼õÈ¥ÖØÁ¦¼ÓËÙ¶È
 	navigation_acce.z -= AcceGravity;
-	//è½¬æ¢ä¸ºåŠ é€Ÿåº¦cm/s^2
+	//×ª»»Îª¼ÓËÙ¶Ècm/s^2
 	navigation_acce.z *= 100;
 
 	navigation_acce.x *= ACCEL_SCALE;
-	//è½¬æ¢ä¸ºåŠ é€Ÿåº¦cm/s^2
+	//×ª»»Îª¼ÓËÙ¶Ècm/s^2
 	navigation_acce.x *= 100;
 
 	navigation_acce.y *= ACCEL_SCALE;
-	//è½¬æ¢ä¸ºåŠ é€Ÿåº¦cm/s^2
+	//×ª»»Îª¼ÓËÙ¶Ècm/s^2
 	navigation_acce.y *= 100;
 
 	navigation_acce_length = sqrt(navigation_acce.z * navigation_acce.z + navigation_acce.x * navigation_acce.x + navigation_acce.y * navigation_acce.y);

@@ -8,21 +8,21 @@ PB15     ------> SPI2_MOSI
 */
 
 /**********************************************************************************************************
-*å‡½ æ•° å: Spi_GPIO_Init
-*åŠŸèƒ½è¯´æ˜: SPIä»æœºè®¾å¤‡CSå¼•è„šåˆå§‹åŒ–
-*å½¢    å‚: æ— 
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: Spi_GPIO_Init
+*¹¦ÄÜËµÃ÷: SPI´Ó»úÉè±¸CSÒı½Å³õÊ¼»¯
+*ĞÎ    ²Î: ÎŞ
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void Spi_GPIO_Init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 	SPI_HandleTypeDef SPI_InitStructure;
 	
-	//å¤–è®¾æ—¶é’Ÿä½¿èƒ½
+	//ÍâÉèÊ±ÖÓÊ¹ÄÜ
 	__HAL_RCC_SPI2_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	
-	//IOåˆå§‹åŒ–
+	//IO³õÊ¼»¯
 	GPIO_InitStruct.Pin = GPIO_PIN_13|GPIO_PIN_15;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
@@ -33,7 +33,7 @@ void Spi_GPIO_Init(void)
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	
-	//SPI2åˆå§‹åŒ–
+	//SPI2³õÊ¼»¯
 	SPI_InitStructure.Instance = SPI2;
 	SPI_InitStructure.Init.Mode = SPI_MODE_MASTER;
 	SPI_InitStructure.Init.Direction = SPI_DIRECTION_2LINES;
@@ -50,10 +50,10 @@ void Spi_GPIO_Init(void)
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: Spi_SingleWirteAndRead
-*åŠŸèƒ½è¯´æ˜: SPIå•å­—èŠ‚è¯»å–
-*å½¢    å‚: è®¾å¤‡å· å†™å…¥çš„æ•°æ®
-*è¿” å› å€¼: è¯»å–åˆ°çš„æ•°æ®
+*º¯ Êı Ãû: Spi_SingleWirteAndRead
+*¹¦ÄÜËµÃ÷: SPIµ¥×Ö½Ú¶ÁÈ¡
+*ĞÎ    ²Î: Éè±¸ºÅ Ğ´ÈëµÄÊı¾İ
+*·µ »Ø Öµ: ¶ÁÈ¡µ½µÄÊı¾İ
 **********************************************************************************************************/
 uint8_t Spi_SingleWirteAndRead(uint8_t deviceNum, uint8_t dat)
 {
@@ -78,11 +78,11 @@ uint8_t Spi_SingleWirteAndRead(uint8_t deviceNum, uint8_t dat)
 }
 
 /**********************************************************************************************************
-*å‡½ æ•° å: SPI_MultiWriteAndRead
-*åŠŸèƒ½è¯´æ˜: SPIå¤šå­—èŠ‚è¯»å–
-*å½¢    å‚: è®¾å¤‡å· å†™å…¥æ•°æ®ç¼“å†²åŒºæŒ‡é’ˆ è¯»å‡ºæ•°æ®ç¼“å†²åŒºæŒ‡é’ˆ æ•°æ®é•¿åº¦
-            åŒæ—¶åªèƒ½å†™å…¥æˆ–è€…è¯»å‡ºï¼Œå†™å…¥æ—¶è¯»å–ç¼“å†²åŒºè®¾ç½®ä¸ºNULLï¼Œè¯»å‡ºæ—¶åä¹‹
-*è¿” å› å€¼: æ— 
+*º¯ Êı Ãû: SPI_MultiWriteAndRead
+*¹¦ÄÜËµÃ÷: SPI¶à×Ö½Ú¶ÁÈ¡
+*ĞÎ    ²Î: Éè±¸ºÅ Ğ´ÈëÊı¾İ»º³åÇøÖ¸Õë ¶Á³öÊı¾İ»º³åÇøÖ¸Õë Êı¾İ³¤¶È
+            Í¬Ê±Ö»ÄÜĞ´Èë»òÕß¶Á³ö£¬Ğ´ÈëÊ±¶ÁÈ¡»º³åÇøÉèÖÃÎªNULL£¬¶Á³öÊ±·´Ö®
+*·µ »Ø Öµ: ÎŞ
 **********************************************************************************************************/
 void SPI_MultiWriteAndRead(uint8_t deviceNum, uint8_t *out, uint8_t *in, int len)
 {

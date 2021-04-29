@@ -19,14 +19,17 @@ float pid_control(pid_controler_t *controler)
 	}
 	//获取dt
 	Get_Time_Period(&controler->pid_controller_dt);
-	controller_dt = controler->pid_controller_dt.Time_Delta / 1000.0;
+	controller_dt = controler->pid_controller_dt.Time_Delta / 1000000.0;
 	//第一次计算间隔时间将出现间隔时间很大的情况
 	if (controller_dt < 0.001)
 		return 0;
 	//保存上次偏差
-	controler->last_err = controler->err;	
+	controler->pre_last_err = controler->last_err;
+	controler->last_err = controler->err;
 	//期望减去反馈得到偏差			  
 	controler->err = controler->expect - controler->feedback;
+	//计算偏差微分
+	controler->dis_err = controler->err - controler->last_err;
 	//自定义偏差微分处理
 	if (controler->err_callback)
 		controler->err_callback(controler);
@@ -54,7 +57,7 @@ float pid_control(pid_controler_t *controler)
 	//总输出计算
 	controler->control_output = controler->kp * controler->err
 		+ controler->integrate
-		+ controler->kd * (controler->err - controler->last_err);
+		+ controler->kd * controler->dis_err;
 	//前馈计算
 	expect_delta = (controler->expect - controler->last_expect) / controller_dt;
 	controler->last_expect = controler->expect;

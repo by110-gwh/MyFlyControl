@@ -36,6 +36,10 @@ static void pitch_roll_err_correct(pid_controler_t *controler)
 {
     //用于防跳变滤波
     float tempa, tempb, tempc, max, min;
+    float dis_err_filter;
+
+    //间隔了一次采样的微分
+    controler->dis_err = controler->err - controler->pre_last_err;
 
     //均值滤波，保证得到数据不跳变，避免期望阶跃时，微分输出异常
     tempa = ((pitch_roll_err_correct_t *)controler->pri_data)->pre_last_dis_err;
@@ -56,17 +60,17 @@ static void pitch_roll_err_correct(pid_controler_t *controler)
     ((pitch_roll_err_correct_t *)controler->pri_data)->last_dis_err = controler->dis_err;
 
     //巴特沃斯低通后得到的微分项,30hz
-    controler->dis_err = Butterworth_Filter(controler->dis_err,
+    dis_err_filter = Butterworth_Filter(controler->dis_err,
         &((pitch_roll_err_correct_t *)controler->pri_data)->buffer,
         &gyro_filter_parameter_30Hz);
-    //微分项限幅
-	if (controler->dis_err >= 500)
-		controler->dis_err = 500;
-	if (controler->dis_err <= -500)
-		controler->dis_err = -500;
+
+	if (dis_err_filter >= 500)
+		dis_err_filter = 500;
+	if (dis_err_filter <= -500)
+		dis_err_filter = -500;
     //自适应微分参数
     controler->kd = ((pitch_roll_err_correct_t *)controler->pri_data)->raw_kd
-        * (1 + ABS(controler->dis_err) / 500.0f);    
+        * (1 + ABS(dis_err_filter) / 500.0f);    
 }
 
 /**********************************************************************************************************
@@ -131,7 +135,7 @@ void gyro_control_init()
     pitch_gyro_pid.ki = 2.5;
     pitch_gyro_pid.kd = 2;
     
-    pitch_gyro_pid.feedforward_kp = 0;
+    pitch_gyro_pid.feedforward_kp = 0.1;
     pitch_gyro_pid.feedforward_kd = 0;
 
     pitch_gyro_pid.control_output = 0;
@@ -160,7 +164,7 @@ void gyro_control_init()
     roll_gyro_pid.ki = 2.5;
     roll_gyro_pid.kd = 2;
 
-    roll_gyro_pid.feedforward_kp = 0;
+    roll_gyro_pid.feedforward_kp = 0.1;
     roll_gyro_pid.feedforward_kd = 0;
 
     roll_gyro_pid.control_output = 0;
@@ -190,7 +194,7 @@ void gyro_control_init()
     yaw_gyro_pid.kd = 0;
 
     yaw_gyro_pid.feedforward_kp = 0;
-    yaw_gyro_pid.feedforward_kd = 0;
+    yaw_gyro_pid.feedforward_kd = 0.05;
 
     yaw_gyro_pid.control_output = 0;
     yaw_gyro_pid.control_output_limit = 500;

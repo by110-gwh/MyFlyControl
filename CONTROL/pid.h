@@ -17,6 +17,8 @@ typedef struct pid_controler{
     float err;
     //上次偏差
     float last_err;
+    //上上次偏差
+    float pre_last_err;
     //偏差限幅值
     float err_max;
     //积分分离偏差值

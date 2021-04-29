@@ -10,7 +10,8 @@
 **********************************************************************************************************/
 float pid_control(pid_controler_t *controler)
 {
-	float controller_dt = 0;
+	float controller_dt;
+	float expect_delta;
 	//短路直接输出期待值
 	if (controler->short_circuit_flag) {
 		controler->control_output = controler->expect;
@@ -54,6 +55,11 @@ float pid_control(pid_controler_t *controler)
 	controler->control_output = controler->kp * controler->err
 		+ controler->integrate
 		+ controler->kd * (controler->err - controler->last_err);
+	//前馈计算
+	expect_delta = (controler->expect - controler->last_expect) / controller_dt;
+	controler->last_expect = controler->expect;
+	controler->control_output += controler->feedforward_kd * expect_delta
+		+ controler->feedforward_kp * controler->expect;
 	//总输出限幅
 	if (controler->control_output_limit) {
 		if (controler->control_output >= controler->control_output_limit)

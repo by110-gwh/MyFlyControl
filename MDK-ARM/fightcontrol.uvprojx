@@ -417,6 +417,11 @@
               <FileType>1</FileType>
               <FilePath>..\CONTROL\angle_control.c</FilePath>
             </File>
+            <File>
+              <FileName>gyro_control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\CONTROL\gyro_control.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

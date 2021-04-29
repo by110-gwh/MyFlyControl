@@ -8,6 +8,8 @@
 
 typedef struct pid_controler{
     //期望
+    float last_expect;
+    //期望
     float expect;
     //反馈值
     float feedback;
@@ -31,6 +33,10 @@ typedef struct pid_controler{
     float ki;
     //控制参数kd
     float kd;
+    //前馈控制参数kdkp
+    float feedforward_kp;
+    //前馈控制参数kd
+    float feedforward_kd;
     //控制器总输出
     float control_output;
     //输出限幅

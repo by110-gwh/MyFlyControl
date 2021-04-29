@@ -1,6 +1,7 @@
 #include "motor_output.h"
 #include "pwm.h"
 #include "remote_control.h"
+#include "gyro_control.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -11,9 +12,6 @@
 #define Thr_Idle 1100
 
 uint16_t throttle_motor_output;
-uint16_t roll_motor_output;
-uint16_t pitch_motor_output;
-uint16_t yaw_motor_output;
 
 //四个电机输出值
 static uint16_t Motor_PWM_1, Motor_PWM_2, Motor_PWM_3, Motor_PWM_4;
@@ -97,6 +95,10 @@ void motor_output_unlock(void)
 **********************************************************************************************************/
 void motor_output_output(void)
 {
+	uint16_t roll_motor_output;
+	uint16_t pitch_motor_output;
+	uint16_t yaw_motor_output;
+
 	//电机锁定
 	if (motor_lock) {
 		
@@ -110,6 +112,9 @@ void motor_output_output(void)
 		Motor_PWM_4 = Thr_Min;
 		pwm_set(Motor_PWM_1, Motor_PWM_2, Motor_PWM_3, Motor_PWM_4);
 	} else {
+		pitch_motor_output = pitch_gyro_pid.control_output;
+		roll_motor_output = roll_gyro_pid.control_output;
+		yaw_motor_output = yaw_gyro_pid.control_output;
 		//计算四个电机输出值
 		Motor_PWM_1 = throttle_motor_output - roll_motor_output + pitch_motor_output - yaw_motor_output;
 		Motor_PWM_2 = throttle_motor_output + roll_motor_output - pitch_motor_output - yaw_motor_output;

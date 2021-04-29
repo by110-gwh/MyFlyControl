@@ -7,6 +7,7 @@
 #include "motor_output.h"
 #include "attitude_self_stabilization.h"
 #include "angle_control.h"
+#include "gyro_control.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -39,6 +40,7 @@ portTASK_FUNCTION(fly_task, pvParameters)
 	ahrs_init();
 	NCLink_Init();
     angle_control_init();
+    gyro_control_init();
     //»½ÐÑµ÷¶ÈÆ÷
     //xTaskResumeAll();
 
@@ -52,6 +54,7 @@ portTASK_FUNCTION(fly_task, pvParameters)
 		ahrs_update();
 		attitude_self_stabilization_control();
         angle_control();
+        gyro_control();
 		motor_output_output();
 		NCLink_SEND_StateMachine();
         //Ë¯Ãß5ms

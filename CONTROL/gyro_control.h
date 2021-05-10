@@ -8,6 +8,7 @@ extern pid_controler_t roll_gyro_pid;
 extern pid_controler_t yaw_gyro_pid;
 
 void gyro_control_init(void);
+void gyro_pid_integrate_reset(void);
 void gyro_control(void);
 
 #endif

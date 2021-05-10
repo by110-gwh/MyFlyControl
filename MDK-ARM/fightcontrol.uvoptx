@@ -140,7 +140,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>CMSIS_AGDI</Key>
-          <Name>-X"Any" -UAny -O718 -S8 -C0 -P00 -N00("ARM CoreSight SW-DP") -D00(1BA01477) -L00(0) -TO65554 -TC10000000 -TT10000000 -TP20 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO15 -FD20000000 -FC1000 -FN1 -FF0STM32F10x_512.FLM -FS08000000 -FL080000 -FP0($$Device:STM32F103RC$Flash\STM32F10x_512.FLM)</Name>
+          <Name>-X"Any" -UAny -O718 -S8 -C0 -P00 -N00("ARM CoreSight SW-DP") -D00(1BA01477) -L00(0) -TO65554 -TC10000000 -TT10000000 -TP20 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO31 -FD20000000 -FC1000 -FN1 -FF0STM32F10x_512.FLM -FS08000000 -FL080000 -FP0($$Device:STM32F103RC$Flash\STM32F10x_512.FLM)</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -153,47 +153,60 @@
           <Name>-U-O142 -O2254 -S0 -C0 -N00("ARM CoreSight SW-DP") -D00(2BA01477) -L00(0) -TO18 -TC10000000 -TP21 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO7 -FD20000000 -FC800 -FN1 -FF0STM32F10x_512 -FS08000000 -FL040000 -FP0($$Device:STM32F103RC$Flash\STM32F10x_512.FLM)</Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
-      <Breakpoint/>
+      <Breakpoint>
+        <Bp>
+          <Number>0</Number>
+          <Type>0</Type>
+          <LineNumber>115</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134251416</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\CONTROL\motor_output.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\fightcontrol\../CONTROL/motor_output.c\115</Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>43</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134250944</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\SYSTEM\main.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\fightcontrol\../SYSTEM/main.c\43</Expression>
+        </Bp>
+      </Breakpoint>
       <WatchWindow1>
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Pitch</ItemText>
+          <ItemText>pitch_gyro_pid.expect</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Yaw</ItemText>
+          <ItemText>pitch_gyro_pid.feedback</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Roll</ItemText>
+          <ItemText>pitch_gyro_pid.control_output</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>yaw_angle_pid.feedback</ItemText>
-        </Ww>
-        <Ww>
-          <count>4</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>yaw_angle_pid.expect</ItemText>
-        </Ww>
-        <Ww>
-          <count>5</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>yaw_angle_pid.control_output</ItemText>
-        </Ww>
-        <Ww>
-          <count>6</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>yaw_angle_pid.short_circuit_flag</ItemText>
-        </Ww>
-        <Ww>
-          <count>7</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>Yaw_Control</ItemText>
+          <ItemText>pitch_gyro_pid.integrate</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -232,7 +245,7 @@
         <Mm>
           <WinNumber>1</WinNumber>
           <SubType>10</SubType>
-          <ItemText>mag_360_flag</ItemText>
+          <ItemText>0x20006720</ItemText>
           <AccSizeX>0</AccSizeX>
         </Mm>
       </MemoryWindow1>
@@ -298,7 +311,7 @@
 
   <Group>
     <GroupName>bsp</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -478,7 +491,7 @@
 
   <Group>
     <GroupName>freertos</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

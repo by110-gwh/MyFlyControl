@@ -53,8 +53,8 @@ portTASK_FUNCTION(display_task,  parameters)
 			oled_clear_line(0, 7);
 		} else if(page_number == 2) {
 			oled_clear_line(0, 0);
+			oled_6x8_str(0, 0, (uint8_t *)"GYRO cailbration");
 			oled_clear_line(0, 1);
-			oled_8x16_str(0, 0, (uint8_t *)"GYRO cailbration");
 			oled_clear_line(0, 2);
 			oled_clear_line(0, 3);
 			oled_clear_line(0, 4);
@@ -63,14 +63,25 @@ portTASK_FUNCTION(display_task,  parameters)
 			oled_clear_line(0, 7);
 		} else if(page_number == 3) {
 			oled_clear_line(0, 0);
+			oled_6x8_str(0, 0, (uint8_t *)"GYRO cailbration OK");
 			oled_clear_line(0, 1);
-			oled_8x16_str(0, 0, (uint8_t *)"GYRO cailbration");
+			oled_6x8_str(0, 1, (uint8_t *)"remote control reset");
 			oled_clear_line(0, 2);
 			oled_clear_line(0, 3);
-			oled_8x16_str(112, 2, (uint8_t *)"OK");
 			oled_clear_line(0, 4);
 			oled_clear_line(0, 5);
-			oled_8x16_str(0, 4, (uint8_t *)"engine starting");
+			oled_clear_line(0, 6);
+			oled_clear_line(0, 7);
+		} else if(page_number == 4) {
+			oled_clear_line(0, 0);
+			oled_6x8_str(0, 0, (uint8_t *)"GYRO cailbration OK");
+			oled_clear_line(0, 1);
+			oled_6x8_str(0, 1, (uint8_t *)"remote control reset OK");
+			oled_clear_line(0, 2);
+			oled_6x8_str(0, 2, (uint8_t *)"engine starting");
+			oled_clear_line(0, 3);
+			oled_clear_line(0, 4);
+			oled_clear_line(0, 5);
 			oled_clear_line(0, 6);
 			oled_clear_line(0, 7);
 		//Ò£¿ØÆ÷½ÃÕýÏÔÊ¾Ò³

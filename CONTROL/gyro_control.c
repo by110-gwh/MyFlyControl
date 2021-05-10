@@ -4,6 +4,7 @@
 #include "angle_control.h"
 #include "Filter.h"
 #include "math.h"
+#include "string.h"
 
 #define ABS(X)  (((X) > 0)? (X) : -(X))
 
@@ -210,6 +211,28 @@ void gyro_control_init()
     Set_Cutoff_Frequency(Sampling_Freq, 30, &gyro_filter_parameter_30Hz);
     Set_Cutoff_Frequency(Sampling_Freq, 20, &gyro_filter_parameter_20Hz);
 }
+
+/**********************************************************************************************************
+*函 数 名: gyro_pid_integrate_reset
+*功能说明: 角速度环pid积分清零
+*形    参: 无
+*返 回 值: 无
+**********************************************************************************************************/
+void gyro_pid_integrate_reset()
+{
+	yaw_gyro_pid.integrate = 0;
+	roll_gyro_pid.integrate = 0;
+	pitch_gyro_pid.integrate = 0;
+	
+	memset(&pitch_pri_dat, 0, sizeof(pitch_pri_dat));
+	memset(&roll_pri_dat, 0, sizeof(pitch_pri_dat));
+	memset(&yaw_pri_dat, 0, sizeof(pitch_pri_dat));
+
+    pitch_pri_dat.raw_kd = 2;
+    roll_pri_dat.raw_kd = 2;
+    yaw_pri_dat.raw_kd = 0;
+}
+
 
 /**********************************************************************************************************
 *函 数 名: gyro_control

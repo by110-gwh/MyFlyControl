@@ -25,6 +25,7 @@ extern int16_t Pitch_Control, Roll_Control, Yaw_Control;
 void rc_init(void);
 void rc_callback(uint16_t buf[8]);
 uint8_t rc_scan(void);
+uint8_t rc_direct_is_reset(void);
 void rc_calibration_task(void);
 uint8_t rc_is_on(void);
 

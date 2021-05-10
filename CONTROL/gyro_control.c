@@ -6,108 +6,9 @@
 #include "math.h"
 #include "string.h"
 
-#define ABS(X)  (((X) > 0)? (X) : -(X))
-
 pid_controler_t pitch_gyro_pid;
 pid_controler_t roll_gyro_pid;
 pid_controler_t yaw_gyro_pid;
-
-typedef struct {
-    float last_dis_err;
-    float pre_last_dis_err;
-    Butter_BufferData buffer;
-    float raw_kd;
-} pitch_roll_err_correct_t;
-
-//额外的pid参数
-pitch_roll_err_correct_t pitch_pri_dat;
-pitch_roll_err_correct_t roll_pri_dat;
-pitch_roll_err_correct_t yaw_pri_dat;
-
-Butter_Parameter gyro_filter_parameter_30Hz;
-Butter_Parameter gyro_filter_parameter_20Hz;
-
-/**********************************************************************************************************
-*函 数 名: pitch_roll_err_correct
-*功能说明: 额外的俯仰和偏航角速度pid计算
-*形    参: pid控制器结构体
-*返 回 值: 无
-**********************************************************************************************************/
-static void pitch_roll_err_correct(pid_controler_t *controler)
-{
-    //用于防跳变滤波
-    float tempa, tempb, tempc, max, min;
-    float dis_err_filter;
-
-    //间隔了一次采样的微分
-    controler->dis_err = controler->err - controler->pre_last_err;
-
-    //均值滤波，保证得到数据不跳变，避免期望阶跃时，微分输出异常
-    tempa = ((pitch_roll_err_correct_t *)controler->pri_data)->pre_last_dis_err;
-    tempb = ((pitch_roll_err_correct_t *)controler->pri_data)->last_dis_err;
-    tempc = controler->dis_err;
-    max = tempa > tempb ? tempa : tempb;
-    max = max > tempc ? max : tempc;
-    min = tempa < tempb ? tempa : tempb;
-    min = min < tempc ? min : tempc;
-    if (tempa > min && tempa < max)
-        controler->dis_err = tempa;
-    if (tempb > min && tempb < max)
-        controler->dis_err = tempb;
-    if (tempc > min && tempc < max)
-        controler->dis_err = tempc;
-    ((pitch_roll_err_correct_t *)controler->pri_data)->pre_last_dis_err =
-        ((pitch_roll_err_correct_t *)controler->pri_data)->last_dis_err;
-    ((pitch_roll_err_correct_t *)controler->pri_data)->last_dis_err = controler->dis_err;
-
-    //巴特沃斯低通后得到的微分项,30hz
-    dis_err_filter = Butterworth_Filter(controler->dis_err,
-        &((pitch_roll_err_correct_t *)controler->pri_data)->buffer,
-        &gyro_filter_parameter_30Hz);
-
-	if (dis_err_filter >= 500)
-		dis_err_filter = 500;
-	if (dis_err_filter <= -500)
-		dis_err_filter = -500;
-    //自适应微分参数
-    controler->kd = ((pitch_roll_err_correct_t *)controler->pri_data)->raw_kd
-        * (1 + ABS(dis_err_filter) / 500.0f);    
-}
-
-/**********************************************************************************************************
-*函 数 名: yaw_err_correct
-*功能说明: 额外的偏航角速度pid计算
-*形    参: pid控制器结构体
-*返 回 值: 无
-**********************************************************************************************************/
-static void yaw_err_correct(pid_controler_t *controler)
-{
-    //用于防跳变滤波
-    float tempa, tempb, tempc, max, min;
-
-    //均值滤波，保证得到数据不跳变，避免期望阶跃时，微分输出异常
-    tempa = ((pitch_roll_err_correct_t *)controler->pri_data)->pre_last_dis_err;
-    tempb = ((pitch_roll_err_correct_t *)controler->pri_data)->last_dis_err;
-    tempc = controler->dis_err;
-    max = tempa > tempb ? tempa : tempb;
-    max = max > tempc ? max : tempc;
-    min = tempa < tempb ? tempa : tempb;
-    min = min < tempc ? min : tempc;
-    if (tempa > min && tempa < max)
-        controler->dis_err = tempa;
-    if (tempb > min && tempb < max)
-        controler->dis_err = tempb;
-    if (tempc > min && tempc < max)
-        controler->dis_err = tempc;
-    ((pitch_roll_err_correct_t *)controler->pri_data)->pre_last_dis_err =
-        ((pitch_roll_err_correct_t *)controler->pri_data)->last_dis_err;
-    ((pitch_roll_err_correct_t *)controler->pri_data)->last_dis_err = controler->dis_err;
-    //巴特沃斯低通后得到的微分项,30hz
-    controler->dis_err = Butterworth_Filter(controler->dis_err,
-        &((pitch_roll_err_correct_t *)controler->pri_data)->buffer,
-        &gyro_filter_parameter_20Hz);
-}
-
 
 /**********************************************************************************************************
 *函 数 名: gyro_control_init
@@ -143,8 +44,8 @@ void gyro_control_init()
     pitch_gyro_pid.control_output_limit = 500;
 
     pitch_gyro_pid.short_circuit_flag = 0;
-    pitch_gyro_pid.err_callback = pitch_roll_err_correct;
-    pitch_gyro_pid.pri_data = &pitch_pri_dat;
+    pitch_gyro_pid.err_callback = NULL;
+    pitch_gyro_pid.pri_data = NULL;
 
     //横滚角pid参数初始化
     roll_gyro_pid.last_expect = 0;
@@ -172,8 +73,8 @@ void gyro_control_init()
     roll_gyro_pid.control_output_limit = 500;
 
     roll_gyro_pid.short_circuit_flag = 0;
-    roll_gyro_pid.err_callback = pitch_roll_err_correct;
-    roll_gyro_pid.pri_data = &roll_pri_dat;
+    roll_gyro_pid.err_callback = NULL;
+    roll_gyro_pid.pri_data = NULL;
 
     //偏航pid参数初始化
     yaw_gyro_pid.last_expect = 0;
@@ -201,15 +102,8 @@ void gyro_control_init()
     yaw_gyro_pid.control_output_limit = 500;
 
     yaw_gyro_pid.short_circuit_flag = 0;
-    yaw_gyro_pid.err_callback = yaw_err_correct;
-    yaw_gyro_pid.pri_data = &yaw_pri_dat;
-
-    pitch_pri_dat.raw_kd = 2;
-    roll_pri_dat.raw_kd = 2;
-    yaw_pri_dat.raw_kd = 0;
-
-    Set_Cutoff_Frequency(Sampling_Freq, 30, &gyro_filter_parameter_30Hz);
-    Set_Cutoff_Frequency(Sampling_Freq, 20, &gyro_filter_parameter_20Hz);
+    yaw_gyro_pid.err_callback = NULL;
+    yaw_gyro_pid.pri_data = NULL;
 }
 
 /**********************************************************************************************************
@@ -223,14 +117,6 @@ void gyro_pid_integrate_reset()
 	yaw_gyro_pid.integrate = 0;
 	roll_gyro_pid.integrate = 0;
 	pitch_gyro_pid.integrate = 0;
-	
-	memset(&pitch_pri_dat, 0, sizeof(pitch_pri_dat));
-	memset(&roll_pri_dat, 0, sizeof(pitch_pri_dat));
-	memset(&yaw_pri_dat, 0, sizeof(pitch_pri_dat));
-
-    pitch_pri_dat.raw_kd = 2;
-    roll_pri_dat.raw_kd = 2;
-    yaw_pri_dat.raw_kd = 0;
 }
 
 

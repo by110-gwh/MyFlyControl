@@ -95,9 +95,9 @@ void motor_output_unlock(void)
 **********************************************************************************************************/
 void motor_output_output(void)
 {
-	uint16_t roll_motor_output;
-	uint16_t pitch_motor_output;
-	uint16_t yaw_motor_output;
+	int16_t roll_motor_output;
+	int16_t pitch_motor_output;
+	int16_t yaw_motor_output;
 
 	//µç»úËø¶¨
 	if (motor_lock) {

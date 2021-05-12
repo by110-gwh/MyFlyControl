@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CMSIS;..\DRIVER;..\STM32F1xx_HAL_Driver\Inc;..\SYSTEM;..\FREERTOS\include;..\FREERTOS\portable\RVDS\ARM_CM3;..\USER;..\MODULE;..\TASK;..\MATH;..\NAVIGATION;..\CONTROL;..\BSP</IncludePath>
+              <IncludePath>..\CMSIS;..\DRIVER;..\STM32F1xx_HAL_Driver\Inc;..\SYSTEM;..\FREERTOS\include;..\FREERTOS\portable\RVDS\ARM_CM3;..\USER;..\MODULE;..\TASK;..\MATH;..\NAVIGATION;..\CONTROL;..\BSP;..\USMART</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -457,6 +457,11 @@
               <FileType>1</FileType>
               <FilePath>..\DRIVER\pwm.c</FilePath>
             </File>
+            <File>
+              <FileName>debug_uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\DRIVER\debug_uart.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -551,11 +556,6 @@
               <FileName>imu.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\MODULE\imu.c</FilePath>
-            </File>
-            <File>
-              <FileName>NCLink.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\MODULE\NCLink.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -682,6 +682,11 @@
               <FileType>1</FileType>
               <FilePath>..\TASK\fly_task.c</FilePath>
             </File>
+            <File>
+              <FileName>usmart_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\usmart_task.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -691,6 +696,26 @@
               <FileName>Filter.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\USER\Filter.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>usmart</GroupName>
+          <Files>
+            <File>
+              <FileName>usmart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\USMART\usmart.c</FilePath>
+            </File>
+            <File>
+              <FileName>usmart_config.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\USMART\usmart_config.c</FilePath>
+            </File>
+            <File>
+              <FileName>usmart_str.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\USMART\usmart_str.c</FilePath>
             </File>
           </Files>
         </Group>

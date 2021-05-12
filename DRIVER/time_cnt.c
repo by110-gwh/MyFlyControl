@@ -79,11 +79,9 @@ void Get_Time_Period(Testime *Time_Lab)
 		Time_Lab->inited = 1;
 		Time_Lab->Last_Time = Time_Lab->Now_Time = 10000 * TIME_ISR_CNT + TIM7->CNT;
 		Time_Lab->Time_Delta = 0;
-		Time_Lab->Time_Delta_INT = 0;
 	}
 	Time_Lab->Last_Time = Time_Lab->Now_Time;
 	//µ¥Î»us
 	Time_Lab->Now_Time = 10000 * TIME_ISR_CNT + TIM7->CNT;
 	Time_Lab->Time_Delta = Time_Lab->Now_Time - Time_Lab->Last_Time;
-	Time_Lab->Time_Delta_INT = (uint16_t)(Time_Lab->Time_Delta);
 }

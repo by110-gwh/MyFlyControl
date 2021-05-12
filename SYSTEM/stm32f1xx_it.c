@@ -150,12 +150,4 @@ void I2C1_ER_IRQHandler(void)
   HAL_I2C_ER_IRQHandler(&hi2c1);
 }
 
-/**
-  * @brief This function handles USART1 global interrupt.
-  */
-void USART3_IRQHandler(void)
-{
-  extern UART_HandleTypeDef huart3;
-  HAL_UART_IRQHandler(&huart3);
-}
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

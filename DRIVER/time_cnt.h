@@ -11,7 +11,6 @@ typedef struct
 	uint32_t Last_Time;
 	uint32_t Now_Time;
 	uint32_t Time_Delta;
-	uint32_t Time_Delta_INT;
 } Testime;
 
 typedef struct

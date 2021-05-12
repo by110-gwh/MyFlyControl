@@ -4,6 +4,7 @@
 #include "display_task.h"
 #include "fly_task.h"
 #include "esc_task.h"
+#include "usmart_task.h"
 #include "imu.h"
 #include "i2c.h"
 #include "motor_output.h"
@@ -35,6 +36,7 @@ portTASK_FUNCTION(main_task, parameters)
 	rc_init();
 	i2c_init();
 	motor_output_init();
+	usmart_task_create();
 	//¼ì²âÒ£¿ØÆ÷ÊÇ·ñÁ¬½Ó
 	page_number = 17;
 	while (!rc_is_on())

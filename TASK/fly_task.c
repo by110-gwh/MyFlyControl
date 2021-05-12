@@ -1,7 +1,6 @@
 #include "fly_task.h"
 #include "ahrs_aux.h"
 #include "navigation.h"
-#include "NCLink.h"
 #include "ppm.h"
 #include "imu.h"
 #include "motor_output.h"
@@ -38,7 +37,6 @@ portTASK_FUNCTION(fly_task, pvParameters)
 	
 	imu_init();
 	ahrs_init();
-	NCLink_Init();
     angle_control_init();
     gyro_control_init();
     //»½ÐÑµ÷¶ÈÆ÷
@@ -56,7 +54,6 @@ portTASK_FUNCTION(fly_task, pvParameters)
         angle_control();
         gyro_control();
 		motor_output_output();
-		NCLink_SEND_StateMachine();
         //Ë¯Ãß5ms
         vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
     }

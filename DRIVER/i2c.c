@@ -2,16 +2,15 @@
 #include "stm32f1xx_hal.h"
 
 #include "FreeRTOS.h"
-#include "event_groups.h"
+#include "queue.h"
 
 #define I2C_EVENT_SUCCESSFUL 1 << 0
 #define I2C_EVENT_ERROR 1 << 1
 
-//I2C事件标志组
-EventGroupHandle_t i2c_event;
+//I2C消息标志队列
+static QueueHandle_t i2c_queue;
 //I2C外设句柄
 I2C_HandleTypeDef hi2c1;
-
 /**********************************************************************************************************
 *函 数 名: Spi_GPIO_Init
 *功能说明: SPI从机设备CS引脚初始化
@@ -50,7 +49,7 @@ void i2c_init(void)
     HAL_NVIC_SetPriority(I2C1_ER_IRQn, 15, 0);
     HAL_NVIC_EnableIRQ(I2C1_ER_IRQn);
 	
-	i2c_event = xEventGroupCreate();
+	i2c_queue = xQueueCreate(1, sizeof(uint8_t));
 }
 
 /**********************************************************************************************************
@@ -74,10 +73,12 @@ int i2c_single_write(uint8_t slave_address, uint8_t reg_address, uint8_t reg_dat
 **********************************************************************************************************/
 int i2c_single_write_it(uint8_t slave_address, uint8_t reg_address, uint8_t reg_data)
 {
+	uint8_t res;
 	if (HAL_I2C_Mem_Write_IT(&hi2c1, slave_address << 1, reg_address, I2C_MEMADD_SIZE_8BIT, &reg_data, 1) != HAL_OK)
 		return -1;
 	
-	if (xEventGroupWaitBits(i2c_event, I2C_EVENT_SUCCESSFUL | I2C_EVENT_ERROR, 1, 0, portMAX_DELAY) & I2C_EVENT_ERROR)
+	xQueueReceive(i2c_queue, (void *) &res, portMAX_DELAY);
+	if (res & I2C_EVENT_ERROR)
 		return -1;
 	return 0;
 }
@@ -103,10 +104,12 @@ int i2c_single_read(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_dat
 **********************************************************************************************************/
 int i2c_single_read_it(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_data)
 {
+	uint8_t res;
 	if (HAL_I2C_Mem_Read_IT(&hi2c1, slave_address << 1, reg_address, I2C_MEMADD_SIZE_8BIT, reg_data, 1) != HAL_OK)
 		return -1;
 	
-	if (xEventGroupWaitBits(i2c_event, I2C_EVENT_SUCCESSFUL | I2C_EVENT_ERROR, 1, 0, portMAX_DELAY) & I2C_EVENT_ERROR)
+	xQueueReceive(i2c_queue, (void *) &res, portMAX_DELAY);
+	if (res & I2C_EVENT_ERROR)
 		return -1;
 	return 0;
 }
@@ -132,11 +135,14 @@ int i2c_multi_read(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_data
 **********************************************************************************************************/
 int i2c_multi_read_it(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_data, uint8_t read_cnt)
 {
+	uint8_t res;
 	if (HAL_I2C_Mem_Read_IT(&hi2c1, slave_address << 1, reg_address, I2C_MEMADD_SIZE_8BIT, reg_data, read_cnt) != HAL_OK)
 		return -1;
 	
-	if (xEventGroupWaitBits(i2c_event, I2C_EVENT_SUCCESSFUL | I2C_EVENT_ERROR, 1, 0, portMAX_DELAY) & I2C_EVENT_ERROR)
+	xQueueReceive(i2c_queue, (void *) &res, portMAX_DELAY);
+	if (res & I2C_EVENT_ERROR)
 		return -1;
+	
 	return 0;
 }
 
@@ -148,10 +154,12 @@ int i2c_multi_read_it(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_d
 **********************************************************************************************************/
 void HAL_I2C_MemTxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
+	uint8_t data;
 	BaseType_t xResult;
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	xResult = xEventGroupSetBitsFromISR(i2c_event, I2C_EVENT_SUCCESSFUL, &xHigherPriorityTaskWoken);
-	if( xResult != pdFAIL )
+	data = I2C_EVENT_SUCCESSFUL;
+	xResult = xQueueSendFromISR(i2c_queue, &data, &xHigherPriorityTaskWoken);
+	if(xResult == pdPASS)
 		  portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
@@ -163,10 +171,12 @@ void HAL_I2C_MemTxCpltCallback(I2C_HandleTypeDef *hi2c)
 **********************************************************************************************************/
 void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
+	uint8_t data;
 	BaseType_t xResult;
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	xResult = xEventGroupSetBitsFromISR(i2c_event, I2C_EVENT_SUCCESSFUL, &xHigherPriorityTaskWoken);
-	if( xResult != pdFAIL )
+	data = I2C_EVENT_SUCCESSFUL;
+	xResult = xQueueSendFromISR(i2c_queue, &data, &xHigherPriorityTaskWoken);
+	if(xResult == pdPASS)
 		  portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
@@ -178,10 +188,12 @@ void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c)
 **********************************************************************************************************/
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
 {
+	uint8_t data;
 	BaseType_t xResult;
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	xResult = xEventGroupSetBitsFromISR(i2c_event, I2C_EVENT_ERROR, &xHigherPriorityTaskWoken);
-	if( xResult != pdFAIL )
+	data = I2C_EVENT_ERROR;
+	xResult = xQueueSendFromISR(i2c_queue, &data, &xHigherPriorityTaskWoken);
+	if(xResult == pdPASS)
 		  portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
@@ -193,10 +205,12 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
 **********************************************************************************************************/
 void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
+	uint8_t data;
 	BaseType_t xResult;
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	xResult = xEventGroupSetBitsFromISR(i2c_event, I2C_EVENT_SUCCESSFUL, &xHigherPriorityTaskWoken);
-	if( xResult != pdFAIL )
+	data = I2C_EVENT_SUCCESSFUL;
+	xResult = xQueueSendFromISR(i2c_queue, &data, &xHigherPriorityTaskWoken);
+	if(xResult == pdPASS)
 		  portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
@@ -208,9 +222,11 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 **********************************************************************************************************/
 void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
+	uint8_t data;
 	BaseType_t xResult;
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	xResult = xEventGroupSetBitsFromISR(i2c_event, I2C_EVENT_SUCCESSFUL, &xHigherPriorityTaskWoken);
-	if( xResult != pdFAIL )
+	data = I2C_EVENT_SUCCESSFUL;
+	xResult = xQueueSendFromISR(i2c_queue, &data, &xHigherPriorityTaskWoken);
+	if(xResult == pdPASS)
 		  portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }

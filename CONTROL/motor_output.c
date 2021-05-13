@@ -15,8 +15,7 @@ uint16_t throttle_motor_output;
 
 //四个电机输出值
 static uint16_t Motor_PWM_1, Motor_PWM_2, Motor_PWM_3, Motor_PWM_4;
-//电机已经被停转标志
-static uint8_t urgent_stop_flag;
+//电机上锁标志
 static uint8_t motor_lock;
 
 /**********************************************************************************************************
@@ -61,30 +60,18 @@ void motor_output_init(void)
 **********************************************************************************************************/
 void motor_output_unlock(void)
 {
-	uint8_t idel_cnt;
-	
 	//停转模式
 	if (rc_raw_data[5] > rc_calibration_data[6].middle) {
-		urgent_stop_flag = 1;
+		motor_lock = 1;
 		Motor_PWM_1 = Thr_Min;
 		Motor_PWM_2 = Thr_Min;
 		Motor_PWM_3 = Thr_Min;
 		Motor_PWM_4 = Thr_Min;
 		pwm_set(Motor_PWM_1, Motor_PWM_2, Motor_PWM_3, Motor_PWM_4);
 	} else {
-		//复位标志位
-		urgent_stop_flag = 0;
-		//缓慢起转
-		for (idel_cnt = 0; idel_cnt <= 100; idel_cnt++) {
-			Motor_PWM_1 = Thr_Min + (Thr_Idle - Thr_Min) * (idel_cnt / 100.F);
-			Motor_PWM_2 = Thr_Min + (Thr_Idle - Thr_Min) * (idel_cnt / 100.F);
-			Motor_PWM_3 = Thr_Min + (Thr_Idle - Thr_Min) * (idel_cnt / 100.F);
-			Motor_PWM_4 = Thr_Min + (Thr_Idle - Thr_Min) * (idel_cnt / 100.F);
-			pwm_set(Motor_PWM_1, Motor_PWM_2, Motor_PWM_3, Motor_PWM_4);
-			vTaskDelay(50);
-		}
+		//解锁电机
+		motor_lock = 0;
 	}
-	motor_lock = 0;
 }
 
 /**********************************************************************************************************
@@ -99,13 +86,16 @@ void motor_output_output(void)
 	int16_t pitch_motor_output;
 	int16_t yaw_motor_output;
 
-	//电机锁定
-	if (motor_lock) {
-		
 	//紧急停机
-	} else if (rc_raw_data[5] > rc_calibration_data[6].middle || urgent_stop_flag == 1) {
-		urgent_stop_flag = 1;
+	if (rc_raw_data[5] > rc_calibration_data[6].middle || motor_lock == 1) {
+		motor_lock = 1;
 		//四个电机停转
+		Motor_PWM_1 = Thr_Min;
+		Motor_PWM_2 = Thr_Min;
+		Motor_PWM_3 = Thr_Min;
+		Motor_PWM_4 = Thr_Min;
+		pwm_set(Motor_PWM_1, Motor_PWM_2, Motor_PWM_3, Motor_PWM_4);
+	} else if (throttle_motor_output == 1000) {
 		Motor_PWM_1 = Thr_Min;
 		Motor_PWM_2 = Thr_Min;
 		Motor_PWM_3 = Thr_Min;
@@ -115,16 +105,18 @@ void motor_output_output(void)
 		pitch_motor_output = pitch_gyro_pid.control_output;
 		roll_motor_output = roll_gyro_pid.control_output;
 		yaw_motor_output = yaw_gyro_pid.control_output;
+		yaw_motor_output = 0;
+		roll_motor_output = 0;
 		//计算四个电机输出值
 		Motor_PWM_1 = throttle_motor_output - roll_motor_output + pitch_motor_output - yaw_motor_output;
 		Motor_PWM_2 = throttle_motor_output + roll_motor_output - pitch_motor_output - yaw_motor_output;
 		Motor_PWM_3 = throttle_motor_output + roll_motor_output + pitch_motor_output + yaw_motor_output;
 		Motor_PWM_4 = throttle_motor_output - roll_motor_output - pitch_motor_output + yaw_motor_output;
 		//总输出限幅
-		Motor_PWM_1 = value_limit(Thr_Idle, 2000, Motor_PWM_1);
-        Motor_PWM_2 = value_limit(Thr_Idle, 2000, Motor_PWM_2);
-        Motor_PWM_3 = value_limit(Thr_Idle, 2000, Motor_PWM_3);
-        Motor_PWM_4 = value_limit(Thr_Idle, 2000, Motor_PWM_4);
+		Motor_PWM_1 = value_limit(Thr_Min, 2000, Motor_PWM_1);
+        Motor_PWM_2 = value_limit(Thr_Min, 2000, Motor_PWM_2);
+        Motor_PWM_3 = value_limit(Thr_Min, 2000, Motor_PWM_3);
+        Motor_PWM_4 = value_limit(Thr_Min, 2000, Motor_PWM_4);
 		pwm_set(Motor_PWM_1, Motor_PWM_2, Motor_PWM_3, Motor_PWM_4);
 	}
 }

@@ -15,7 +15,7 @@
 #include "task.h"
 
 //任务堆栈大小
-#define MAIN_TASK_STACK            1024
+#define MAIN_TASK_STACK            512
 //任务优先级
 #define MAIN_TASK_PRIORITY         5
 

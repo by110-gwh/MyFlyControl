@@ -21,6 +21,8 @@ void gyro_control_pid_set(uint8_t p, uint8_t i, uint8_t d)
     pitch_gyro_pid.kp = p / 10;
     pitch_gyro_pid.ki = i / 10;
     pitch_gyro_pid.kd = d / 10;
+	
+	gyro_pid_integrate_reset();
 }
 
 /**********************************************************************************************************
@@ -128,8 +130,22 @@ void gyro_control_init()
 void gyro_pid_integrate_reset()
 {
 	yaw_gyro_pid.integrate = 0;
-	roll_gyro_pid.integrate = 0;
+	yaw_gyro_pid.pid_controller_dt.inited = 0;
+	yaw_gyro_pid.last_err = 0;
+	yaw_gyro_pid.pre_last_err = 0;
+	yaw_gyro_pid.last_expect = 0;
+	
 	pitch_gyro_pid.integrate = 0;
+	pitch_gyro_pid.pid_controller_dt.inited = 0;
+	pitch_gyro_pid.last_err = 0;
+	pitch_gyro_pid.pre_last_err = 0;
+	pitch_gyro_pid.last_expect = 0;
+	
+	roll_gyro_pid.integrate = 0;
+	roll_gyro_pid.pid_controller_dt.inited = 0;
+	roll_gyro_pid.last_err = 0;
+	roll_gyro_pid.pre_last_err = 0;
+	roll_gyro_pid.last_expect = 0;
 }
 
 

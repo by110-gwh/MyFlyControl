@@ -2,6 +2,7 @@
 #include "remote_control.h"
 #include "motor_output.h"
 #include "angle_control.h"
+#include "gyro_control.h"
 #include "ahrs_aux.h"
 
 /**********************************************************************************************************
@@ -15,7 +16,10 @@ void attitude_self_stabilization_control()
 	throttle_motor_output = Throttle_Control + 1000;
 	pitch_angle_pid.expect = Pitch_Control;
 	roll_angle_pid.expect = Roll_Control;
-
+	if (throttle_motor_output == 1000) {
+		angle_pid_integrate_reset();
+		gyro_pid_integrate_reset();
+	}
 	//偏航杆置于中位
 	if (Yaw_Control == 0) {
 		//回中时赋角度期望值

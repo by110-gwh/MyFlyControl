@@ -105,13 +105,11 @@ void motor_output_output(void)
 		pitch_motor_output = pitch_gyro_pid.control_output;
 		roll_motor_output = roll_gyro_pid.control_output;
 		yaw_motor_output = yaw_gyro_pid.control_output;
-		yaw_motor_output = 0;
-		roll_motor_output = 0;
 		//计算四个电机输出值
-		Motor_PWM_1 = throttle_motor_output - roll_motor_output + pitch_motor_output - yaw_motor_output;
-		Motor_PWM_2 = throttle_motor_output + roll_motor_output - pitch_motor_output - yaw_motor_output;
-		Motor_PWM_3 = throttle_motor_output + roll_motor_output + pitch_motor_output + yaw_motor_output;
-		Motor_PWM_4 = throttle_motor_output - roll_motor_output - pitch_motor_output + yaw_motor_output;
+		Motor_PWM_1 = throttle_motor_output - roll_motor_output + pitch_motor_output + yaw_motor_output;
+		Motor_PWM_2 = throttle_motor_output + roll_motor_output - pitch_motor_output + yaw_motor_output;
+		Motor_PWM_3 = throttle_motor_output + roll_motor_output + pitch_motor_output - yaw_motor_output;
+		Motor_PWM_4 = throttle_motor_output - roll_motor_output - pitch_motor_output - yaw_motor_output;
 		//总输出限幅
 		Motor_PWM_1 = value_limit(Thr_Min, 2000, Motor_PWM_1);
         Motor_PWM_2 = value_limit(Thr_Min, 2000, Motor_PWM_2);

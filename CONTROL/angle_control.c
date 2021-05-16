@@ -28,9 +28,9 @@ static void yaw_err_correct(pid_controler_t *controler)
 **********************************************************************************************************/
 void angle_control_pid_set(uint8_t p, uint8_t i, uint8_t d)
 {
-    pitch_angle_pid.kp = p / 10;
-    pitch_angle_pid.ki = i / 10;
-    pitch_angle_pid.kd = d / 10;
+	pitch_angle_pid.kp = p / 10.;
+	pitch_angle_pid.ki = i / 10.;
+	pitch_angle_pid.kd = d / 10.;
 	angle_pid_integrate_reset();
 }
 
@@ -57,7 +57,7 @@ void angle_control_init()
 
     pitch_angle_pid.dis_err = 0;
 
-    pitch_angle_pid.kp = 4;
+    pitch_angle_pid.kp = 3;
     pitch_angle_pid.ki = 0;
     pitch_angle_pid.kd = 0;
     
@@ -86,7 +86,7 @@ void angle_control_init()
 
     roll_angle_pid.dis_err = 0;
 
-    roll_angle_pid.kp = 4;
+    roll_angle_pid.kp = 3;
     roll_angle_pid.ki = 0;
     roll_angle_pid.kd = 0;
 

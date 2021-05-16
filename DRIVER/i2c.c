@@ -44,7 +44,7 @@ void i2c_init(void)
 	HAL_I2C_Init(&hi2c1);
 	
 	//I2C÷–∂œ≥ı ºªØ
-    HAL_NVIC_SetPriority(I2C1_EV_IRQn, 7, 0);
+    HAL_NVIC_SetPriority(I2C1_EV_IRQn, 8, 0);
     HAL_NVIC_EnableIRQ(I2C1_EV_IRQn);
     HAL_NVIC_SetPriority(I2C1_ER_IRQn, 15, 0);
     HAL_NVIC_EnableIRQ(I2C1_ER_IRQn);

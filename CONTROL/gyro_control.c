@@ -10,6 +10,31 @@ pid_controler_t pitch_gyro_pid;
 pid_controler_t roll_gyro_pid;
 pid_controler_t yaw_gyro_pid;
 
+typedef struct {
+    Butter_BufferData buffer;
+} pitch_roll_err_correct_t;
+
+//额外的pid参数
+static pitch_roll_err_correct_t pitch_pri_dat;
+static pitch_roll_err_correct_t roll_pri_dat;
+static pitch_roll_err_correct_t yaw_pri_dat;
+
+static Butter_Parameter gyro_filter_parameter_30Hz;
+
+/**********************************************************************************************************
+*函 数 名: gyro_err_correct
+*功能说明: 额外的角速度pid计算
+*形    参: pid控制器结构体
+*返 回 值: 无
+**********************************************************************************************************/
+static void gyro_err_correct(pid_controler_t *controler)
+{
+    //巴特沃斯低通后得到的微分项,30hz
+    controler->dis_err = Butterworth_Filter(controler->dis_err,
+        &((pitch_roll_err_correct_t *)controler->pri_data)->buffer,
+        &gyro_filter_parameter_30Hz);
+}
+
 /**********************************************************************************************************
 *函 数 名: gyro_control_pid_set
 *功能说明: 角速度环pid调整函数
@@ -18,9 +43,9 @@ pid_controler_t yaw_gyro_pid;
 **********************************************************************************************************/
 void gyro_control_pid_set(uint8_t p, uint8_t i, uint8_t d)
 {
-    pitch_gyro_pid.kp = p / 10;
-    pitch_gyro_pid.ki = i / 10;
-    pitch_gyro_pid.kd = d / 10;
+    pitch_gyro_pid.kp = p / 10.;
+    pitch_gyro_pid.ki = i / 10.;
+    pitch_gyro_pid.kd = d / 10.;
 	
 	gyro_pid_integrate_reset();
 }
@@ -44,23 +69,23 @@ void gyro_control_init()
 
     pitch_gyro_pid.integrate_separation_err = 0;
     pitch_gyro_pid.integrate = 0;
-    pitch_gyro_pid.integrate_max = 300;
+    pitch_gyro_pid.integrate_max = 100;
 
     pitch_gyro_pid.dis_err = 0;
 
-    pitch_gyro_pid.kp = 0.75;
-    pitch_gyro_pid.ki = 2.5;
-    pitch_gyro_pid.kd = 2;
+    pitch_gyro_pid.kp = 1.8;
+    pitch_gyro_pid.ki = 5;
+    pitch_gyro_pid.kd = 9;
     
-    pitch_gyro_pid.feedforward_kp = 0.1;
+    pitch_gyro_pid.feedforward_kp = 0;
     pitch_gyro_pid.feedforward_kd = 0;
 
     pitch_gyro_pid.control_output = 0;
     pitch_gyro_pid.control_output_limit = 500;
 
     pitch_gyro_pid.short_circuit_flag = 0;
-    pitch_gyro_pid.err_callback = NULL;
-    pitch_gyro_pid.pri_data = NULL;
+    pitch_gyro_pid.err_callback = pitch_roll_err_correct;
+    pitch_gyro_pid.pri_data = &pitch_pri_dat;
 
     //横滚角pid参数初始化
     roll_gyro_pid.last_expect = 0;
@@ -73,23 +98,23 @@ void gyro_control_init()
 
     roll_gyro_pid.integrate_separation_err = 0;
     roll_gyro_pid.integrate = 0;
-    roll_gyro_pid.integrate_max = 300;
+    roll_gyro_pid.integrate_max = 100;
 
     roll_gyro_pid.dis_err = 0;
 
-    roll_gyro_pid.kp = 0.75;
-    roll_gyro_pid.ki = 2.5;
-    roll_gyro_pid.kd = 2;
+    roll_gyro_pid.kp = 1.8;
+    roll_gyro_pid.ki = 5;
+    roll_gyro_pid.kd = 9;
 
-    roll_gyro_pid.feedforward_kp = 0.1;
+    roll_gyro_pid.feedforward_kp = 0;
     roll_gyro_pid.feedforward_kd = 0;
 
     roll_gyro_pid.control_output = 0;
     roll_gyro_pid.control_output_limit = 500;
 
     roll_gyro_pid.short_circuit_flag = 0;
-    roll_gyro_pid.err_callback = NULL;
-    roll_gyro_pid.pri_data = NULL;
+    roll_gyro_pid.err_callback = pitch_roll_err_correct;
+    roll_gyro_pid.pri_data = &roll_pri_dat;
 
     //偏航pid参数初始化
     yaw_gyro_pid.last_expect = 0;
@@ -117,8 +142,10 @@ void gyro_control_init()
     yaw_gyro_pid.control_output_limit = 500;
 
     yaw_gyro_pid.short_circuit_flag = 0;
-    yaw_gyro_pid.err_callback = NULL;
-    yaw_gyro_pid.pri_data = NULL;
+    yaw_gyro_pid.err_callback = gyro_err_correct;
+    yaw_gyro_pid.pri_data = &yaw_pri_dat;
+
+    Set_Cutoff_Frequency(Sampling_Freq, 30, &gyro_filter_parameter_30Hz);
 }
 
 /**********************************************************************************************************

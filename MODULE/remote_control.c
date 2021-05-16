@@ -9,7 +9,7 @@
 #include "task.h"
 
 //最大俯仰、横滚期望
-#define Pit_Rol_Max 35
+#define Pit_Rol_Max 20
 //最大偏航期望
 #define Yaw_Max     200
 //油门底部安全死区

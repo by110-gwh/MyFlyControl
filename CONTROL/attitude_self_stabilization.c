@@ -49,6 +49,11 @@ void attitude_self_stabilization_control()
 	throttle_motor_output = throttle_angle_compensate(Throttle_Control + 1000);
 	pitch_angle_pid.expect = Pitch_Control;
 	roll_angle_pid.expect = Roll_Control;
+	if (throttle_motor_output == 1000) {
+		angle_pid_integrate_reset();
+		gyro_pid_integrate_reset();
+		yaw_angle_pid.expect = Yaw;
+	}
 
 	//Æ«º½¸ËÖÃÓÚÖĞÎ»
 	if (Yaw_Control == 0) {

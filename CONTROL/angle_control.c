@@ -115,7 +115,7 @@ void angle_control_init()
 
     yaw_angle_pid.dis_err = 0;
 
-    yaw_angle_pid.kp = 4;
+    yaw_angle_pid.kp = 3;
     yaw_angle_pid.ki = 0;
     yaw_angle_pid.kd = 0;
 
@@ -123,7 +123,7 @@ void angle_control_init()
     yaw_angle_pid.feedforward_kd = 0;
 
     yaw_angle_pid.control_output = 0;
-    yaw_angle_pid.control_output_limit = 450;
+    yaw_angle_pid.control_output_limit = 20;
 
     yaw_angle_pid.short_circuit_flag = 0;
     yaw_angle_pid.err_callback = yaw_err_correct;
@@ -143,18 +143,21 @@ void angle_pid_integrate_reset()
 	yaw_angle_pid.last_err = 0;
 	yaw_angle_pid.pre_last_err = 0;
 	yaw_angle_pid.last_expect = 0;
+	yaw_angle_pid.control_output = 0;
 	
 	pitch_angle_pid.integrate = 0;
 	pitch_angle_pid.pid_controller_dt.inited = 0;
 	pitch_angle_pid.last_err = 0;
 	pitch_angle_pid.pre_last_err = 0;
 	pitch_angle_pid.last_expect = 0;
+	pitch_angle_pid.control_output = 0;
 	
 	roll_angle_pid.integrate = 0;
 	roll_angle_pid.pid_controller_dt.inited = 0;
 	roll_angle_pid.last_err = 0;
 	roll_angle_pid.pre_last_err = 0;
 	roll_angle_pid.last_expect = 0;
+	roll_angle_pid.control_output = 0;
 }
 
 /**********************************************************************************************************

@@ -84,7 +84,7 @@ void gyro_control_init()
     pitch_gyro_pid.control_output_limit = 500;
 
     pitch_gyro_pid.short_circuit_flag = 0;
-    pitch_gyro_pid.err_callback = pitch_roll_err_correct;
+    pitch_gyro_pid.err_callback = gyro_err_correct;
     pitch_gyro_pid.pri_data = &pitch_pri_dat;
 
     //横滚角pid参数初始化
@@ -113,7 +113,7 @@ void gyro_control_init()
     roll_gyro_pid.control_output_limit = 500;
 
     roll_gyro_pid.short_circuit_flag = 0;
-    roll_gyro_pid.err_callback = pitch_roll_err_correct;
+    roll_gyro_pid.err_callback = gyro_err_correct;
     roll_gyro_pid.pri_data = &roll_pri_dat;
 
     //偏航pid参数初始化

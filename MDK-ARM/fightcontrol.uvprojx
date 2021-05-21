@@ -312,7 +312,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>4</Optim>
+            <Optim>1</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CMSIS;..\DRIVER;..\STM32F1xx_HAL_Driver\Inc;..\SYSTEM;..\FREERTOS\include;..\FREERTOS\portable\RVDS\ARM_CM3;..\USER;..\MODULE;..\TASK;..\MATH;..\NAVIGATION;..\CONTROL;..\BSP;..\USMART</IncludePath>
+              <IncludePath>..\CMSIS;..\DRIVER;..\STM32F1xx_HAL_Driver\Inc;..\SYSTEM;..\FREERTOS\include;..\FREERTOS\portable\RVDS\ARM_CM3;..\USER;..\MODULE;..\TASK;..\MATH;..\NAVIGATION;..\CONTROL;..\BSP;..\USMART;..\BSP\vl53l1\core;..\BSP\vl53l1\platform</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -391,6 +391,76 @@
               <FileName>mpu6050.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\BSP\mpu6050.c</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1_api.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\vl53l1\core\vl53l1_api.c</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1_api_calibration.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\vl53l1\core\vl53l1_api_calibration.c</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1_api_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\vl53l1\core\vl53l1_api_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1_api_debug.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\vl53l1\core\vl53l1_api_debug.c</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1_api_preset_modes.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\vl53l1\core\vl53l1_api_preset_modes.c</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1_api_strings.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\vl53l1\core\vl53l1_api_strings.c</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\vl53l1\core\vl53l1_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1_core_support.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\vl53l1\core\vl53l1_core_support.c</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1_error_strings.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\vl53l1\core\vl53l1_error_strings.c</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1_register_funcs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\vl53l1\core\vl53l1_register_funcs.c</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1_silicon_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\vl53l1\core\vl53l1_silicon_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1_wait.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\vl53l1\core\vl53l1_wait.c</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1_platform.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\vl53l1\platform\vl53l1_platform.c</FilePath>
+            </File>
+            <File>
+              <FileName>vl53l1x.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\vl53l1x.c</FilePath>
             </File>
           </Files>
         </Group>

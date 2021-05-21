@@ -7,6 +7,7 @@
 #include "attitude_self_stabilization.h"
 #include "angle_control.h"
 #include "gyro_control.h"
+#include "vl53l1x.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -39,6 +40,7 @@ portTASK_FUNCTION(fly_task, pvParameters)
 	ahrs_init();
     angle_control_init();
     gyro_control_init();
+    vl53l1x_init();
     //»½ÐÑµ÷¶ÈÆ÷
     //xTaskResumeAll();
 

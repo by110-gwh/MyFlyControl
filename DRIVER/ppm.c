@@ -3,7 +3,7 @@
 #include "time_cnt.h"
 #include <string.h>
 #include "remote_control.h"
-
+#include "sr04.h"
 
 /**********************************************************************************************************
 *函 数 名: PPM_Init
@@ -39,8 +39,7 @@ void EXTI9_5_IRQHandler(void)
 	static uint8_t ppm_sample_cnt;
 	uint16_t ppm_time_delta;
 
-	if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_8) != RESET)
-	{
+	if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_8) != RESET) {
 		//系统运行时间获取
 		Get_Time_Period(&ppm_time);
 		ppm_time_delta = ppm_time.Time_Delta;
@@ -55,7 +54,11 @@ void EXTI9_5_IRQHandler(void)
 				ppm_sample_cnt = 0;
 			}
 		}
-	}
-	__HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_8);
+        __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_8);
+	} else if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_9) != RESET) {
+        //超声波外部中断
+        sr04_exit_callback();
+        __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_9);
+    }
 }
 

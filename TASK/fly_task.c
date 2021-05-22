@@ -7,7 +7,8 @@
 #include "attitude_self_stabilization.h"
 #include "angle_control.h"
 #include "gyro_control.h"
-#include "vl53l1x.h"
+// #include "vl53l1x.h"
+#include "sr04.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -40,7 +41,8 @@ portTASK_FUNCTION(fly_task, pvParameters)
 	ahrs_init();
     angle_control_init();
     gyro_control_init();
-    vl53l1x_init();
+    // vl53l1x_init();
+    sr04_task_create();
     //»½ÐÑµ÷¶ÈÆ÷
     //xTaskResumeAll();
 
@@ -59,6 +61,7 @@ portTASK_FUNCTION(fly_task, pvParameters)
         //Ë¯Ãß5ms
         vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
     }
+    sr04_task_exit = 1;
 	vTaskDelete(NULL);
 }
 

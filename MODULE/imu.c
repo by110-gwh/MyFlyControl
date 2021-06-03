@@ -118,9 +118,9 @@ void get_imu_data()
 	}
 	
 	//数据校准
-	accRawData.x = paramer_save_data.accel_x_scale * accRawData.x - paramer_save_data.accel_x_offset * ACCEL_SCALE;
-	accRawData.y = paramer_save_data.accel_y_scale * accRawData.y - paramer_save_data.accel_y_offset * ACCEL_SCALE;
-	accRawData.z = paramer_save_data.accel_z_scale * accRawData.z - paramer_save_data.accel_z_offset * ACCEL_SCALE;
+	accRawData.x = paramer_save_data.accel_x_scale * accRawData.x - paramer_save_data.accel_x_offset / ACCEL_SCALE;
+	accRawData.y = paramer_save_data.accel_y_scale * accRawData.y - paramer_save_data.accel_y_offset / ACCEL_SCALE;
+	accRawData.z = paramer_save_data.accel_z_scale * accRawData.z - paramer_save_data.accel_z_offset / ACCEL_SCALE;
 	MagRawData.x = MagRawData.x - paramer_save_data.mag_x_offset;
 	MagRawData.y = MagRawData.y - paramer_save_data.mag_y_offset;
 	MagRawData.z = MagRawData.z - paramer_save_data.mag_z_offset;

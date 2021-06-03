@@ -14,6 +14,8 @@
 #include "task.h"
 #include "queue.h"
 
+#include "stdio.h"
+
 //任务堆栈大小
 #define FLY_TASK_STACK 512
 //任务优先级
@@ -43,21 +45,24 @@ portTASK_FUNCTION(fly_task, pvParameters)
     gyro_control_init();
     // vl53l1x_init();
     sr04_task_create();
+    navigation_init();
     //唤醒调度器
     //xTaskResumeAll();
 
 
     xLastWakeTime = xTaskGetTickCount();
-    while (!fly_task_exit)
-    {
-        
+    while (!fly_task_exit) {
 		//获取imu数据
 		get_imu_data();
 		ahrs_update();
+        navigation_prepare();
+        high_kalman_filter();
 		attitude_self_stabilization_control();
         angle_control();
         gyro_control();
 		motor_output_output();
+        extern float high_vel, high_acce, high_pos;
+        printf("%0.3f,%0.3f,%0.3f\r\n", high_vel, high_raw_data / 10.0, high_pos); 
         //睡眠5ms
         vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
     }

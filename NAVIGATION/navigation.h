@@ -8,5 +8,6 @@ extern Vector3f_t navigation_acce;
 
 void navigation_init(void);
 void navigation_prepare(void);
+void high_kalman_filter(void);
 
 #endif

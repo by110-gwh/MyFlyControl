@@ -7,8 +7,8 @@
 #include "attitude_self_stabilization.h"
 #include "angle_control.h"
 #include "gyro_control.h"
-// #include "vl53l1x.h"
-#include "sr04.h"
+#include "vl53l1x.h"
+//#include "sr04.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -43,8 +43,8 @@ portTASK_FUNCTION(fly_task, pvParameters)
 	ahrs_init();
     angle_control_init();
     gyro_control_init();
-    // vl53l1x_init();
-    sr04_task_create();
+    vl53l1x_init();
+    //sr04_task_create();
     navigation_init();
     //唤醒调度器
     //xTaskResumeAll();
@@ -54,6 +54,7 @@ portTASK_FUNCTION(fly_task, pvParameters)
     while (!fly_task_exit) {
 		//获取imu数据
 		get_imu_data();
+        vl53l1x_task();
 		ahrs_update();
         navigation_prepare();
         high_kalman_filter();
@@ -62,11 +63,11 @@ portTASK_FUNCTION(fly_task, pvParameters)
         gyro_control();
 		motor_output_output();
         extern float high_vel, high_acce, high_pos;
-        printf("%0.3f,%0.3f,%0.3f\r\n", high_vel, high_raw_data / 10.0, high_pos); 
+        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_vel, high_raw_data / 10.0, high_pos, high_acce, navigation_acce.z); 
         //睡眠5ms
         vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
     }
-    sr04_task_exit = 1;
+    //sr04_task_exit = 1;
 	vTaskDelete(NULL);
 }
 

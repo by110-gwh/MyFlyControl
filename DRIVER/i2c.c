@@ -33,7 +33,7 @@ void i2c_init(void)
 
 	//I2C初始化
 	hi2c1.Instance = I2C1;
-	hi2c1.Init.ClockSpeed = 100000;
+	hi2c1.Init.ClockSpeed = 400000;
 	hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
 	hi2c1.Init.OwnAddress1 = 0;
 	hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -44,7 +44,7 @@ void i2c_init(void)
 	HAL_I2C_Init(&hi2c1);
 	
 	//I2C中断初始化
-    HAL_NVIC_SetPriority(I2C1_EV_IRQn, 8, 0);
+    HAL_NVIC_SetPriority(I2C1_EV_IRQn, 7, 0);
     HAL_NVIC_EnableIRQ(I2C1_EV_IRQn);
     HAL_NVIC_SetPriority(I2C1_ER_IRQn, 15, 0);
     HAL_NVIC_EnableIRQ(I2C1_ER_IRQn);

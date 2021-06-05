@@ -62,7 +62,7 @@ void debug_uart_init()
 	HAL_UART_Init(&huart3);
 
 	//串口中单初始化
-	HAL_NVIC_SetPriority(USART3_IRQn, 7, 0);
+	HAL_NVIC_SetPriority(USART3_IRQn, 8, 0);
 	HAL_NVIC_EnableIRQ(USART3_IRQn);
 	
 	//开启接受中断

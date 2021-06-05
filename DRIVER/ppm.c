@@ -55,10 +55,10 @@ void EXTI9_5_IRQHandler(void)
 			}
 		}
         __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_8);
-	} else if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_9) != RESET) {
+	}/* else if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_9) != RESET) {
         //³¬Éù²¨Íâ²¿ÖÐ¶Ï
         sr04_exit_callback();
         __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_9);
-    }
+    }*/
 }
 

@@ -74,6 +74,7 @@ void navigation_prepare(void)
 
 	navigation_acce_length = sqrt(navigation_acce.z * navigation_acce.z + navigation_acce.x * navigation_acce.x + navigation_acce.y * navigation_acce.y);
 }
+
 float constrain_float(float amt, float low, float high);
 /**********************************************************************************************************
 *函 数 名: high_kalman_filter
@@ -99,7 +100,7 @@ void high_kalman_filter()
     //先验协方差
     float prior_conv[2][2];
     //系统过程协方差
-    float Q[2] = {5.0e-4f, 6.0e-4f};
+    float Q[2] = {5.0e-3f, 6.0e-3f};
     float R = 100;
     //卡尔曼增益矩阵
     float K[2];

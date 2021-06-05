@@ -312,7 +312,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>1</Optim>
+            <Optim>4</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -325,7 +325,7 @@
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
             <uC99>1</uC99>
-            <uGnu>0</uGnu>
+            <uGnu>1</uGnu>
             <useXO>0</useXO>
             <v6Lang>1</v6Lang>
             <v6LangP>1</v6LangP>
@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F103xE</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CMSIS;..\DRIVER;..\STM32F1xx_HAL_Driver\Inc;..\SYSTEM;..\FREERTOS\include;..\FREERTOS\portable\RVDS\ARM_CM3;..\USER;..\MODULE;..\TASK;..\MATH;..\NAVIGATION;..\CONTROL;..\BSP;..\USMART;..\BSP\vl53l1\core;..\BSP\vl53l1\platform</IncludePath>
+              <IncludePath>..\CMSIS;..\DRIVER;..\STM32F1xx_HAL_Driver\Inc;..\SYSTEM;..\FREERTOS\include;..\FREERTOS\portable\RVDS\ARM_CM3;..\USER;..\MODULE;..\TASK;..\MATH;..\NAVIGATION;..\CONTROL;..\BSP;..\USMART</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -369,7 +369,7 @@
             <TextAddressRange>0x08000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
             <pXoBase></pXoBase>
-            <ScatterFile></ScatterFile>
+            <ScatterFile>fightcontrol\fightcontrol.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc></Misc>
@@ -393,69 +393,19 @@
               <FilePath>..\BSP\mpu6050.c</FilePath>
             </File>
             <File>
-              <FileName>vl53l1_api.c</FileName>
+              <FileName>VL53L1X_api.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\BSP\vl53l1\core\vl53l1_api.c</FilePath>
+              <FilePath>..\BSP\VL53L1X_api.c</FilePath>
             </File>
             <File>
-              <FileName>vl53l1_api_calibration.c</FileName>
+              <FileName>VL53L1X_calibration.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\BSP\vl53l1\core\vl53l1_api_calibration.c</FilePath>
-            </File>
-            <File>
-              <FileName>vl53l1_api_core.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BSP\vl53l1\core\vl53l1_api_core.c</FilePath>
-            </File>
-            <File>
-              <FileName>vl53l1_api_debug.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BSP\vl53l1\core\vl53l1_api_debug.c</FilePath>
-            </File>
-            <File>
-              <FileName>vl53l1_api_preset_modes.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BSP\vl53l1\core\vl53l1_api_preset_modes.c</FilePath>
-            </File>
-            <File>
-              <FileName>vl53l1_api_strings.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BSP\vl53l1\core\vl53l1_api_strings.c</FilePath>
-            </File>
-            <File>
-              <FileName>vl53l1_core.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BSP\vl53l1\core\vl53l1_core.c</FilePath>
-            </File>
-            <File>
-              <FileName>vl53l1_core_support.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BSP\vl53l1\core\vl53l1_core_support.c</FilePath>
-            </File>
-            <File>
-              <FileName>vl53l1_error_strings.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BSP\vl53l1\core\vl53l1_error_strings.c</FilePath>
-            </File>
-            <File>
-              <FileName>vl53l1_register_funcs.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BSP\vl53l1\core\vl53l1_register_funcs.c</FilePath>
-            </File>
-            <File>
-              <FileName>vl53l1_silicon_core.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BSP\vl53l1\core\vl53l1_silicon_core.c</FilePath>
-            </File>
-            <File>
-              <FileName>vl53l1_wait.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BSP\vl53l1\core\vl53l1_wait.c</FilePath>
+              <FilePath>..\BSP\VL53L1X_calibration.c</FilePath>
             </File>
             <File>
               <FileName>vl53l1_platform.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\BSP\vl53l1\platform\vl53l1_platform.c</FilePath>
+              <FilePath>..\BSP\vl53l1_platform.c</FilePath>
             </File>
             <File>
               <FileName>vl53l1x.c</FileName>
@@ -531,11 +481,6 @@
               <FileName>debug_uart.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\DRIVER\debug_uart.c</FilePath>
-            </File>
-            <File>
-              <FileName>sr04.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\DRIVER\sr04.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -756,57 +701,6 @@
               <FileName>fly_task.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\TASK\fly_task.c</FilePath>
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>2</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>2</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds>
-                  <Cads>
-                    <interw>2</interw>
-                    <Optim>1</Optim>
-                    <oTime>2</oTime>
-                    <SplitLS>2</SplitLS>
-                    <OneElfS>2</OneElfS>
-                    <Strict>2</Strict>
-                    <EnumInt>2</EnumInt>
-                    <PlainCh>2</PlainCh>
-                    <Ropi>2</Ropi>
-                    <Rwpi>2</Rwpi>
-                    <wLevel>0</wLevel>
-                    <uThumb>2</uThumb>
-                    <uSurpInc>2</uSurpInc>
-                    <uC99>2</uC99>
-                    <uGnu>2</uGnu>
-                    <useXO>2</useXO>
-                    <v6Lang>0</v6Lang>
-                    <v6LangP>0</v6LangP>
-                    <vShortEn>2</vShortEn>
-                    <vShortWch>2</vShortWch>
-                    <v6Lto>2</v6Lto>
-                    <v6WtE>2</v6WtE>
-                    <v6Rtti>2</v6Rtti>
-                    <VariousControls>
-                      <MiscControls></MiscControls>
-                      <Define></Define>
-                      <Undefine></Undefine>
-                      <IncludePath></IncludePath>
-                    </VariousControls>
-                  </Cads>
-                </FileArmAds>
-              </FileOption>
             </File>
             <File>
               <FileName>usmart_task.c</FileName>

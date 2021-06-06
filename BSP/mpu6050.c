@@ -77,24 +77,12 @@ void MPU6050_Init(void)
 void MPU6050_ReadAcc(Vector3i_t* acc)
 {
     uint8_t buffer[6];
-    static Vector3i_t last_acce;
     
-start:
     while (i2c_multi_read_it(MPU6050_ADR, ACCEL_XOUT_H, buffer, 6));
 	
     acc->x = ((((int16_t)buffer[0]) << 8) | buffer[1]);
     acc->y = ((((int16_t)buffer[2]) << 8) | buffer[3]);
     acc->z = ((((int16_t)buffer[4]) << 8) | buffer[5]);
-
-    if (last_acce.x - acc->x > 4096 ||
-        last_acce.y - acc->y > 4096 ||
-        last_acce.z - acc->z > 4096 ||
-        last_acce.x - acc->x < -4096 ||
-        last_acce.y - acc->y < -4096 ||
-        last_acce.z - acc->z < -4096) {
-        goto start;
-    }
-    last_acce = *acc;
     
     //统一传感器坐标系（并非定义安装方向）
     acc->x = acc->x;
@@ -111,22 +99,11 @@ start:
 void MPU6050_ReadGyro(Vector3i_t* gyro)
 {
     uint8_t buffer[6];
-    static Vector3i_t last_gyro;
-
-start:
     while (i2c_multi_read_it(MPU6050_ADR, GYRO_XOUT_H, buffer, 6));
+    
     gyro->x = ((((int16_t)buffer[0]) << 8) | buffer[1]);
     gyro->y = ((((int16_t)buffer[2]) << 8) | buffer[3]);
     gyro->z = ((((int16_t)buffer[4]) << 8) | buffer[5]);
-    if (last_gyro.x - gyro->x > 4096 ||
-        last_gyro.y - gyro->y > 4096 ||
-        last_gyro.z - gyro->z > 4096 ||
-        last_gyro.x - gyro->x < -4096 ||
-        last_gyro.y - gyro->y < -4096 ||
-        last_gyro.z - gyro->z < -4096) {
-        goto start;
-    }
-    last_gyro = *gyro;
 
     //统一传感器坐标系（并非定义安装方向）
     gyro->x = gyro->x;

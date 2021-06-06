@@ -5,6 +5,9 @@
 #include "remote_control.h"
 #include "sr04.h"
 
+#include "FreeRTOS.h"
+#include "timers.h"
+
 /**********************************************************************************************************
 *函 数 名: PPM_Init
 *功能说明: PPM初始化
@@ -50,7 +53,11 @@ void EXTI9_5_IRQHandler(void)
 			PPM_buf[ppm_sample_cnt++] = ppm_time_delta;
 			//单次解析结束
 			if (ppm_sample_cnt >= 8) {
-				rc_callback(PPM_buf);
+                //由于遥控器处理占用时间较多，为防止其他中断不及时，故将遥控器处理函数放在定时器守护进程里执行
+                BaseType_t xHigherPriorityTaskWoken;
+                xHigherPriorityTaskWoken = pdFALSE;
+                xTimerPendFunctionCallFromISR((PendedFunction_t)rc_callback, PPM_buf, 0, &xHigherPriorityTaskWoken);
+                portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 				ppm_sample_cnt = 0;
 			}
 		}

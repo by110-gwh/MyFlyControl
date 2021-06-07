@@ -418,6 +418,11 @@
           <GroupName>control</GroupName>
           <Files>
             <File>
+              <FileName>controller.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\CONTROL\controller.c</FilePath>
+            </File>
+            <File>
               <FileName>motor_output.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\CONTROL\motor_output.c</FilePath>
@@ -426,6 +431,11 @@
               <FileName>attitude_self_stabilization.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\CONTROL\attitude_self_stabilization.c</FilePath>
+            </File>
+            <File>
+              <FileName>high_attitude_stabilization.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\CONTROL\high_attitude_stabilization.c</FilePath>
             </File>
             <File>
               <FileName>pid.c</FileName>
@@ -441,6 +451,11 @@
               <FileName>gyro_control.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\CONTROL\gyro_control.c</FilePath>
+            </File>
+            <File>
+              <FileName>high_control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\CONTROL\high_control.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -551,13 +566,6 @@
         </Group>
         <Group>
           <GroupName>math</GroupName>
-          <Files>
-            <File>
-              <FileName>vector3.c</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\MATH\vector3.c</FilePath>
-            </File>
-          </Files>
         </Group>
         <Group>
           <GroupName>module</GroupName>

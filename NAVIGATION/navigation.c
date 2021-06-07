@@ -5,7 +5,7 @@
 #include "imu.h"
 #include "math.h"
 #include "time_cnt.h"
-#include "sr04.h"
+#include "vl53l1x.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -30,6 +30,17 @@ float high_pos;
 float high_vel;
 
 /**********************************************************************************************************
+*函 数 名: constrain_float
+*功能说明: 限制最大最小值
+*形    参: 要限制的值 最小值 最大值
+*返 回 值: 输出值
+**********************************************************************************************************/
+static float constrain_float(float amt, float low, float high)
+{
+	return ((amt) < (low) ? (low) : ((amt) > (high)? (high) : (amt)));
+}
+
+/**********************************************************************************************************
 *函 数 名: navigation_init
 *功能说明: 惯性导航参数初始化
 *形    参: 无
@@ -37,6 +48,7 @@ float high_vel;
 **********************************************************************************************************/
 void navigation_init(void)
 {
+    //初始化滤波器参数
 	Set_Cutoff_Frequency(Sampling_Freq, 15,&Butter_15HZ_Parameter_Navigation);
 }
 
@@ -50,32 +62,36 @@ void navigation_prepare(void)
 {
 	Vector3f_t Body_Frame, Earth_Frame;
 	
+    //导航加速度低通滤波
 	Body_Frame.x = Butterworth_Filter(accDataFilter.x, &Butter_Buffer_Navigation[0], &Butter_15HZ_Parameter_Navigation);
 	Body_Frame.y = Butterworth_Filter(accDataFilter.y, &Butter_Buffer_Navigation[1], &Butter_15HZ_Parameter_Navigation);
 	Body_Frame.z = Butterworth_Filter(accDataFilter.z, &Butter_Buffer_Navigation[2], &Butter_15HZ_Parameter_Navigation);
 	
+    //载体加速度转换到导航加速度
 	Vector_From_BodyFrame2EarthFrame(&Body_Frame, &Earth_Frame);
-	
 	navigation_acce = Earth_Frame;
 
+    //转为m/s2
 	navigation_acce.z *= ACCEL_SCALE;
 	//减去重力加速度
 	navigation_acce.z -= AcceGravity;
 	//转换为加速度cm/s^2
 	navigation_acce.z *= 100;
 
+    //转为m/s2
 	navigation_acce.x *= ACCEL_SCALE;
 	//转换为加速度cm/s^2
 	navigation_acce.x *= 100;
 
+    //转为m/s2
 	navigation_acce.y *= ACCEL_SCALE;
 	//转换为加速度cm/s^2
 	navigation_acce.y *= 100;
 
+    //计算导航加速度模长
 	navigation_acce_length = sqrt(navigation_acce.z * navigation_acce.z + navigation_acce.x * navigation_acce.x + navigation_acce.y * navigation_acce.y);
 }
 
-float constrain_float(float amt, float low, float high);
 /**********************************************************************************************************
 *函 数 名: high_kalman_filter
 *功能说明: 高度卡尔曼滤波

@@ -3,7 +3,6 @@
 #include "time_cnt.h"
 #include <string.h>
 #include "remote_control.h"
-#include "sr04.h"
 
 #include "FreeRTOS.h"
 #include "timers.h"
@@ -16,17 +15,17 @@
 **********************************************************************************************************/
 void PPM_Init()
 {
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
-	
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-	
-	GPIO_InitStruct.Pin = GPIO_PIN_8;
-	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-	
-	HAL_NVIC_SetPriority(EXTI9_5_IRQn, 6, 0);
-	HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+
+    GPIO_InitStruct.Pin = GPIO_PIN_8;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    HAL_NVIC_SetPriority(EXTI9_5_IRQn, 6, 0);
+    HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 }
 
 /**********************************************************************************************************
@@ -37,35 +36,31 @@ void PPM_Init()
 **********************************************************************************************************/
 void EXTI9_5_IRQHandler(void)
 {
-	static uint16_t PPM_buf[8];
-	static Testime ppm_time;
-	static uint8_t ppm_sample_cnt;
-	uint16_t ppm_time_delta;
+    static uint16_t PPM_buf[8];
+    static Testime ppm_time;
+    static uint8_t ppm_sample_cnt;
+    uint16_t ppm_time_delta;
 
-	if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_8) != RESET) {
-		//系统运行时间获取
-		Get_Time_Period(&ppm_time);
-		ppm_time_delta = ppm_time.Time_Delta;
-		//PPM解析开始
-		if (ppm_time_delta >= 2200 || ppm_time_delta == 0) {
-			ppm_sample_cnt = 0;
-		} else if (ppm_time_delta >= 900 && ppm_time_delta <= 2100) {
-			PPM_buf[ppm_sample_cnt++] = ppm_time_delta;
-			//单次解析结束
-			if (ppm_sample_cnt >= 8) {
+    if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_8) != RESET) {
+        //系统运行时间获取
+        Get_Time_Period(&ppm_time);
+        ppm_time_delta = ppm_time.Time_Delta;
+        //PPM解析开始
+        if (ppm_time_delta >= 2200 || ppm_time_delta == 0) {
+            ppm_sample_cnt = 0;
+        } else if (ppm_time_delta >= 900 && ppm_time_delta <= 2100) {
+            PPM_buf[ppm_sample_cnt++] = ppm_time_delta;
+            //单次解析结束
+            if (ppm_sample_cnt >= 8) {
                 //由于遥控器处理占用时间较多，为防止其他中断不及时，故将遥控器处理函数放在定时器守护进程里执行
                 BaseType_t xHigherPriorityTaskWoken;
                 xHigherPriorityTaskWoken = pdFALSE;
                 xTimerPendFunctionCallFromISR((PendedFunction_t)rc_callback, PPM_buf, 0, &xHigherPriorityTaskWoken);
                 portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-				ppm_sample_cnt = 0;
-			}
-		}
+                ppm_sample_cnt = 0;
+            }
+        }
         __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_8);
-	}/* else if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_9) != RESET) {
-        //超声波外部中断
-        sr04_exit_callback();
-        __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_9);
-    }*/
+    }
 }
 

@@ -61,7 +61,7 @@ void motor_output_init(void)
 void motor_output_unlock(void)
 {
 	//停转模式
-	if (rc_raw_data[5] > rc_calibration_data[6].middle) {
+	if (rc_raw_data[5] > rc_calibration_data[5].middle) {
 		motor_lock = 1;
 		Motor_PWM_1 = Thr_Min;
 		Motor_PWM_2 = Thr_Min;
@@ -87,7 +87,7 @@ void motor_output_output(void)
 	int16_t yaw_motor_output;
 
 	//紧急停机
-	if (rc_raw_data[5] > rc_calibration_data[6].middle || motor_lock == 1) {
+	if (rc_raw_data[5] > rc_calibration_data[5].middle || motor_lock == 1) {
 		motor_lock = 1;
 		//四个电机停转
 		Motor_PWM_1 = Thr_Min;

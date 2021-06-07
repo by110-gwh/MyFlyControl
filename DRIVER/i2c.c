@@ -11,6 +11,60 @@
 static QueueHandle_t i2c_queue;
 //I2C外设句柄
 I2C_HandleTypeDef hi2c1;
+
+
+/**********************************************************************************************************
+*函 数 名: i2c_fail_recover
+*功能说明: I2C错误恢复
+*形    参: 无
+*返 回 值: 无
+**********************************************************************************************************/
+void i2c_fail_recover(void)
+{
+    int i, j;
+    int nRetry = 0;
+    
+    //配置I2C引脚为开漏输出
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6 | GPIO_PIN_7, GPIO_PIN_SET);
+	GPIO_InitStruct.Pin = GPIO_PIN_6 | GPIO_PIN_7;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    
+    do{
+        //产生CLK脉冲
+        j = 50;
+        while (--j);
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+        j = 50;
+        while (--j);
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+    //判断SDA是否恢复
+    }while(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7) == 0 && nRetry++ < 70);
+    
+    //拉高CLK
+    j = 50;
+    while (--j);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+    //SDA产生一个脉冲
+    j = 50;
+    while (--j);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+    j = 50;
+    while (--j);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+    
+    //恢复GPIO配置
+	GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    //重新初始化I2C
+	HAL_I2C_Init(&hi2c1);
+}
+
 /**********************************************************************************************************
 *函 数 名: Spi_GPIO_Init
 *功能说明: SPI从机设备CS引脚初始化
@@ -24,13 +78,13 @@ void i2c_init(void)
 	//外设时钟使能
 	__HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_I2C1_CLK_ENABLE();
-	
+    
 	//IO初始化
 	GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
+    
 	//I2C初始化
 	hi2c1.Instance = I2C1;
 	hi2c1.Init.ClockSpeed = 400000;
@@ -42,6 +96,8 @@ void i2c_init(void)
 	hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
 	hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
 	HAL_I2C_Init(&hi2c1);
+    
+    i2c_fail_recover();
 	
 	//I2C中断初始化
     HAL_NVIC_SetPriority(I2C1_EV_IRQn, 7, 0);
@@ -61,6 +117,10 @@ void i2c_init(void)
 int i2c_transmit(uint8_t slave_address, uint8_t is_write, uint8_t *pdata, uint8_t count)
 {
     uint8_t res;
+    
+    if (__HAL_I2C_GET_FLAG(&hi2c1, I2C_FLAG_BUSY) != RESET)
+        i2c_fail_recover();
+    
     if (is_write) {
         HAL_I2C_Master_Transmit_IT(&hi2c1, slave_address << 1, pdata, count);
     } else {
@@ -81,6 +141,9 @@ int i2c_transmit(uint8_t slave_address, uint8_t is_write, uint8_t *pdata, uint8_
 **********************************************************************************************************/
 int i2c_single_write(uint8_t slave_address, uint8_t reg_address, uint8_t reg_data)
 {
+    if (__HAL_I2C_GET_FLAG(&hi2c1, I2C_FLAG_BUSY) != RESET)
+        i2c_fail_recover();
+    
 	if (HAL_I2C_Mem_Write(&hi2c1, slave_address << 1, reg_address, I2C_MEMADD_SIZE_8BIT, &reg_data, 1, 1) != HAL_OK)
 		return -1;
 	return 0;
@@ -95,6 +158,10 @@ int i2c_single_write(uint8_t slave_address, uint8_t reg_address, uint8_t reg_dat
 int i2c_single_write_it(uint8_t slave_address, uint8_t reg_address, uint8_t reg_data)
 {
 	uint8_t res;
+    
+    if (__HAL_I2C_GET_FLAG(&hi2c1, I2C_FLAG_BUSY) != RESET)
+        i2c_fail_recover();
+    
 	if (HAL_I2C_Mem_Write_IT(&hi2c1, slave_address << 1, reg_address, I2C_MEMADD_SIZE_8BIT, &reg_data, 1) != HAL_OK)
 		return -1;
 	
@@ -112,6 +179,9 @@ int i2c_single_write_it(uint8_t slave_address, uint8_t reg_address, uint8_t reg_
 **********************************************************************************************************/
 int i2c_single_read(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_data)
 {
+    if (__HAL_I2C_GET_FLAG(&hi2c1, I2C_FLAG_BUSY) != RESET)
+        i2c_fail_recover();
+    
 	if (HAL_I2C_Mem_Read(&hi2c1, slave_address << 1, reg_address, I2C_MEMADD_SIZE_8BIT, reg_data, 1, 1) != HAL_OK)
 		return -1;
 	return 0;
@@ -126,6 +196,10 @@ int i2c_single_read(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_dat
 int i2c_single_read_it(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_data)
 {
 	uint8_t res;
+    
+    if (__HAL_I2C_GET_FLAG(&hi2c1, I2C_FLAG_BUSY) != RESET)
+        i2c_fail_recover();
+    
 	if (HAL_I2C_Mem_Read_IT(&hi2c1, slave_address << 1, reg_address, I2C_MEMADD_SIZE_8BIT, reg_data, 1) != HAL_OK)
 		return -1;
 	
@@ -143,6 +217,9 @@ int i2c_single_read_it(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_
 **********************************************************************************************************/
 int i2c_multi_read(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_data, uint8_t read_cnt)
 {
+    if (__HAL_I2C_GET_FLAG(&hi2c1, I2C_FLAG_BUSY) != RESET)
+        i2c_fail_recover();
+    
 	if (HAL_I2C_Mem_Read(&hi2c1, slave_address << 1, reg_address, I2C_MEMADD_SIZE_8BIT, reg_data, read_cnt, 1) != HAL_OK)
 		return -1;
 	return 0;
@@ -157,6 +234,10 @@ int i2c_multi_read(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_data
 int i2c_multi_read_it(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_data, uint8_t read_cnt)
 {
 	uint8_t res;
+    
+    if (__HAL_I2C_GET_FLAG(&hi2c1, I2C_FLAG_BUSY) != RESET)
+        i2c_fail_recover();
+    
 	if (HAL_I2C_Mem_Read_IT(&hi2c1, slave_address << 1, reg_address, I2C_MEMADD_SIZE_8BIT, reg_data, read_cnt) != HAL_OK)
 		return -1;
 	
@@ -175,6 +256,9 @@ int i2c_multi_read_it(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_d
 **********************************************************************************************************/
 int i2c_multi_write(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_data, uint8_t read_cnt)
 {
+    if (__HAL_I2C_GET_FLAG(&hi2c1, I2C_FLAG_BUSY) != RESET)
+        i2c_fail_recover();
+    
 	if (HAL_I2C_Mem_Write(&hi2c1, slave_address << 1, reg_address, I2C_MEMADD_SIZE_8BIT, reg_data, read_cnt, 1) != HAL_OK)
 		return -1;
 	return 0;
@@ -189,6 +273,10 @@ int i2c_multi_write(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_dat
 int i2c_multi_write_it(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_data, uint8_t read_cnt)
 {
 	uint8_t res;
+    
+    if (__HAL_I2C_GET_FLAG(&hi2c1, I2C_FLAG_BUSY) != RESET)
+        i2c_fail_recover();
+    
 	if (HAL_I2C_Mem_Write_IT(&hi2c1, slave_address << 1, reg_address, I2C_MEMADD_SIZE_8BIT, reg_data, read_cnt) != HAL_OK)
 		return -1;
 	
@@ -248,6 +336,8 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c)
 	xResult = xQueueSendFromISR(i2c_queue, &data, &xHigherPriorityTaskWoken);
 	if(xResult == pdPASS)
 		  portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    
+    i2c_fail_recover();
 }
 
 /**********************************************************************************************************

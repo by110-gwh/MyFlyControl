@@ -3,12 +3,10 @@
 #include "navigation.h"
 #include "ppm.h"
 #include "imu.h"
-#include "motor_output.h"
-#include "attitude_self_stabilization.h"
-#include "angle_control.h"
-#include "gyro_control.h"
 #include "vl53l1x.h"
-//#include "sr04.h"
+#include "remote_control.h"
+#include "controller.h"
+#include "motor_output.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -35,39 +33,36 @@ volatile uint8_t fly_task_exit;
 portTASK_FUNCTION(fly_task, pvParameters)
 {
     portTickType xLastWakeTime;
-
-    //挂起调度器
-    //vTaskSuspendAll();
 	
 	imu_init();
 	ahrs_init();
-    angle_control_init();
-    gyro_control_init();
+    controller_init();
     vl53l1x_init();
-    //sr04_task_create();
     navigation_init();
-    //唤醒调度器
-    //xTaskResumeAll();
-
 
     xLastWakeTime = xTaskGetTickCount();
     while (!fly_task_exit) {
 		//获取imu数据
 		get_imu_data();
+        //获取高度
         vl53l1x_task();
+        //姿态解算
 		ahrs_update();
+        //导航加速度计算
         navigation_prepare();
+        //高度位置估计
         high_kalman_filter();
-		attitude_self_stabilization_control();
-        angle_control();
-        gyro_control();
+        //控制器
+        controller_run();
+        //控制器输出
 		motor_output_output();
-        extern float high_vel, high_acce, high_pos;
-        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_vel, high_raw_data / 10.0, high_pos, high_acce, navigation_acce.z); 
+        
+        //extern float high_vel, high_acce, high_pos;
+        //printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_vel, high_raw_data / 10.0, high_pos, high_acce, navigation_acce.z); 
+        printf("%d\r\n", throttle_motor_output);
         //睡眠5ms
         vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
     }
-    //sr04_task_exit = 1;
 	vTaskDelete(NULL);
 }
 

@@ -21,46 +21,47 @@ I2C_HandleTypeDef hi2c1;
 **********************************************************************************************************/
 void i2c_fail_recover(void)
 {
-    int i, j;
+    int j;
     int nRetry = 0;
-    
-    //配置I2C引脚为开漏输出
-    GPIO_InitTypeDef GPIO_InitStruct = {0};
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6 | GPIO_PIN_7, GPIO_PIN_SET);
-	GPIO_InitStruct.Pin = GPIO_PIN_6 | GPIO_PIN_7;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-    
-    do{
-        //产生CLK脉冲
+    if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7) == 0 || HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_6) == 0) {
+        //配置I2C引脚为开漏输出
+        GPIO_InitTypeDef GPIO_InitStruct = {0};
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6 | GPIO_PIN_7, GPIO_PIN_SET);
+        GPIO_InitStruct.Pin = GPIO_PIN_6 | GPIO_PIN_7;
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+        
+        do{
+            //产生CLK脉冲
+            j = 50;
+            while (--j);
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+            j = 50;
+            while (--j);
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+        //判断SDA是否恢复
+        }while(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7) == 0 && nRetry++ < 70);
+        
+        //拉高CLK
         j = 50;
         while (--j);
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+        //SDA产生一个脉冲
         j = 50;
         while (--j);
-        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-    //判断SDA是否恢复
-    }while(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7) == 0 && nRetry++ < 70);
-    
-    //拉高CLK
-    j = 50;
-    while (--j);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-    //SDA产生一个脉冲
-    j = 50;
-    while (--j);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
-    j = 50;
-    while (--j);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
-    
-    //恢复GPIO配置
-	GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+        j = 50;
+        while (--j);
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+        
+        //恢复GPIO配置
+        GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    }
     //重新初始化I2C
 	HAL_I2C_Init(&hi2c1);
 }

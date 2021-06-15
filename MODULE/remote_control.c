@@ -26,6 +26,8 @@ static Butter_Parameter Butter_5HZ_Parameter_RC;
 //遥控输出期待
 uint16_t Throttle_Control;
 int16_t Pitch_Control, Roll_Control, Yaw_Control, High_Control;
+//遥控器更新标志，用于安全检查
+volatile uint8_t remote_control_updata;
 
 /**********************************************************************************************************
 *函 数 名: constrain_int16_t
@@ -197,6 +199,8 @@ void rc_callback(uint16_t buf[8])
 	else
 		Yaw_Control = 0;
 	Yaw_Control = constrain_int16_t(Yaw_Control, -Pit_Rol_Max, Pit_Rol_Max);
+    //遥控器工作正常
+    remote_control_updata = 1;
 }
 
 /**********************************************************************************************************

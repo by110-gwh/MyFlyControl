@@ -22,8 +22,10 @@
 //声明任务句柄
 xTaskHandle fly_task_handle;
 //任务退出标志
-volatile uint8_t fly_task_exit;
-
+volatile uint8_t fly_task_exit = 1;
+//飞行任务更新标志，用于安全检查
+volatile uint8_t fly_task_updata;
+#include "high_control.h"
 /**********************************************************************************************************
 *函 数 名: fly_task
 *功能说明: 飞行定时任务
@@ -58,8 +60,10 @@ portTASK_FUNCTION(fly_task, pvParameters)
 		motor_output_output();
         
         //extern float high_vel, high_acce, high_pos;
-        //printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_vel, high_raw_data / 10.0, high_pos, high_acce, navigation_acce.z); 
-        printf("%d\r\n", throttle_motor_output);
+        //printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_vel, high_raw_data / 10.0 * Cos_Roll * Cos_Pitch, high_pos, high_acce, navigation_acce.z); 
+        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_pos_pid.expect, high_pos_pid.feedback, high_vel_pid.expect, high_vel_pid.feedback, high_vel_pid.control_output); 
+        //printf("%d\r\n", throttle_motor_output);
+        fly_task_updata = 1;
         //睡眠5ms
         vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
     }

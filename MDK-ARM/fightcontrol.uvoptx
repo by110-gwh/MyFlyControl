@@ -130,7 +130,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGTARM</Key>
-          <Name>(1010=1320,92,1770,649,0)(1007=-1,-1,-1,-1,0)(1008=110,422,486,658,0)(1009=1011,247,1269,835,0)</Name>
+          <Name>(1010=166,749,616,1306,0)(1007=-1,-1,-1,-1,0)(1008=110,422,486,658,0)(1009=1011,247,1269,835,0)</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -164,7 +164,7 @@
           <Type>0</Type>
           <LineNumber>55</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134268560</Address>
+          <Address>134271944</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -190,6 +190,22 @@
           <Filename></Filename>
           <ExecCommand></ExecCommand>
           <Expression>0x08075C06</Expression>
+        </Bp>
+        <Bp>
+          <Number>2</Number>
+          <Type>0</Type>
+          <LineNumber>48</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134265172</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>D:\MyFlyControl\TASK\saft_task.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\fightcontrol\../TASK/saft_task.c\48</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -217,6 +233,21 @@
           <count>4</count>
           <WinNumber>1</WinNumber>
           <ItemText>throttle_motor_output,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>5</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>yaw_gyro_pid</ItemText>
+        </Ww>
+        <Ww>
+          <count>6</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>navigation_acce</ItemText>
+        </Ww>
+        <Ww>
+          <count>7</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>paramer_save_data</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -311,11 +342,11 @@
       <pMultCmdsp></pMultCmdsp>
       <SystemViewers>
         <Entry>
-          <Name>System Viewer\GPIOB</Name>
+          <Name>System Viewer\I2C1</Name>
           <WinId>35904</WinId>
         </Entry>
         <Entry>
-          <Name>System Viewer\I2C1</Name>
+          <Name>System Viewer\TIM3</Name>
           <WinId>35905</WinId>
         </Entry>
       </SystemViewers>
@@ -1103,6 +1134,18 @@
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
+    <File>
+      <GroupNumber>10</GroupNumber>
+      <FileNumber>59</FileNumber>
+      <FileType>1</FileType>
+      <tvExp>0</tvExp>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <bDave2>0</bDave2>
+      <PathWithFileName>..\TASK\safe_task.c</PathWithFileName>
+      <FilenameWithoutPath>safe_task.c</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
   </Group>
 
   <Group>
@@ -1113,7 +1156,7 @@
     <RteFlg>0</RteFlg>
     <File>
       <GroupNumber>11</GroupNumber>
-      <FileNumber>59</FileNumber>
+      <FileNumber>60</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
@@ -1133,7 +1176,7 @@
     <RteFlg>0</RteFlg>
     <File>
       <GroupNumber>12</GroupNumber>
-      <FileNumber>60</FileNumber>
+      <FileNumber>61</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
@@ -1145,7 +1188,7 @@
     </File>
     <File>
       <GroupNumber>12</GroupNumber>
-      <FileNumber>61</FileNumber>
+      <FileNumber>62</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
@@ -1157,7 +1200,7 @@
     </File>
     <File>
       <GroupNumber>12</GroupNumber>
-      <FileNumber>62</FileNumber>
+      <FileNumber>63</FileNumber>
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>

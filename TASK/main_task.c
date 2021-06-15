@@ -1,6 +1,7 @@
 #include "main_task.h"
 #include "remote_control.h"
 #include "key.h"
+#include "safe_task.h"
 #include "display_task.h"
 #include "fly_task.h"
 #include "esc_task.h"
@@ -41,6 +42,7 @@ portTASK_FUNCTION(main_task, parameters)
 	page_number = 17;
 	while (!rc_is_on())
 		vTaskDelay(1);
+    safe_task_create();
 	page_number = 0;
     while (!main_task_exit) {
         uint8_t key;

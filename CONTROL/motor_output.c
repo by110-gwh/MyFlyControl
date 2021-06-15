@@ -96,6 +96,7 @@ void motor_output_output(void)
 		Motor_PWM_4 = Thr_Min;
 		pwm_set(Motor_PWM_1, Motor_PWM_2, Motor_PWM_3, Motor_PWM_4);
 	} else if (throttle_motor_output == 1000) {
+		//四个电机停转
 		Motor_PWM_1 = Thr_Min;
 		Motor_PWM_2 = Thr_Min;
 		Motor_PWM_3 = Thr_Min;

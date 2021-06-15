@@ -146,7 +146,7 @@ void high_kalman_filter()
 		K[1] = prior_conv[1][0] / (prior_conv[0][0] + R);
         
 		//融合数据输出
-		temp = high_raw_data / 10 - pos_history[20 - 1];
+		temp = high_raw_data * Cos_Roll * Cos_Pitch / 10 - pos_history[20 - 1];
 		high_pos += K[0] * temp;
 		high_vel += K[1] * temp;
 		acce_bias += 0.0005 * temp;

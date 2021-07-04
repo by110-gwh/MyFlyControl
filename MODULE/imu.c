@@ -644,7 +644,7 @@ void mag_calibration(void)
 		if(mag_correct_yaw > 360)
 			mag_correct_yaw -= 360;
 		for (i = 0; i < 36; i++) {
-			if(mag_360_flag[0][i] == 0 && fabsf(mag_correct_yaw - mag_360_define[i]) <= 5.0 && acceCorrectFilter.z >= ACCEL_MAX_1G / 2) {
+			if(mag_360_flag[0][i] == 0 && fabsf(mag_correct_yaw - mag_360_define[i]) <= 5.0f && acceCorrectFilter.z >= ACCEL_MAX_1G / 2) {
 				mag_360_flag[0][i] = 1;
 				LS_Accumulate(&Mag_LS, MagDataFilter.x, MagDataFilter.y, MagDataFilter.z);
 				LS_Calculate(&Mag_LS, 36*3, 0.0f, &mag_a, &mag_b, &mag_c,&mag_r);
@@ -679,7 +679,7 @@ void mag_calibration(void)
 		if(mag_correct_yaw > 360)
 			mag_correct_yaw -= 360;
 		for (i = 0; i < 36; i++) {
-			if(mag_360_flag[1][i] == 0 && fabsf(mag_correct_yaw - mag_360_define[i]) <= 5.0 && acceCorrectFilter.y >= ACCEL_MAX_1G / 2) {
+			if(mag_360_flag[1][i] == 0 && fabsf(mag_correct_yaw - mag_360_define[i]) <= 5.0f && acceCorrectFilter.y >= ACCEL_MAX_1G / 2) {
 				mag_360_flag[1][i] = 1;
 				LS_Accumulate(&Mag_LS, MagDataFilter.x, MagDataFilter.y, MagDataFilter.z);
 				LS_Calculate(&Mag_LS, 36*3, 0.0f, &mag_a, &mag_b, &mag_c,&mag_r);
@@ -714,7 +714,7 @@ void mag_calibration(void)
 		if(mag_correct_yaw > 360)
 			mag_correct_yaw -= 360;
 		for (i = 0; i < 36; i++) {
-			if(mag_360_flag[2][i] == 0 && fabsf(mag_correct_yaw - mag_360_define[i]) <= 5.0 && acceCorrectFilter.x >= ACCEL_MAX_1G / 2) {
+			if(mag_360_flag[2][i] == 0 && fabsf(mag_correct_yaw - mag_360_define[i]) <= 5.0f && acceCorrectFilter.x >= ACCEL_MAX_1G / 2) {
 				mag_360_flag[2][i] = 1;
 				LS_Accumulate(&Mag_LS, MagDataFilter.x, MagDataFilter.y, MagDataFilter.z);
 				LS_Calculate(&Mag_LS, 36 * 3, 0.0f, &mag_a, &mag_b, &mag_c,&mag_r);

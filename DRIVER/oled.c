@@ -2,16 +2,27 @@
 #include "oledfont.h"
 #include "oled.h"
 #include "stdlib.h"
-#include "stm32f1xx_hal.h"
-#include "bitband.h"
+
+#include <stdbool.h>
+#include <stdint.h>
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "inc/hw_gpio.h"
+#include "driverlib/rom.h"
+#include "driverlib/gpio.h"
+#include "driverlib/sysctl.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
 
-#define oled_DCout PCout(0)  //DC
-#define oled_RSTout PCout(1) //RES
-#define oled_MOSI PCout(2)   //D1
-#define oled_SCK PCout(3)    //D0
+#define oled_DCout_H  HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + (GPIO_PIN_7 << 2))) = GPIO_PIN_7 //DC
+#define oled_DCout_L  HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + (GPIO_PIN_7 << 2))) = 0          //DC
+#define oled_RSTout_H HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + (GPIO_PIN_6 << 2))) = GPIO_PIN_6 //RES
+#define oled_RSTout_L HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + (GPIO_PIN_6 << 2))) = 0          //RES
+#define oled_MOSI_H   HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + (GPIO_PIN_5 << 2))) = GPIO_PIN_5 //D1
+#define oled_MOSI_L   HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + (GPIO_PIN_5 << 2))) = 0          //D1
+#define oled_SCK_H    HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + (GPIO_PIN_4 << 2))) = GPIO_PIN_4 //D0
+#define oled_SCK_L    HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + (GPIO_PIN_4 << 2))) = 0          //D0
 
 /**********************************************************************************************************
 *函 数 名: OLED_Init
@@ -21,20 +32,13 @@
 **********************************************************************************************************/
 void oled_init(void)
 {
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
-	//使能GPIOC时钟
-	__HAL_RCC_GPIOC_CLK_ENABLE();
-	//初始化IO引脚
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_SET);
-	GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+    ROM_GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7);
+
 	//复位OLED
-	oled_RSTout = 0;
+	oled_RSTout_L;
 	vTaskDelay(100);
-	oled_RSTout = 1;
+	oled_RSTout_H;
 
 	oled_w_cmd(0xAE);
 	oled_w_cmd(0xD5);
@@ -80,14 +84,14 @@ void oled_init(void)
 void oled_w_dat(uint8_t dat)
 {
 	uint8_t i = 8;
-	oled_DCout = 1;
+	oled_DCout_H;
 	for (i = 0; i < 8; i++) {
-		oled_SCK = 0;
+		oled_SCK_L;
 		if (dat & 0x80)
-			oled_MOSI = 1;
+			oled_MOSI_H;
 		else
-			oled_MOSI = 0;
-		oled_SCK = 1;
+			oled_MOSI_L;
+		oled_SCK_H;
 		dat <<= 1;
 	}
 }
@@ -101,17 +105,17 @@ void oled_w_dat(uint8_t dat)
 void oled_w_cmd(uint8_t cmd)
 {
 	uint8_t i = 8;
-	oled_DCout = 0;
+	oled_DCout_L;
 	for (i = 0; i < 8; i++) {
-		oled_SCK = 0;
+		oled_SCK_L;
 		if (cmd & 0x80)
-			oled_MOSI = 1;
+			oled_MOSI_H;
 		else
-			oled_MOSI = 0;
-		oled_SCK = 1;
+			oled_MOSI_L;
+		oled_SCK_H;
 		cmd <<= 1;
 	}
-	oled_DCout = 1;
+	oled_DCout_H;
 }
 
 /**********************************************************************************************************
@@ -294,7 +298,7 @@ void oled_6x8_number(uint8_t x, uint8_t y, float number)
 	}
 	temp[i] = 48 + data;
 	//判断是否有小数部分
-	if (decimal >= 0.0001) {
+	if (decimal >= 0.0001f) {
 		i++;
 		//显示小数点
 		temp[i] = '.'; 
@@ -420,7 +424,7 @@ void oled_8x16_number(uint8_t x, uint8_t y, float number)
 	}
 	temp[i] = 48 + data;
 	//判断是够为小数
-	if (decimal >= 0.0001) {
+	if (decimal >= 0.0001f) {
 		i++;
 		//显示小数点
 		temp[i] = '.';

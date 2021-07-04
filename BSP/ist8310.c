@@ -70,7 +70,7 @@ void IST8310_ReadMag(Vector3i_t* mag)
 {
     uint8_t buffer[6];
 
-	i2c_multi_read_it(IST8310_ADDRESS, IST8310_REG_DATAXL, buffer, 6);
+	i2c_multi_read(IST8310_ADDRESS, IST8310_REG_DATAXL, buffer, 6);
 	
     mag->x = ((((int16_t)buffer[1]) << 8) | buffer[0]);
     mag->y = ((((int16_t)buffer[3]) << 8) | buffer[2]);

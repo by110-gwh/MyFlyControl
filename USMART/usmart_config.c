@@ -1,9 +1,6 @@
 #include "usmart.h"
 #include "usmart_str.h"
 
-		void angle_control_pid_set(uint8_t p, uint8_t i, uint8_t d);
-		void gyro_control_pid_set(uint8_t p, uint8_t i, uint8_t d);
-		void HAL_Delay(uint32_t Delay);
 //函数名列表初始化(用户自己添加)
 //用户直接在这里输入要执行的函数名及其查找串
 struct _m_usmart_nametab usmart_nametab[] = {
@@ -11,9 +8,6 @@ struct _m_usmart_nametab usmart_nametab[] = {
 #if USMART_USE_WRFUNS==1
 	(void*)read_addr,"u32 read_addr(u32 addr)",
 	(void*)write_addr,"void write_addr(u32 addr,u32 val)",
-	(void*)HAL_Delay,"void HAL_Delay(uint32_t Delay)",
-	(void*)angle_control_pid_set,"void angle_control_pid_set(uint8_t p, uint8_t i, uint8_t d)",
-	(void*)gyro_control_pid_set,"void gyro_control_pid_set(uint8_t p, uint8_t i, uint8_t d)"
 
 #endif		   
 							

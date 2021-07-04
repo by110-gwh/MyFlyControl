@@ -129,7 +129,7 @@ void high_kalman_filter()
     //先验状态
     high_acce = navigation_acce.z;
     high_acce += acce_bias;
-    high_pos += high_vel * dt + (high_acce * dt * dt) / 2.0;
+    high_pos += high_vel * dt + (high_acce * dt * dt) / 2.0f;
     high_vel += high_acce * dt;
 	
     //当观测值更新时才进行融合
@@ -149,7 +149,7 @@ void high_kalman_filter()
 		temp = high_raw_data * Cos_Roll * Cos_Pitch / 10 - pos_history[20 - 1];
 		high_pos += K[0] * temp;
 		high_vel += K[1] * temp;
-		acce_bias += 0.0005 * temp;
+		acce_bias += 0.0005f * temp;
 		acce_bias = constrain_float(acce_bias, -200, 200);
         
 		//更新状态协方差矩阵

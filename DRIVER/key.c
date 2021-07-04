@@ -1,12 +1,17 @@
 #include "key.h"
-#include "stm32f1xx_hal.h"
-#include "bitband.h"
+
+#include <stdbool.h>
+#include <stdint.h>
+#include "inc/hw_memmap.h"
+#include "driverlib/rom.h"
+#include "driverlib/gpio.h"
+#include "driverlib/sysctl.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
 
-#define key0 PCin(8)
-#define key1 PCin(9)
+#define key0 GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_3)
+#define key1 GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_2)
 
 
 //长按时间，单位ms
@@ -20,14 +25,9 @@
 **********************************************************************************************************/
 void key_init()
 {
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
-	
-	__HAL_RCC_GPIOC_CLK_ENABLE();
-	
-	GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
-	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+    ROM_GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_2 | GPIO_PIN_3);
+    ROM_GPIOPadConfigSet(GPIO_PORTE_BASE, GPIO_PIN_2 | GPIO_PIN_3, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
 }
 
 /**********************************************************************************************************
@@ -45,7 +45,7 @@ uint8_t key_scan()
 	static uint8_t key1_press_flag;
 	
 	//按键一
-	if(key0 == 0 && !key0_press_flag) {
+	if(GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_3) == 0 && !key0_press_flag) {
 		vTaskDelay(10);
 		if(key0 == 0) {
 			press_time = 0;

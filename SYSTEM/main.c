@@ -1,9 +1,14 @@
-#include "main.h"
 #include "time_cnt.h"
 #include "paramer_save.h"
 #include "main_task.h"
 #include "display_task.h"
 #include "esc_task.h"
+
+#include <stdbool.h>
+#include <stdint.h>
+#include "driverlib/debug.h"
+#include "driverlib/rom.h"
+#include "driverlib/sysctl.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -21,6 +26,7 @@ void SystemClock_Config(void);
 portTASK_FUNCTION(vStartTask, pvParameters)
 {
 	Get_Time_Init();
+    paramer_save_init();
 	read_save_paramer();
 	
 	display_task_create();
@@ -41,12 +47,8 @@ portTASK_FUNCTION(vStartTask, pvParameters)
 **********************************************************************************************************/
 int main(void)
 {
-	//使能SWD调试接口
-	__HAL_AFIO_REMAP_SWJ_NOJTAG();
-	//初始化HAL库
-	HAL_Init();
-	//时钟系统配置72M
-	SystemClock_Config();
+	//时钟系统配置80M
+    ROM_SysCtlClockSet(SYSCTL_SYSDIV_2_5|SYSCTL_USE_PLL|SYSCTL_XTAL_16MHZ|SYSCTL_OSC_MAIN);
 	
 	//创建启动任务
 	xTaskCreate(vStartTask, "startTask", 128, NULL, configMAX_PRIORITIES - 1, &startTask);
@@ -55,45 +57,14 @@ int main(void)
 	while (1);
 }
 
+#ifdef DEBUG
 /**********************************************************************************************************
-*函 数 名: HAL_TIM_PeriodElapsedCallback
-*功能说明: 定时器溢出更新中断回调函数
-*形    参: 定时器句柄
+*函 数 名: __error__
+*功能说明: 驱动错误信息答应
+*形    参: 错误发生的文件名 行号
 *返 回 值: 无
 **********************************************************************************************************/
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+void __error__(char *pcFilename, uint32_t ui32Line)
 {
-	if (htim->Instance == TIM6) {
-		HAL_IncTick();
-	}
 }
-
-/**********************************************************************************************************
-*函 数 名: SystemClock_Config
-*功能说明: 时钟系统配置
-*形    参: 无
-*返 回 值: 无
-**********************************************************************************************************/
-void SystemClock_Config(void)
-{
-	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-
-	//根据RCC_OscInitTypeDef结构中指定的参数初始化RCC振荡器。
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-	RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-	RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
-	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-	RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
-	while (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK);
-	//初始化CPU，AHB和APB时钟
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-							  | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-	while (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK);
-}
+#endif

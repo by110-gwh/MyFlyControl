@@ -31,8 +31,8 @@ static uint16_t throttle_angle_compensate(uint16_t throttle)
 	uint16_t throttle_output;
 	float CosPitch_CosRoll = Cos_Pitch * Cos_Roll;
 	//补偿限制
-	if(CosPitch_CosRoll<=0.50)
-		CosPitch_CosRoll=0.50;
+	if(CosPitch_CosRoll<=0.50f)
+		CosPitch_CosRoll=0.50f;
 	//大于起转油门量
 	if(throttle >= 1000) {
 		//油门倾角补偿

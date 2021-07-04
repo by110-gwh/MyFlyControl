@@ -78,7 +78,7 @@ void MPU6050_ReadAcc(Vector3i_t* acc)
 {
     uint8_t buffer[6];
     
-    while (i2c_multi_read_it(MPU6050_ADR, ACCEL_XOUT_H, buffer, 6));
+    while (i2c_multi_read(MPU6050_ADR, ACCEL_XOUT_H, buffer, 6));
 	
     acc->x = ((((int16_t)buffer[0]) << 8) | buffer[1]);
     acc->y = ((((int16_t)buffer[2]) << 8) | buffer[3]);
@@ -99,7 +99,7 @@ void MPU6050_ReadAcc(Vector3i_t* acc)
 void MPU6050_ReadGyro(Vector3i_t* gyro)
 {
     uint8_t buffer[6];
-    while (i2c_multi_read_it(MPU6050_ADR, GYRO_XOUT_H, buffer, 6));
+    while (i2c_multi_read(MPU6050_ADR, GYRO_XOUT_H, buffer, 6));
     
     gyro->x = ((((int16_t)buffer[0]) << 8) | buffer[1]);
     gyro->y = ((((int16_t)buffer[2]) << 8) | buffer[3]);
@@ -123,7 +123,7 @@ void MPU6050_ReadTemp(float* temp)
     uint8_t buffer[2];
     static int16_t temperature_temp;
 
-    i2c_multi_read_it(MPU6050_ADR, TEMP_OUT_H, buffer, 2);
+    i2c_multi_read(MPU6050_ADR, TEMP_OUT_H, buffer, 2);
     temperature_temp = ((((int16_t)buffer[0]) << 8) | buffer[1]);
     *temp = 36.53f + (float)temperature_temp / 340.f;
 }

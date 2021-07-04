@@ -21,7 +21,7 @@ float pid_control(pid_controler_t *controler)
 	Get_Time_Period(&controler->pid_controller_dt);
 	controller_dt = controler->pid_controller_dt.Time_Delta / 1000000.0;
 	//第一次计算间隔时间将出现间隔时间很大的情况
-	if (controller_dt < 0.001)
+	if (controller_dt < 0.001f)
 		return 0;
 	//保存上次偏差
 	controler->pre_last_err = controler->last_err;

@@ -270,9 +270,9 @@ void ahrs_update()
     s3 *= recipNorm;
 	
 	//计算动态步长
-    BETADEF = Beta_Base + 0.025 * dt * constrain(Gyro_Length_Filter, 0, 400);
-    BETADEF -= 0.01 * (constrain(navigation_acce_length, 0, 1000) / 1000); 
-    BETADEF = constrain(BETADEF, 0.0075, 0.06);
+    BETADEF = Beta_Base + 0.025f * dt * constrain(Gyro_Length_Filter, 0, 400);
+    BETADEF -= 0.01f * (constrain(navigation_acce_length, 0, 1000) / 1000); 
+    BETADEF = constrain(BETADEF, 0.0075f, 0.06f);
 
     vx = 2 * (quad_history[TimeSync_Cnt].q1 * quad_history[TimeSync_Cnt].q3 - quad_history[TimeSync_Cnt].q0 * quad_history[TimeSync_Cnt].q2);
     vy = 2 * (quad_history[TimeSync_Cnt].q2 * quad_history[TimeSync_Cnt].q3 + quad_history[TimeSync_Cnt].q0 * quad_history[TimeSync_Cnt].q1);

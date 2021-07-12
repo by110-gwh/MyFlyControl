@@ -7,7 +7,7 @@
 #include "task.h"
 
 //任务堆栈大小
-#define SAFE__TASK_STACK 512
+#define SAFE__TASK_STACK 128
 //任务优先级
 #define SAFE__TASK_PRIORITY 13
 

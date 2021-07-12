@@ -473,6 +473,11 @@
               <FilePath>..\DRIVER\i2c.c</FilePath>
             </File>
             <File>
+              <FileName>i2c1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\DRIVER\i2c1.c</FilePath>
+            </File>
+            <File>
               <FileName>time_cnt.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\DRIVER\time_cnt.c</FilePath>

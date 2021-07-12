@@ -57,7 +57,7 @@ void angle_control_init()
 
     pitch_angle_pid.dis_err = 0;
 
-    pitch_angle_pid.kp = 3;
+    pitch_angle_pid.kp = 7;
     pitch_angle_pid.ki = 0;
     pitch_angle_pid.kd = 0;
     
@@ -86,7 +86,7 @@ void angle_control_init()
 
     roll_angle_pid.dis_err = 0;
 
-    roll_angle_pid.kp = 3;
+    roll_angle_pid.kp = 7;
     roll_angle_pid.ki = 0;
     roll_angle_pid.kd = 0;
 

@@ -39,7 +39,7 @@ portTASK_FUNCTION(fly_task, pvParameters)
 	imu_init();
 	ahrs_init();
     controller_init();
-    //vl53l1x_init();
+    vl53l1x_init();
     navigation_init();
 
     xLastWakeTime = xTaskGetTickCount();
@@ -47,7 +47,7 @@ portTASK_FUNCTION(fly_task, pvParameters)
 		//获取imu数据
 		get_imu_data();
         //获取高度
-        //vl53l1x_task();
+        vl53l1x_task();
         //姿态解算
 		ahrs_update();
         //导航加速度计算

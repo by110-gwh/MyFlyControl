@@ -78,7 +78,7 @@ void gyro_control_init()
     pitch_gyro_pid.dis_err = 0;
 
     pitch_gyro_pid.kp = 1.8;
-    pitch_gyro_pid.ki = 5;
+    pitch_gyro_pid.ki = 0;
     pitch_gyro_pid.kd = 9;
     
     pitch_gyro_pid.feedforward_kp = 0;
@@ -107,7 +107,7 @@ void gyro_control_init()
     roll_gyro_pid.dis_err = 0;
 
     roll_gyro_pid.kp = 1.8;
-    roll_gyro_pid.ki = 5;
+    roll_gyro_pid.ki = 0;
     roll_gyro_pid.kd = 9;
 
     roll_gyro_pid.feedforward_kp = 0;
@@ -136,7 +136,7 @@ void gyro_control_init()
     yaw_gyro_pid.dis_err = 0;
 
     yaw_gyro_pid.kp = 5;
-    yaw_gyro_pid.ki = 1.5;
+    yaw_gyro_pid.ki = 0;
     yaw_gyro_pid.kd = 0;
 
     yaw_gyro_pid.feedforward_kp = 0;

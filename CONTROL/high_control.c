@@ -49,7 +49,7 @@ void high_control_init()
     high_pos_pid.feedforward_kd = 0;
 
     high_pos_pid.control_output = 0;
-    high_pos_pid.control_output_limit = 30;
+    high_pos_pid.control_output_limit = 0;
 
     high_pos_pid.short_circuit_flag = 0;
     high_pos_pid.err_callback = NULL;

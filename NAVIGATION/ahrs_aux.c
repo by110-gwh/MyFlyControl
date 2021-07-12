@@ -166,7 +166,7 @@ void ahrs_update()
 	static float exInt = 0, eyInt = 0, ezInt = 0;
 	static float vx, vy, vz;
 	//角速度模长滤波内部数据
-	Butter_BufferData Butter_Buffer_Gyro_Length;
+	static Butter_BufferData Butter_Buffer_Gyro_Length;
 	uint16_t i;
 	//用于计算时间差的结构体
 	static Testime Time_Delta;

@@ -11,7 +11,7 @@
 //最大俯仰、横滚期望
 #define Pit_Rol_Max 20
 //最大偏航期望
-#define Yaw_Max     200
+#define Yaw_Max     90
 //油门底部安全死区
 #define THROTTLE_BUTTOM_SAFE_DEADBAND 50
 //触发时间，单位ms
@@ -179,26 +179,16 @@ void rc_callback(uint16_t buf[8])
 	//为了安全，油门杆低位死区为Buttom_Safe_Deadband
 	Throttle_Control = (rc_data[2] - (rc_calibration_data[2].min + THROTTLE_BUTTOM_SAFE_DEADBAND));
 	Throttle_Control = constrain_int16_t(Throttle_Control, 0, 1000);
-    //计算缩放后的偏航期待
-	if(rc_raw_data[2] <= rc_calibration_data[2].deadband_buttom)
-		High_Control = -(rc_calibration_data[2].deadband_buttom - rc_data[2])
-			* 40 /(rc_calibration_data[2].deadband_buttom - rc_calibration_data[2].min);
-	else if(rc_raw_data[2] >= rc_calibration_data[2].deadband_top)
-		High_Control = (rc_calibration_data[2].deadband_top - rc_data[2])
-			* 40 /(rc_calibration_data[2].deadband_top - rc_calibration_data[2].max);
-	else
-		High_Control = 0;
-	High_Control = constrain_int16_t(High_Control, -40, 40);
 	//计算缩放后的偏航期待
 	if(rc_raw_data[3] <= rc_calibration_data[3].deadband_buttom)
 		Yaw_Control = (rc_calibration_data[3].deadband_buttom - rc_data[3])
-			* 30 /(rc_calibration_data[3].deadband_buttom - rc_calibration_data[3].min);
+			* Yaw_Max /(rc_calibration_data[3].deadband_buttom - rc_calibration_data[3].min);
 	else if(rc_raw_data[3] >= rc_calibration_data[3].deadband_top)
 		Yaw_Control = -(rc_calibration_data[3].deadband_top - rc_data[3])
-			* 30 /(rc_calibration_data[3].deadband_top - rc_calibration_data[3].max);
+			* Yaw_Max /(rc_calibration_data[3].deadband_top - rc_calibration_data[3].max);
 	else
 		Yaw_Control = 0;
-	Yaw_Control = constrain_int16_t(Yaw_Control, -Pit_Rol_Max, Pit_Rol_Max);
+	Yaw_Control = constrain_int16_t(Yaw_Control, -Yaw_Max, Yaw_Max);
     //遥控器工作正常
     remote_control_updata = 1;
 }

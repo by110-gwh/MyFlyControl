@@ -72,6 +72,7 @@ void navigation_prepare(void)
 	navigation_acce = Earth_Frame;
 
     //转为m/s2
+    navigation_acce.z -= 0xA0;
 	navigation_acce.z *= ACCEL_SCALE;
 	//减去重力加速度
 	navigation_acce.z -= AcceGravity;

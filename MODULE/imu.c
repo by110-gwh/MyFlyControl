@@ -740,11 +740,14 @@ void mag_calibration(void)
 **********************************************************************************************************/
 void gyro_calibration()
 {
-	Vector3i_t gyroSumData;
+	Vector3l_t gyroSumData;
 	Vector3i_t gyroRawData;
 	UBaseType_t this_task_priority;
     portTickType xLastWakeTime;
 	
+    gyroSumData.x = 0;
+    gyroSumData.y = 0;
+    gyroSumData.z = 0;
 	//IMU初始化
 	imu_init();
 	//提高本任务优先级

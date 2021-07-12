@@ -8,9 +8,11 @@
 #include "usmart_task.h"
 #include "imu.h"
 #include "i2c.h"
+#include "i2c1.h"
 #include "motor_output.h"
 #include "angle_control.h"
 #include "gyro_control.h"
+#include "controller.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -36,13 +38,13 @@ portTASK_FUNCTION(main_task, parameters)
 	key_init();
 	rc_init();
 	i2c_init();
+	i2c1_init();
 	motor_output_init();
 	usmart_task_create();
 	//检测遥控器是否连接
 	page_number = 17;
 	while (!rc_is_on())
 		vTaskDelay(1);
-    safe_task_create();
 	page_number = 0;
     while (!main_task_exit) {
         uint8_t key;
@@ -77,14 +79,15 @@ portTASK_FUNCTION(main_task, parameters)
 			//飞行任务创建
 			page_number = 3;
 			fly_task_create();
+            vTaskDelay(2000);
 			//等到遥控器方向遥感归位
 			while (rc_direct_is_reset() == 0);
 			page_number = 4;
+//            safe_task_create();
 			//电机解锁
 			motor_output_unlock();
 			//清PID积分
-			angle_pid_integrate_reset();
-			gyro_pid_integrate_reset();
+            controller_init();
 			//等待电机启动时间姿态融合完毕后，更新偏航期待
 			yaw_angle_pid.short_circuit_flag = 1;
 			page_number = 1;

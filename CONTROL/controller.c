@@ -23,6 +23,7 @@ void controller_init()
     gyro_control_init();
     high_control_init();
     
+    controller_state = 0;
 }
 
 /**********************************************************************************************************
@@ -69,7 +70,7 @@ void controller_run()
 {
     controller_last_state = controller_state;
     
-    if (rc_raw_data[4] < rc_calibration_data[4].middle) {
+    if (rc_raw_data[4] < rc_calibration_data[4].middle || Throttle_Control < 500) {
         //¥ø◊ÀÃ¨ƒ£ Ω
         controller_state = 1;
     } else if (Throttle_Control > 0) {
@@ -109,7 +110,7 @@ void controller_run()
         throttle_motor_output = throttle_angle_compensate(high_vel_pid.control_output + 1000);
     } else if (controller_state == 2) {
         //”Õ√≈≤π≥•
-        throttle_motor_output = throttle_angle_compensate(high_vel_pid.control_output + 1100);
+        throttle_motor_output = throttle_angle_compensate(high_vel_pid.control_output + 1500);
     }
     
 }

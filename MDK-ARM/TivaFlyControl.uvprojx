@@ -507,6 +507,11 @@
               <FileType>1</FileType>
               <FilePath>..\DRIVER\paramer_save.c</FilePath>
             </File>
+            <File>
+              <FileName>beep.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\DRIVER\beep.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -801,6 +806,11 @@
               <FileName>safe_task.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\TASK\safe_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>beep_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\beep_task.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -6,6 +6,7 @@
 #include "fly_task.h"
 #include "esc_task.h"
 #include "usmart_task.h"
+#include "beep_task.h"
 #include "imu.h"
 #include "i2c.h"
 #include "i2c1.h"
@@ -41,6 +42,7 @@ portTASK_FUNCTION(main_task, parameters)
 	i2c1_init();
 	motor_output_init();
 	usmart_task_create();
+    beep_task_create();
 	//检测遥控器是否连接
 	page_number = 17;
 	while (!rc_is_on())
@@ -78,12 +80,15 @@ portTASK_FUNCTION(main_task, parameters)
 			gyro_calibration();
 			//飞行任务创建
 			page_number = 3;
+            beep_duty = 5;
+            beep_cycle = 100;
+            beep_time = 0xFF;
 			fly_task_create();
             vTaskDelay(2000);
 			//等到遥控器方向遥感归位
 			while (rc_direct_is_reset() == 0);
 			page_number = 4;
-//            safe_task_create();
+            safe_task_create();
 			//电机解锁
 			motor_output_unlock();
 			//清PID积分
@@ -101,6 +106,7 @@ portTASK_FUNCTION(main_task, parameters)
 			fly_task_exit = 1;
 			vTaskDelay(5);
 			motor_output_lock();
+            beep_time = 0;
 			page_number = 0;
 		}
 		vTaskDelay(6);

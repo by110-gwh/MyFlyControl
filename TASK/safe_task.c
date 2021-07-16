@@ -7,9 +7,9 @@
 #include "task.h"
 
 //任务堆栈大小
-#define SAFE__TASK_STACK 128
+#define SAFE_TASK_STACK 128
 //任务优先级
-#define SAFE__TASK_PRIORITY 13
+#define SAFE_TASK_PRIORITY 10
 
 
 //声明任务句柄
@@ -63,5 +63,5 @@ portTASK_FUNCTION(safe_task, pvParameters)
 **********************************************************************************************************/
 void safe_task_create(void)
 {
-    xTaskCreate(safe_task, "safe_task", SAFE__TASK_STACK, NULL, SAFE__TASK_PRIORITY, &safe_task_handle);
+    xTaskCreate(safe_task, "safe_task", SAFE_TASK_STACK, NULL, SAFE_TASK_PRIORITY, &safe_task_handle);
 }

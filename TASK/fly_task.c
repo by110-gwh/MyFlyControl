@@ -7,6 +7,7 @@
 #include "remote_control.h"
 #include "controller.h"
 #include "motor_output.h"
+#include "optical_flow_task.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -36,6 +37,7 @@ portTASK_FUNCTION(fly_task, pvParameters)
 {
     portTickType xLastWakeTime;
 	
+    optical_flow_task_create();
 	imu_init();
 	ahrs_init();
     controller_init();
@@ -54,20 +56,24 @@ portTASK_FUNCTION(fly_task, pvParameters)
         navigation_prepare();
         //高度位置估计
         high_kalman_filter();
+        pos_filter();
         //控制器
         controller_run();
         //控制器输出
 		motor_output_output();
         
-        //extern float high_vel, high_acce, high_pos;
-        //printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_vel, high_raw_data / 10.0 * Cos_Roll * Cos_Pitch, high_pos, high_acce, navigation_acce.z); 
-        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_pos_pid.expect, high_pos_pid.feedback, high_vel_pid.expect, high_vel_pid.feedback, high_vel_pid.control_output); 
+        extern float pos_x, pos_y;
+        extern float speed_x, speed_y;
+//        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_vel, high_raw_data / 10.0 * Cos_Roll * Cos_Pitch, high_pos, high_acce, navigation_acce.z); 
+        //printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_pos_pid.expect, high_pos_pid.feedback, high_vel_pid.expect, high_vel_pid.feedback, high_vel_pid.control_output); 
+        printf("%0.3f,%0.3f,%0.3f,%0.3f\r\n", navigation_acce.y / 10, speed_y, pos_y, optical_flow_pos_y); 
         //printf("%d\r\n", throttle_motor_output);
         fly_task_updata = 1;
         //睡眠5ms
         vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
     }
 	vTaskDelete(NULL);
+    optical_flow_task_exit = 1;
 }
 
 

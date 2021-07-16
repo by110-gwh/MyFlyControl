@@ -106,8 +106,10 @@ void ComputeRotationMatrix(void)
   Cos_Pitch = cos(Pitch * DEG2RAD);
   Sin_Roll = sin(Roll * DEG2RAD);
   Cos_Roll = cos(Roll * DEG2RAD);
-  Sin_Yaw = sin(Yaw * DEG2RAD);
-  Cos_Yaw = cos(Yaw * DEG2RAD);
+//  Sin_Yaw = sin(Yaw * DEG2RAD);
+//  Cos_Yaw = cos(Yaw * DEG2RAD);
+  Sin_Yaw = 0;
+  Cos_Yaw = 1;
   rMat[0][0] = Cos_Yaw * Cos_Roll;
   rMat[0][1] = Sin_Pitch * Sin_Roll * Cos_Yaw - Cos_Pitch * Sin_Yaw;
   rMat[0][2] = Sin_Pitch * Sin_Yaw + Cos_Pitch * Sin_Roll * Cos_Yaw;

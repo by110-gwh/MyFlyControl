@@ -13,5 +13,6 @@ extern float high_vel;
 void navigation_init(void);
 void navigation_prepare(void);
 void high_kalman_filter(void);
+void pos_filter(void);
 
 #endif

@@ -412,6 +412,11 @@
               <FileType>1</FileType>
               <FilePath>..\BSP\vl53l1x.c</FilePath>
             </File>
+            <File>
+              <FileName>pmw3901.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\pmw3901.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -511,6 +516,11 @@
               <FileName>beep.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\DRIVER\beep.c</FilePath>
+            </File>
+            <File>
+              <FileName>spi0.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\DRIVER\spi0.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -811,6 +821,11 @@
               <FileName>beep_task.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\TASK\beep_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>optical_flow_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\optical_flow_task.c</FilePath>
             </File>
           </Files>
         </Group>

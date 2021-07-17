@@ -24,29 +24,29 @@ void horizontal_attitude_stabilization_control()
 		//回中时赋y位置期望值
 		if (horizontal_pos_y_pid_data.short_circuit_flag == 1) {
 			horizontal_pos_y_pid_data.expect = pos_y;
-			//使能偏航pid计算
+			//使能水平y方向pid计算
 			horizontal_pos_y_pid_data.short_circuit_flag = 0;
 		}
-	//波动偏航方向杆后，只进行内环角速度控制
+	//波动水平y方向杆后，只进行内环角速度控制
 	} else {
-		//关闭偏航pid计算
+		//关闭水平y方向pid计算
 		horizontal_pos_y_pid_data.short_circuit_flag = 1;
-		//偏航角期望给0,不进行角度控制
-		horizontal_pos_y_pid_data.expect = Pitch_Control * HORIZONTAL_SPEED_MAX / Pit_Rol_Max;
+		//水平y方向期望给0,不进行水平y方向控制
+		horizontal_pos_y_pid_data.expect = -Pitch_Control * HORIZONTAL_SPEED_MAX / Pit_Rol_Max;
 	}
     
     if (Roll_Control == 0) {
 		//回中时赋y位置期望值
 		if (horizontal_pos_x_pid_data.short_circuit_flag == 1) {
 			horizontal_pos_x_pid_data.expect = pos_x;
-			//使能偏航pid计算
+			//使能水平x方向pid计算
 			horizontal_pos_x_pid_data.short_circuit_flag = 0;
 		}
-	//波动偏航方向杆后，只进行内环角速度控制
+	//波动水平x方向杆后，只进行内环角速度控制
 	} else {
-		//关闭偏航pid计算
+		//关闭水平x方向pid计算
 		horizontal_pos_x_pid_data.short_circuit_flag = 1;
-		//偏航角期望给0,不进行角度控制
+		//水平x方向期望给0,不进行水平x方向控制
 		horizontal_pos_x_pid_data.expect = Roll_Control * HORIZONTAL_SPEED_MAX / Pit_Rol_Max;
 	}
 

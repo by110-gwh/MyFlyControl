@@ -26,7 +26,10 @@ xTaskHandle fly_task_handle;
 volatile uint8_t fly_task_exit = 1;
 //飞行任务更新标志，用于安全检查
 volatile uint8_t fly_task_updata;
+#include "gyro_control.h"
+#include "angle_control.h"
 #include "high_control.h"
+#include "horizontal_control.h"
 /**********************************************************************************************************
 *函 数 名: fly_task
 *功能说明: 飞行定时任务
@@ -65,8 +68,11 @@ portTASK_FUNCTION(fly_task, pvParameters)
         extern float pos_x, pos_y;
         extern float speed_x, speed_y;
 //        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_vel, high_raw_data / 10.0 * Cos_Roll * Cos_Pitch, high_pos, high_acce, navigation_acce.z); 
-        //printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_pos_pid.expect, high_pos_pid.feedback, high_vel_pid.expect, high_vel_pid.feedback, high_vel_pid.control_output); 
-        printf("%0.3f,%0.3f,%0.3f,%0.3f\r\n", navigation_acce.y / 10, speed_y, pos_y, optical_flow_pos_y); 
+//        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_pos_pid_data.expect, high_pos_pid_data.feedback, high_speed_pid_data.expect, high_speed_pid_data.feedback, high_speed_pid_data.control_output); 
+//        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", horizontal_pos_y_pid_data.expect, horizontal_pos_y_pid_data.feedback, horizontal_speed_y_pid_data.expect,
+//            horizontal_speed_y_pid_data.feedback, horizontal_speed_y_pid_data.control_output, pitch_angle_pid_data.expect); 
+        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", navigation_acce.y / 10, speed_y, pos_y, optical_flow_pos_y, optical_flow_speed_y); 
+//        printf("%0.3f\r\n", yaw_angle_pid_data.feedback); 
         //printf("%d\r\n", throttle_motor_output);
         fly_task_updata = 1;
         //睡眠5ms

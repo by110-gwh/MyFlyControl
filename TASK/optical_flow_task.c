@@ -54,15 +54,15 @@ portTASK_FUNCTION(optical_flow_task, pvParameters)
             //补偿后的光流速度
             float opt_data_x = dx * OPTICAL_SCALS / 100 + gyro_data_y / 10;
             float opt_data_y = dy * OPTICAL_SCALS / 100 - gyro_data_x / 10;
-            optical_flow_speed_x = opt_data_x * high_pos * 10;
-            optical_flow_speed_y = opt_data_y * high_pos * 10;
+            optical_flow_speed_x = opt_data_x * pos_z * 10;
+            optical_flow_speed_y = opt_data_y * pos_z * 10;
             
             //光流累计移动
-            optical_flow_pos_x_integral += dx * OPTICAL_SCALS * high_pos / 100;
-            optical_flow_pos_y_integral += dy * OPTICAL_SCALS * high_pos / 100;
+            optical_flow_pos_x_integral += dx * OPTICAL_SCALS * pos_z / 100;
+            optical_flow_pos_y_integral += dy * OPTICAL_SCALS * pos_z / 100;
             //光流位置补偿
-            optical_flow_pos_x = optical_flow_pos_x_integral + high_pos * tanf(Roll * DEG2RAD);
-            optical_flow_pos_y = optical_flow_pos_y_integral - high_pos * tanf(Pitch * DEG2RAD);
+            optical_flow_pos_x = optical_flow_pos_x_integral + pos_z * tanf(Roll * DEG2RAD);
+            optical_flow_pos_y = optical_flow_pos_y_integral - pos_z * tanf(Pitch * DEG2RAD);
         }
         //睡眠100ms
         vTaskDelayUntil(&xLastWakeTime, (100 / portTICK_RATE_MS));

@@ -8,10 +8,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-//最大俯仰、横滚期望
-#define Pit_Rol_Max 20
-//最大偏航期望
-#define Yaw_Max     90
 //油门底部安全死区
 #define THROTTLE_BUTTOM_SAFE_DEADBAND 50
 //触发时间，单位ms

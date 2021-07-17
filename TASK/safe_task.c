@@ -11,7 +11,8 @@
 //任务优先级
 #define SAFE_TASK_PRIORITY 10
 
-
+//任务退出标志
+volatile uint8_t safe_task_exit = 1;
 //声明任务句柄
 xTaskHandle safe_task_handle;
 
@@ -39,7 +40,7 @@ portTASK_FUNCTION(safe_task, pvParameters)
 {
     //等待任务初始化
     vTaskDelay((1000 / portTICK_RATE_MS));
-    while (1) {
+    while (!safe_task_exit) {
         //遥控器错误
         if (remote_control_updata == 0)
             safe_task_motor_stop();
@@ -52,6 +53,7 @@ portTASK_FUNCTION(safe_task, pvParameters)
         //睡眠200ms
         vTaskDelay((200 / portTICK_RATE_MS));
     }
+    vTaskDelete(NULL);
 }
 
 
@@ -63,5 +65,6 @@ portTASK_FUNCTION(safe_task, pvParameters)
 **********************************************************************************************************/
 void safe_task_create(void)
 {
+    safe_task_exit = 0;
     xTaskCreate(safe_task, "safe_task", SAFE_TASK_STACK, NULL, SAFE_TASK_PRIORITY, &safe_task_handle);
 }

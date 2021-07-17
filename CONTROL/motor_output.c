@@ -103,9 +103,9 @@ void motor_output_output(void)
 		Motor_PWM_4 = Thr_Min;
 		pwm_set(Motor_PWM_1, Motor_PWM_2, Motor_PWM_3, Motor_PWM_4);
 	} else {
-		pitch_motor_output = pitch_gyro_pid.control_output;
-		roll_motor_output = roll_gyro_pid.control_output;
-		yaw_motor_output = yaw_gyro_pid.control_output;
+		pitch_motor_output = pitch_gyro_pid_data.control_output;
+		roll_motor_output = roll_gyro_pid_data.control_output;
+		yaw_motor_output = yaw_gyro_pid_data.control_output;
 		//计算四个电机输出值
 		Motor_PWM_1 = throttle_motor_output + roll_motor_output + pitch_motor_output + yaw_motor_output;
 		Motor_PWM_2 = throttle_motor_output + roll_motor_output - pitch_motor_output - yaw_motor_output;

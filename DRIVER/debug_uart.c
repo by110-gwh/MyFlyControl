@@ -69,6 +69,9 @@ void debug_uart_init()
 	//启动串口
     ROM_UARTEnable(UART2_BASE);
     ROM_UARTFIFODisable(UART2_BASE);
+    
+    //随便发送一个字节，以便产生接收中断
+    ROM_UARTCharPutNonBlocking(UART2_BASE, 0);
 }
 
 void UART2_IRQHandler(void)
@@ -80,11 +83,14 @@ void UART2_IRQHandler(void)
 		//发送队列中有数据需要发送
 		if (xQueueReceiveFromISR(tx_queue, (void *) &Res, &xTaskWokenByReceive) == pdPASS) {
 			ROM_UARTCharPutNonBlocking(UART2_BASE, Res);
-		}
+            //清除中断
+            UARTIntClear(UART2_BASE, UART_INT_TX);
+		} else {
+            //关闭发送中断
+            ROM_UARTIntDisable(UART2_BASE, UART_INT_TX);
+        }
         if(xTaskWokenByReceive)
             portYIELD_FROM_ISR(xTaskWokenByReceive);
-        //清除中断
-        UARTIntClear(UART2_BASE, UART_INT_TX);
     //接收中断
     } else if (UARTIntStatus(UART2_BASE, true) == UART_INT_RX) {
         //读取接收字节
@@ -122,19 +128,14 @@ void UART2_IRQHandler(void)
 **********************************************************************************************************/
 int fputc(int ch, FILE *f)
 {
-    //第一次发送要激活串口发送中断
-    if (!UARTBusy(UART2_BASE))
-        ROM_UARTCharPutNonBlocking(UART2_BASE, ch);
-    else {
-        if (vPortGetIPSR()) {
-            BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-            //向队列里面写入要发送的数据
-            while (xQueueSendFromISR(tx_queue, &ch, &xHigherPriorityTaskWoken) != pdPASS);
-            portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-        } else {
-            //向队列里面写入要发送的数据
-            xQueueSend(tx_queue, &ch, 10);
-        }
+    if (vPortGetIPSR()) {
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        //向队列里面写入要发送的数据
+        while (xQueueSendFromISR(tx_queue, &ch, &xHigherPriorityTaskWoken) != pdPASS);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    } else {
+        //向队列里面写入要发送的数据
+        xQueueSend(tx_queue, &ch, 10);
     }
     //使能发送中断
     ROM_UARTIntEnable(UART2_BASE, UART_INT_TX);

@@ -23,12 +23,17 @@ static Butter_BufferData Butter_Buffer_Navigation[3];
 //用于惯性导航的加速度滤波参数
 static Butter_Parameter Butter_15HZ_Parameter_Navigation;
 
-//高度惯性导航加速度
-float high_acce;
-//高度惯性导航位置
-float high_pos;
-//高度惯性导航速度
-float high_vel;
+float pos_x, pos_y, pos_z;
+float speed_x, speed_y, speed_z;
+float acce_x, acce_y, acce_z;
+static float optical_flow_pos_x_integral;
+static float optical_flow_pos_y_integral;
+static float filter_weight_speed = 0.1;
+static float filter_weight_pos = 0.01;
+static float pos_history_x[20];
+static float pos_history_y[20];
+static float speed_history_x[20];
+static float speed_history_y[20];
 
 /**********************************************************************************************************
 *函 数 名: constrain_float
@@ -129,10 +134,10 @@ void high_kalman_filter()
     dt = Time_Delta.Time_Delta / 1000000.0;
 
     //先验状态
-    high_acce = navigation_acce.z;
-    high_acce += acce_bias;
-    high_pos += high_vel * dt + (high_acce * dt * dt) / 2.0f;
-    high_vel += high_acce * dt;
+    acce_z = navigation_acce.z;
+    acce_z += acce_bias;
+    pos_z += speed_z * dt + (acce_z * dt * dt) / 2.0f;
+    speed_z += acce_z * dt;
 	
     //当观测值更新时才进行融合
     if(high_raw_data) {
@@ -149,8 +154,8 @@ void high_kalman_filter()
         
 		//融合数据输出
 		temp = high_raw_data * Cos_Roll * Cos_Pitch / 10 - pos_history[20 - 1];
-		high_pos += K[0] * temp;
-		high_vel += K[1] * temp;
+		pos_z += K[0] * temp;
+		speed_z += K[1] * temp;
 		acce_bias += 0.0005f * temp;
 		acce_bias = constrain_float(acce_bias, -200, 200);
         
@@ -165,20 +170,8 @@ void high_kalman_filter()
     for(cnt = 20 - 1; cnt > 0; cnt--) {
        pos_history[cnt] = pos_history[cnt - 1];
     }
-    pos_history[0] = high_pos;
+    pos_history[0] = pos_z;
 }
-
-float pos_x, pos_y;
-float speed_x, speed_y;
-float acce_x, acce_y;
-static float optical_flow_pos_x_integral;
-static float optical_flow_pos_y_integral;
-static float filter_weight_speed = 0.1;
-static float filter_weight_pos = 0.01;
-static float pos_history_x[20];
-static float pos_history_y[20];
-static float speed_history_x[20];
-static float speed_history_y[20];
 
 void pos_filter(void)
 {

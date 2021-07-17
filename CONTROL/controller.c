@@ -3,9 +3,11 @@
 #include "ahrs_aux.h"
 #include "attitude_self_stabilization.h"
 #include "high_attitude_stabilization.h"
+#include "horizontal_attitude_stabilization.h"
 #include "angle_control.h"
 #include "gyro_control.h"
 #include "high_control.h"
+#include "horizontal_control.h"
 #include "motor_output.h"
 
 uint8_t controller_last_state;
@@ -22,7 +24,7 @@ void controller_init()
     angle_control_init();
     gyro_control_init();
     high_control_init();
-    
+    horizontal_control_init();
     controller_state = 0;
 }
 
@@ -70,47 +72,53 @@ void controller_run()
 {
     controller_last_state = controller_state;
     
-    if (rc_raw_data[4] < rc_calibration_data[4].middle || Throttle_Control < 500) {
+    if (rc_raw_data[4] < 1250 || Throttle_Control < 500) {
         //纯姿态模式
         controller_state = 1;
-    } else if (Throttle_Control > 0) {
+    } else if (rc_raw_data[4] < 1750) {
         //定高模式
         controller_state = 2;
+    } else {
+        //定点模式
+        controller_state = 3;
     }
     
+    
+    //纯姿态模式
     if (controller_state == 1) {
-        //第一次运行纯姿态控制器
-        if (controller_last_state != 1) {
-            high_pos_pid.short_circuit_flag = 1;
-            high_vel_pid.short_circuit_flag = 1;
-        }
         //纯姿态控制器
         attitude_self_stabilization_control();
+        //角度环控制器
+        angle_control();
+        //角速度控制器
+        gyro_control();
+        //油门补偿
+        throttle_motor_output = throttle_angle_compensate(Throttle_Control + 1000);
+    //定高模式
     } else if (controller_state == 2) {
-        //第一次运行定高控制器
-        if (controller_last_state != 2) {
-            high_vel_pid.short_circuit_flag = 0;
-            high_pos_pid_integrate_reset();
-            high_vel_pid_integrate_reset();
-        }
         //定高控制器
         high_attitude_stabilization_control();
-    }
-    
-    //高度环控制器
-    high_control();
-    //角度环控制器
-    angle_control();
-    //角速度控制器
-    gyro_control();
-    
-    
-    if (controller_state == 1) {
+        //高度环控制器
+        high_control();
+        //角度环控制器
+        angle_control();
+        //角速度控制器
+        gyro_control();
         //油门补偿
-        throttle_motor_output = throttle_angle_compensate(high_vel_pid.control_output + 1000);
-    } else if (controller_state == 2) {
+        throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1500);
+    //定点模式
+    } else if (controller_state == 3) {
+        //定高控制器
+        horizontal_attitude_stabilization_control();
+        //位置控制器
+        horizontal_control();
+        //高度环控制器
+        high_control();
+        //角度环控制器
+        angle_control();
+        //角速度控制器
+        gyro_control();
         //油门补偿
-        throttle_motor_output = throttle_angle_compensate(high_vel_pid.control_output + 1500);
+        throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1500);
     }
-    
 }

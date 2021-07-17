@@ -21,9 +21,9 @@ float GildeAverageValueFilter(float NewValue, float *Data, uint8_t size)
 	for (i = size - 1; i != 0; i--)
 	{
 		if (Data[i] > max)
-		max = Data[i];
+            max = Data[i];
 		else if (Data[i] < min)
-		min = Data[i];
+            min = Data[i];
 		sum += Data[i];
 		Data[i] = Data[i - 1];
 	}

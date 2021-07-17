@@ -10,6 +10,7 @@
 #include "imu.h"
 #include "i2c.h"
 #include "i2c1.h"
+#include "spi0.h"
 #include "motor_output.h"
 #include "angle_control.h"
 #include "gyro_control.h"
@@ -40,6 +41,7 @@ portTASK_FUNCTION(main_task, parameters)
 	rc_init();
 	i2c_init();
 	i2c1_init();
+    spi0_init();
 	motor_output_init();
 	usmart_task_create();
     beep_task_create();
@@ -94,7 +96,7 @@ portTASK_FUNCTION(main_task, parameters)
 			//清PID积分
             controller_init();
 			//等待电机启动时间姿态融合完毕后，更新偏航期待
-			yaw_angle_pid.short_circuit_flag = 1;
+			yaw_angle_pid_data.short_circuit_flag = 1;
 			page_number = 1;
 			while(1) {
 				key = rc_scan();
@@ -103,6 +105,7 @@ portTASK_FUNCTION(main_task, parameters)
 				}
 				vTaskDelay(10);
 			}
+            safe_task_exit = 1;
 			fly_task_exit = 1;
 			vTaskDelay(5);
 			motor_output_lock();

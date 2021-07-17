@@ -13,6 +13,11 @@ typedef struct
 	uint16_t deadband_buttom;
 } rc_calibration_data_t;
 
+//最大俯仰、横滚期望
+#define Pit_Rol_Max 20
+//最大偏航期望
+#define Yaw_Max     90
+
 #define RC_RESET_DEFAULT     1500
 #define RC_DEADBAND_PERCENT  0.1
 #define RC_DEADBAND_CHANNEL  8

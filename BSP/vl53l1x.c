@@ -56,19 +56,14 @@ void vl53l1x_task()
     uint8_t range_status;
     if (state == 100 / 5) {
         data_ready = 0;
-        while (1) {
-            status = VL53L1X_CheckForDataReady(0, &data_ready);
-            if (data_ready == 1)
-                break;
-            vTaskDelay(1);
-        }
-        status = VL53L1X_GetRangeStatus(0, &range_status);
-        status = VL53L1X_GetDistance(0, &distance);
-        status = VL53L1X_ClearInterrupt(0);
-        if (range_status == 0) {
-            high_raw_data = distance;
-        } else {
-            high_raw_data = 0;
+        status = VL53L1X_CheckForDataReady(0, &data_ready);
+        if (data_ready == 1) {
+            status = VL53L1X_GetRangeStatus(0, &range_status);
+            status = VL53L1X_GetDistance(0, &distance);
+            status = VL53L1X_ClearInterrupt(0);
+            if (range_status == 0) {
+                high_raw_data = distance;
+            }
         }
         state = 0;
     }

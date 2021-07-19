@@ -750,6 +750,8 @@ void gyro_calibration()
     gyroSumData.z = 0;
 	//IMU初始化
 	imu_init();
+    //等待IMU初始化
+    vTaskDelay(100);
 	//提高本任务优先级
 	this_task_priority = uxTaskPriorityGet(NULL);
 	vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);

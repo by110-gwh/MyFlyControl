@@ -36,6 +36,7 @@ volatile uint8_t fly_task_updata;
 *形    参: 无
 *返 回 值: 无
 **********************************************************************************************************/
+#include <math.h>
 portTASK_FUNCTION(fly_task, pvParameters)
 {
     portTickType xLastWakeTime;
@@ -67,11 +68,12 @@ portTASK_FUNCTION(fly_task, pvParameters)
         
         extern float pos_x, pos_y;
         extern float speed_x, speed_y;
-//        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_vel, high_raw_data / 10.0 * Cos_Roll * Cos_Pitch, high_pos, high_acce, navigation_acce.z); 
-//        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_pos_pid_data.expect, high_pos_pid_data.feedback, high_speed_pid_data.expect, high_speed_pid_data.feedback, high_speed_pid_data.control_output); 
+//        printf("%0.3f,%0.3f,%0.3f,%0.3f\r\n", Pitch, Roll, (float)atan2(accDataFilter.y, accDataFilter.z) * 57.3, -(float)atan2(accDataFilter.x, accDataFilter.z) * 57.3);
+//        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", speed_z, high_raw_data / 10., pos_z, acce_z, navigation_acce.z); 
+        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_pos_pid_data.expect, high_pos_pid_data.feedback, high_speed_pid_data.expect, high_speed_pid_data.feedback, high_speed_pid_data.control_output); 
 //        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", horizontal_pos_y_pid_data.expect, horizontal_pos_y_pid_data.feedback, horizontal_speed_y_pid_data.expect,
 //            horizontal_speed_y_pid_data.feedback, horizontal_speed_y_pid_data.control_output, pitch_angle_pid_data.expect); 
-        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", navigation_acce.y / 10, speed_y, pos_y, optical_flow_pos_y, optical_flow_speed_y); 
+//        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", navigation_acce.y / 10, speed_y, pos_y, optical_flow_pos_y, optical_flow_speed_y); 
 //        printf("%0.3f\r\n", yaw_angle_pid_data.feedback); 
         //printf("%d\r\n", throttle_motor_output);
         fly_task_updata = 1;

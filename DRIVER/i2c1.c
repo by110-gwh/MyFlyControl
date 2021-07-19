@@ -38,38 +38,38 @@ void I2C1_IRQHandle(void);
 **********************************************************************************************************/
 static void i2c_fail_recover(void)
 {
-    if ((I2CMasterLineStateGet(I2C2_BASE) & 0x3) != 0x3) {
+    if ((I2CMasterLineStateGet(I2C1_BASE) & 0x3) != 0x3) {
         //ÅäÖÃSCKÒý½ÅÎªÊä³ö
-        GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_4 | GPIO_PIN_5, GPIO_PIN_4 | GPIO_PIN_5);
-        GPIOPadConfigSet(GPIO_PORTE_BASE, GPIO_PIN_4, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_OD);
-        GPIOPinTypeGPIOOutput(GPIO_PORTE_BASE, GPIO_PIN_4);
-        GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_5);
+        GPIOPinWrite(GPIO_PORTA_BASE, GPIO_PIN_6 | GPIO_PIN_7, GPIO_PIN_6 | GPIO_PIN_7);
+        GPIOPadConfigSet(GPIO_PORTA_BASE, GPIO_PIN_6, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_OD);
+        GPIOPinTypeGPIOOutput(GPIO_PORTA_BASE, GPIO_PIN_6);
+        GPIOPinTypeGPIOInput(GPIO_PORTA_BASE, GPIO_PIN_7);
         do{
             //²úÉúCLKÂö³å
-            GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_4, GPIO_PIN_4);
+            GPIOPinWrite(GPIO_PORTA_BASE, GPIO_PIN_6, GPIO_PIN_6);
             ROM_SysCtlDelay(50);
-            GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_4, 0);
+            GPIOPinWrite(GPIO_PORTA_BASE, GPIO_PIN_6, 0);
             ROM_SysCtlDelay(50);
         //ÅÐ¶ÏSDAÊÇ·ñ»Ö¸´
-        }while(GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_5) == 0);
+        }while(GPIOPinRead(GPIO_PORTA_BASE, GPIO_PIN_7) == 0);
         
         //ÅäÖÃSDAÒý½ÅÎªÊä³ö
         ROM_SysCtlDelay(50);
-        GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_5, 0);
-        GPIOPadConfigSet(GPIO_PORTE_BASE, GPIO_PIN_5, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_OD);
-        GPIOPinTypeGPIOOutput(GPIO_PORTE_BASE, GPIO_PIN_5);
+        GPIOPinWrite(GPIO_PORTA_BASE, GPIO_PIN_7, 0);
+        GPIOPadConfigSet(GPIO_PORTA_BASE, GPIO_PIN_7, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_OD);
+        GPIOPinTypeGPIOOutput(GPIO_PORTA_BASE, GPIO_PIN_7);
         //²úÉúÍ£Ö¹ÐÅºÅ
-        GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_5, 0);
+        GPIOPinWrite(GPIO_PORTA_BASE, GPIO_PIN_7, 0);
         ROM_SysCtlDelay(50);
-        GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_4, GPIO_PIN_4);
+        GPIOPinWrite(GPIO_PORTA_BASE, GPIO_PIN_6, GPIO_PIN_6);
         ROM_SysCtlDelay(50);
-        GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_5, GPIO_PIN_5);
+        GPIOPinWrite(GPIO_PORTA_BASE, GPIO_PIN_7, GPIO_PIN_7);
         
         //»Ö¸´GPIOÅäÖÃ
-        GPIOPinConfigure(GPIO_PE4_I2C2SCL);
-        GPIOPinConfigure(GPIO_PE5_I2C2SDA);
-        GPIOPinTypeI2CSCL(GPIO_PORTE_BASE, GPIO_PIN_4);
-        GPIOPinTypeI2C(GPIO_PORTE_BASE, GPIO_PIN_5);
+        GPIOPinConfigure(GPIO_PA6_I2C1SCL);
+        GPIOPinConfigure(GPIO_PA7_I2C1SDA);
+        GPIOPinTypeI2CSCL(GPIO_PORTA_BASE, GPIO_PIN_6);
+        GPIOPinTypeI2C(GPIO_PORTA_BASE, GPIO_PIN_7);
     }
 }
 

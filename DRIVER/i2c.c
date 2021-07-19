@@ -30,6 +30,48 @@ static uint32_t last_len;
 
 void I2C2_IRQHandle(void);
 
+/**********************************************************************************************************
+*函 数 名: i2c_fail_recover
+*功能说明: I2C错误恢复
+*形    参: 无
+*返 回 值: 无
+**********************************************************************************************************/
+static void i2c_fail_recover(void)
+{
+    if ((I2CMasterLineStateGet(I2C2_BASE) & 0x3) != 0x3) {
+        //配置SCK引脚为输出
+        GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_4 | GPIO_PIN_5, GPIO_PIN_4 | GPIO_PIN_5);
+        GPIOPadConfigSet(GPIO_PORTE_BASE, GPIO_PIN_4, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_OD);
+        GPIOPinTypeGPIOOutput(GPIO_PORTE_BASE, GPIO_PIN_4);
+        GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_5);
+        do{
+            //产生CLK脉冲
+            GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_4, GPIO_PIN_4);
+            ROM_SysCtlDelay(50);
+            GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_4, 0);
+            ROM_SysCtlDelay(50);
+        //判断SDA是否恢复
+        }while(GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_5) == 0);
+        
+        //配置SDA引脚为输出
+        ROM_SysCtlDelay(50);
+        GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_5, 0);
+        GPIOPadConfigSet(GPIO_PORTE_BASE, GPIO_PIN_5, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_OD);
+        GPIOPinTypeGPIOOutput(GPIO_PORTE_BASE, GPIO_PIN_5);
+        //产生停止信号
+        GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_5, 0);
+        ROM_SysCtlDelay(50);
+        GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_4, GPIO_PIN_4);
+        ROM_SysCtlDelay(50);
+        GPIOPinWrite(GPIO_PORTE_BASE, GPIO_PIN_5, GPIO_PIN_5);
+        
+        //恢复GPIO配置
+        GPIOPinConfigure(GPIO_PE4_I2C2SCL);
+        GPIOPinConfigure(GPIO_PE5_I2C2SDA);
+        GPIOPinTypeI2CSCL(GPIO_PORTE_BASE, GPIO_PIN_4);
+        GPIOPinTypeI2C(GPIO_PORTE_BASE, GPIO_PIN_5);
+    }
+}
 
 /**********************************************************************************************************
 *函 数 名: i2c_init
@@ -51,11 +93,15 @@ void i2c_init(void)
     //初始化I2C外设
     ROM_I2CMasterInitExpClk(I2C2_BASE, ROM_SysCtlClockGet(), true);
     
+    //总线复位
+    i2c_fail_recover();
+    
     //使能I2C中断
     ROM_I2CMasterIntEnable(I2C2_BASE);
     ROM_IntPrioritySet(INT_I2C2, 2 << 5);
     IntRegister(INT_I2C2, I2C2_IRQHandle);
     ROM_IntEnable(INT_I2C2);
+    
     
     //初始化消息队列
 	i2c_queue = xQueueCreate(1, sizeof(uint8_t));

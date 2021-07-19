@@ -86,6 +86,17 @@ void controller_run()
     
     //纯姿态模式
     if (controller_state == 1) {
+        //开始运行定高控制器
+        if (controller_last_state != 2) {
+            high_pos_pid_integrate_reset();
+            high_speed_pid_integrate_reset();
+            horizontal_pos_x_pid_integrate_reset();
+            horizontal_pos_y_pid_integrate_reset();
+            horizontal_speed_x_pid_integrate_reset();
+            horizontal_speed_y_pid_integrate_reset();
+            horizontal_pos_x_pid_data.short_circuit_flag = 1;
+            horizontal_pos_y_pid_data.short_circuit_flag = 1;
+        }
         //纯姿态控制器
         attitude_self_stabilization_control();
         //角度环控制器
@@ -96,6 +107,15 @@ void controller_run()
         throttle_motor_output = throttle_angle_compensate(Throttle_Control + 1000);
     //定高模式
     } else if (controller_state == 2) {
+        //开始运行定高控制器
+        if (controller_last_state != 2) {
+            horizontal_pos_x_pid_integrate_reset();
+            horizontal_pos_y_pid_integrate_reset();
+            horizontal_speed_x_pid_integrate_reset();
+            horizontal_speed_y_pid_integrate_reset();
+            horizontal_pos_x_pid_data.short_circuit_flag = 1;
+            horizontal_pos_y_pid_data.short_circuit_flag = 1;
+        }
         //定高控制器
         high_attitude_stabilization_control();
         //高度环控制器

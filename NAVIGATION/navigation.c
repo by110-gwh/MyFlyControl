@@ -156,7 +156,7 @@ void high_kalman_filter()
 		temp = high_raw_data * Cos_Roll * Cos_Pitch / 10 - pos_history[20 - 1];
 		pos_z += K[0] * temp;
 		speed_z += K[1] * temp;
-		acce_bias += 0.0005f * temp;
+		acce_bias += 0.0015f * temp;
 		acce_bias = constrain_float(acce_bias, -200, 200);
         
 		//更新状态协方差矩阵

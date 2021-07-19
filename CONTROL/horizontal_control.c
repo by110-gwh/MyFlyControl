@@ -109,7 +109,7 @@ void horizontal_control_init()
 	horizontal_pos_x_pid_data.pid_controller_dt.inited = 0;
     horizontal_pos_x_pid_data.err_callback = NULL;
     horizontal_pos_x_pid_data.pri_data = NULL;
-    horizontal_pos_x_pid_data.short_circuit_flag = 0;
+    horizontal_pos_x_pid_data.short_circuit_flag = 1;
     
     horizontal_speed_x_pid_data.last_expect = 0;
 	horizontal_speed_x_pid_data.expect = 0;
@@ -135,7 +135,7 @@ void horizontal_control_init()
 	horizontal_pos_y_pid_data.pid_controller_dt.inited = 0;
     horizontal_pos_y_pid_data.err_callback = NULL;
     horizontal_pos_y_pid_data.pri_data = NULL;
-    horizontal_pos_y_pid_data.short_circuit_flag = 0;
+    horizontal_pos_y_pid_data.short_circuit_flag = 1;
     
     horizontal_speed_y_pid_data.last_expect = 0;
 	horizontal_speed_y_pid_data.expect = 0;

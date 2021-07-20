@@ -2,6 +2,7 @@
 #include "oledfont.h"
 #include "oled.h"
 #include "stdlib.h"
+#include "stdio.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -156,7 +157,7 @@ void oled_cls()
 *形    参: x坐标 y坐标 要显示的字符串
 *返 回 值: 无
 **********************************************************************************************************/
-void oled_6x8_str(uint8_t x, uint8_t y, uint8_t ch[])
+void oled_6x8_str(uint8_t x, uint8_t y, char ch[])
 {
 	uint8_t c = 0, i = 0, j = 0;
 	while (ch[j] != '\0') {
@@ -180,7 +181,7 @@ void oled_6x8_str(uint8_t x, uint8_t y, uint8_t ch[])
 *形    参: x坐标 y坐标 要显示的字符
 *返 回 值: 无
 **********************************************************************************************************/
-void oled_6x8_char(uint8_t x, uint8_t y, uint8_t ucData)
+void oled_6x8_char(uint8_t x, uint8_t y, char ucData)
 {
 	uint8_t i, ucDataTmp;
 	ucDataTmp = ucData - 32;
@@ -197,128 +198,31 @@ void oled_6x8_char(uint8_t x, uint8_t y, uint8_t ucData)
 /**********************************************************************************************************
 *函 数 名: oled_6x8_number
 *功能说明: 显示6X8的浮点数
-*形    参: x坐标 y坐标 要显示的数
+*形    参: x坐标 y坐标 位数 要显示的数
 *返 回 值: 无
 **********************************************************************************************************/
-void oled_6x8_number(uint8_t x, uint8_t y, float number)
+void oled_6x8_number(uint8_t x, uint8_t y, uint8_t w, float number)
 {
-	uint8_t i = 0;
-	uint8_t temp[16];
-	uint8_t *point = temp;
-	float decimal;
-	int data;
-	if (number < 0) {
-		temp[0] = '-';
-		oled_6x8_char(x, y, temp[0]);
-		x += 6;
-		number = -number;
-	}
-	data = (int)number;
-	//小数部分
-	decimal = number - data;
-
-	///是否能被10^9整除
-	if (data >= 1000000000) {
-		temp[i] = 48 + data / 1000000000;
-		data = data % 1000000000;
-		i++;
-	}
-	//是否能被10^8整除
-	if (data >= 100000000) {
-		temp[i] = 48 + data / 100000000;
-		data = data % 100000000;
-		i++;
-	} else if (data < 100000000 && i != 0) {
-		temp[i] = 0 + 48;
-		i++;
-	}
-	//是否能被10^7整除
-	if (data >= 10000000) {
-		temp[i] = 48 + data / 10000000;
-		data = data % 10000000;
-		i++;
-	} else if (data < 10000000 && i != 0) {
-		temp[i] = 0 + 48;
-		i++;
-	}
-	//是否能被10^6整除
-	if (data >= 1000000) 
-	{
-		temp[i] = 48 + data / 1000000;
-		data = data % 1000000;
-		i++;
-	} else if (data < 1000000 && i != 0) {
-		temp[i] = 0 + 48;
-		i++;
-	}
-	//是否能被100000整除
-	if (data >= 100000) {
-		temp[i] = 48 + data / 100000;
-		data = data % 100000;
-		i++;
-	} else if (data < 100000 && i != 0) {
-		temp[i] = 0 + 48;
-		i++;
-	}
-	//是否能被10000整除
-	if (data >= 10000)  {
-		temp[i] = 48 + data / 10000;
-		data = data % 10000;
-		i++;
-	} else if (data < 10000 && i != 0) {
-		temp[i] = 0 + 48;
-		i++;
-	}
-	//是否能被1000整除
-	if (data >= 1000) {
-		temp[i] = 48 + data / 1000;
-		data = data % 1000;
-		i++;
-	} else if (data < 1000 && i != 0) {
-		temp[i] = 0 + 48;
-		i++;
-	}
-	//是否能被100整除
-	if (data >= 100) {
-		temp[i] = 48 + data / 100;
-		data = data % 100;
-		i++;
-	} else if (data < 100 && i != 0) {
-		temp[i] = 0 + 48;
-		i++;
-	}
-	//是否能被10整除
-	if (data >= 10) {
-		temp[i] = 48 + data / 10;
-		data = data % 10;
-		i++;
-	} else if (data < 10 && i != 0) {
-		temp[i] = 48;
-		i++;
-	}
-	temp[i] = 48 + data;
-	//判断是否有小数部分
-	if (decimal >= 0.0001f) {
-		i++;
-		//显示小数点
-		temp[i] = '.'; 
-		i++;
-		data = (int)(decimal * 1000);
-		temp[i] = 48 + data / 100;
-		data = data % 100;
-		i++;
-		if (data > 0) {
-			temp[i] = 48 + data / 10;
-			data = data % 10;
-		}
-		if (data >= 0) {
-			i++;
-			temp[i] = data + 48;
-		}
-	}
-	i++;
-	temp[i] = '\0';
-	oled_6x8_str(x, y, point);
+    float max;
+    char buffer[14];
+    char format[7];
+    int i;
+    
+    if (w > 9 || w == 0)
+        return;
+    
+    max = 1;
+    for (i = 0; i < w; i++)
+        max *= 10;
+    
+    if (number >= max) {
+        oled_6x8_str(x, y, "E");
+    } else {
+        sprintf(format, "%%%d.3f", w);
+        sprintf(buffer, format, number);
+        buffer[w] = '\0';
+        oled_6x8_str(x, y, buffer);
+    }
 }
 
 /**********************************************************************************************************
@@ -327,7 +231,7 @@ void oled_6x8_number(uint8_t x, uint8_t y, float number)
 *形    参: x坐标 y坐标 要显示的字符串
 *返 回 值: 无
 **********************************************************************************************************/
-void oled_8x16_str(uint8_t x, uint8_t y, uint8_t ch[])
+void oled_8x16_str(uint8_t x, uint8_t y, char ch[])
 {
 	uint8_t c = 0, i = 0, j = 0;
 	while (ch[j] != '\0') {
@@ -355,7 +259,7 @@ void oled_8x16_str(uint8_t x, uint8_t y, uint8_t ch[])
 *形    参: x坐标 y坐标 要显示的字符
 *返 回 值: 无
 **********************************************************************************************************/
-void oled_8x16_char(uint8_t x, uint8_t y, uint8_t ch)
+void oled_8x16_char(uint8_t x, uint8_t y, char ch)
 {
 	uint8_t c = 0, i = 0, j = 0;
 	c = ch - 32;
@@ -378,73 +282,31 @@ void oled_8x16_char(uint8_t x, uint8_t y, uint8_t ch)
 /**********************************************************************************************************
 *函 数 名: oled_8x16_number
 *功能说明: 显示8X16的浮点数
-*形    参: x坐标 y坐标 要显示的数
+*形    参: x坐标 y坐标 位数 要显示的数
 *返 回 值: 无
 **********************************************************************************************************/
-void oled_8x16_number(uint8_t x, uint8_t y, float number)
+void oled_8x16_number(uint8_t x, uint8_t y, uint8_t w, float number)
 {
-	uint8_t i = 0;
-	uint8_t temp[16];
-	uint8_t *point = temp;
-	float decimal;
-	int data;
-
-	if (number < 0) {
-		temp[0] = '-';
-		oled_8x16_char(x, y, temp[0]);
-		x += 1;
-		number = -number;
-	}
-	data = (int)number;
-	//小数部分
-	decimal = number - data;
-	//是否可被1000整除
-	if (data >= 1000) {
-		temp[i] = 48 + data / 1000;
-		data = data % 1000;
-		i++;
-	}
-	//可否被100整除
-	if (data >= 100) {
-		temp[i] = 48 + data / 100;
-		data = data % 100;
-		i++;
-	} else if (data < 100 && i != 0) {
-		temp[i] = 0 + 48;
-		i++;
-	}
-	//可否被10整除
-	if (data >= 10) {
-		temp[i] = 48 + data / 10;
-		data = data % 10;
-		i++;
-	} else if (data < 10 && i != 0) {
-		temp[i] = 48;
-		i++;
-	}
-	temp[i] = 48 + data;
-	//判断是够为小数
-	if (decimal >= 0.0001f) {
-		i++;
-		//显示小数点
-		temp[i] = '.';
-		i++;
-		data = (int)(decimal * 1000);
-		temp[i] = 48 + data / 100;
-		data = data % 100;
-		i++;
-		if (data > 0) {
-			temp[i] = 48 + data / 10;
-			data = data % 10;
-		}
-		if (data >= 0) {
-			i++;
-			temp[i] = data + 48;
-		}
-	}
-	i++;
-	temp[i] = '\0';
-	oled_8x16_str(x, y, point);
+    float max;
+    char buffer[14];
+    char format[7];
+    int i;
+    
+    if (w > 9 || w == 0)
+        return;
+    
+    max = 1;
+    for (i = 0; i < w; i++)
+        max *= 10;
+    
+    if (number >= max) {
+        oled_8x16_str(x, y, "E");
+    } else {
+        sprintf(format, "%%%d.3f", w);
+        sprintf(buffer, format, number);
+        buffer[w] = '\0';
+        oled_8x16_str(x, y, buffer);
+    }
 }
 
 /**********************************************************************************************************

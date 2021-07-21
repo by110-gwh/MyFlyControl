@@ -23,9 +23,15 @@ void horizontal_attitude_stabilization_control()
     if (Pitch_Control == 0) {
 		//回中时赋y位置期望值
 		if (horizontal_pos_y_pid_data.short_circuit_flag == 1) {
-			horizontal_pos_y_pid_data.expect = pos_y;
-			//使能水平y方向pid计算
-			horizontal_pos_y_pid_data.short_circuit_flag = 0;
+            //基本没有速度
+            if (speed_y < 40) {
+                horizontal_pos_y_pid_data.expect = pos_y;
+                //使能水平y方向pid计算
+                horizontal_pos_y_pid_data.short_circuit_flag = 0;
+            } else {
+                //刹车控制
+                horizontal_pos_y_pid_data.expect = 0;
+            }
 		}
 	//波动水平y方向杆后，只进行内环角速度控制
 	} else {
@@ -38,9 +44,15 @@ void horizontal_attitude_stabilization_control()
     if (Roll_Control == 0) {
 		//回中时赋y位置期望值
 		if (horizontal_pos_x_pid_data.short_circuit_flag == 1) {
-			horizontal_pos_x_pid_data.expect = pos_x;
-			//使能水平x方向pid计算
-			horizontal_pos_x_pid_data.short_circuit_flag = 0;
+            //基本没有速度
+            if (speed_y < 40) {
+                horizontal_pos_x_pid_data.expect = pos_x;
+                //使能水平x方向pid计算
+                horizontal_pos_x_pid_data.short_circuit_flag = 0;
+            } else {
+                //刹车控制
+                horizontal_pos_x_pid_data.expect = 0;
+            }
 		}
 	//波动水平x方向杆后，只进行内环角速度控制
 	} else {

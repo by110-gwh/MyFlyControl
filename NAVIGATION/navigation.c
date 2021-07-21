@@ -30,10 +30,6 @@ static float optical_flow_pos_x_integral;
 static float optical_flow_pos_y_integral;
 static float filter_weight_speed = 0.1;
 static float filter_weight_pos = 0.01;
-static float pos_history_x[20];
-static float pos_history_y[20];
-static float speed_history_x[20];
-static float speed_history_y[20];
 
 /**********************************************************************************************************
 *函 数 名: constrain_float
@@ -177,8 +173,8 @@ void pos_filter(void)
 {
     float dt = 0.005f;
     //误差
-    float optical_flow_speed_err_x = optical_flow_speed_x - speed_history_x[10];
-    float optical_flow_speed_err_y = optical_flow_speed_y - speed_history_y[10];
+    float optical_flow_speed_err_x = optical_flow_speed_x - speed_x;
+    float optical_flow_speed_err_y = optical_flow_speed_y - speed_y;
     float optical_flow_pos_err_x = optical_flow_pos_x - pos_x;
     float optical_flow_pos_err_y = optical_flow_pos_y - pos_y;
     
@@ -189,17 +185,4 @@ void pos_filter(void)
     speed_y += acce_y * dt + filter_weight_speed * optical_flow_speed_err_y;
     pos_x += speed_x * dt + 0.5f * acce_x * dt * dt + filter_weight_pos * optical_flow_pos_err_x;
     pos_y += speed_y * dt + 0.5f * acce_y * dt * dt + filter_weight_pos * optical_flow_pos_err_y;
-    
-    //保存历史值
-    uint8_t i;
-    for (i = 19; i > 0; i--) {
-        speed_history_x[i] = speed_history_x[i - 1];
-        speed_history_y[i] = speed_history_y[i - 1];
-        pos_history_x[i] = pos_history_x[i - 1];
-        pos_history_y[i] = pos_history_y[i - 1];
-    }
-    speed_history_x[0] = speed_x;
-    speed_history_y[0] = speed_y;
-    pos_history_x[0] = pos_x;
-    pos_history_y[0] = pos_y;
 }

@@ -16,11 +16,11 @@ pid_paramer_t horizontal_pos_x_pid_para = {
     .integrate_separation_err = 0,
     .integrate_max = 0,
     .kp = 1,
-    .ki = 0,
-    .kd = 0,
+    .ki = 0.01,
+    .kd = 0.1,
     .feedforward_kp = 0,
     .feedforward_kd = 0,
-    .control_output_limit = 0
+    .control_output_limit = 50
 };
 
 pid_paramer_t horizontal_pos_y_pid_para = {
@@ -28,18 +28,18 @@ pid_paramer_t horizontal_pos_y_pid_para = {
     .integrate_separation_err = 0,
     .integrate_max = 0,
     .kp = 1,
-    .ki = 0,
-    .kd = 0,
+    .ki = 0.01,
+    .kd = 0.1,
     .feedforward_kp = 0,
     .feedforward_kd = 0,
-    .control_output_limit = 0
+    .control_output_limit = 50
 };
 
 pid_paramer_t horizontal_speed_x_pid_para = {
     .err_max = 0,
     .integrate_separation_err = 0,
     .integrate_max = 0,
-    .kp = 1,
+    .kp = 2,
     .ki = 0,
     .kd = 0,
     .feedforward_kp = 0,
@@ -51,7 +51,7 @@ pid_paramer_t horizontal_speed_y_pid_para = {
     .err_max = 0,
     .integrate_separation_err = 0,
     .integrate_max = 0,
-    .kp = 1,
+    .kp = 2,
     .ki = 0,
     .kd = 0,
     .feedforward_kp = 0,
@@ -246,7 +246,7 @@ static float fast_atan(float v)
 *形    参: 水平速度x输出 水平速度y输出 俯仰角指针 横滚角指针
 *返 回 值: 无
 **********************************************************************************************************/
-static void horizontal_speed_to_angles(float horizontal_speed_x, float horizontal_speed_y, float *pitch_angle, float *roll_angle)
+static void horizontal_speed_to_angles(float horizontal_speed_x, float horizontal_speed_y, volatile float *pitch_angle, volatile float *roll_angle)
 {
     float accel_right, accel_forward;
     float lean_angle_max = 30;

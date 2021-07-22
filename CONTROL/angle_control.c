@@ -157,7 +157,7 @@ void angle_pid_integrate_reset()
 **********************************************************************************************************/
 void angle_control()
 {
-    pitch_angle_pid_data.feedback = Pitch;
+    pitch_angle_pid_data.feedback = Pitch + 4;
     pid_control(&pitch_angle_pid_data, &pitch_angle_pid_para);
 
     roll_angle_pid_data.feedback = Roll + 2;

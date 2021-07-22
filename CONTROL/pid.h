@@ -31,7 +31,7 @@ typedef struct pid_data{
     //期望
     float last_expect;
     //期望
-    float expect;
+    volatile float expect;
     //反馈值
     float feedback;
     //偏差

@@ -24,7 +24,7 @@ void horizontal_attitude_stabilization_control()
 		//回中时赋y位置期望值
 		if (horizontal_pos_y_pid_data.short_circuit_flag == 1) {
             //基本没有速度
-            if (speed_y < 40) {
+            if (speed_y < 40 && speed_y > -40) {
                 horizontal_pos_y_pid_data.expect = pos_y;
                 //使能水平y方向pid计算
                 horizontal_pos_y_pid_data.short_circuit_flag = 0;
@@ -45,7 +45,7 @@ void horizontal_attitude_stabilization_control()
 		//回中时赋y位置期望值
 		if (horizontal_pos_x_pid_data.short_circuit_flag == 1) {
             //基本没有速度
-            if (speed_y < 40) {
+            if (speed_x < 40 && speed_x > -40) {
                 horizontal_pos_x_pid_data.expect = pos_x;
                 //使能水平x方向pid计算
                 horizontal_pos_x_pid_data.short_circuit_flag = 0;

@@ -15,9 +15,9 @@ xTaskHandle beep_task_handle;
 //蜂鸣器占空比
 uint8_t beep_duty;
 //蜂鸣器周期
-uint8_t beep_cycle = 100;
+uint16_t beep_cycle;
 //蜂鸣器蜂鸣次数
-uint8_t beep_time = 10;
+uint8_t beep_time;
 
 /**********************************************************************************************************
 *函 数 名: beep_task

@@ -10,9 +10,9 @@
 #include "task.h"
 
 //任务堆栈大小
-#define OPTICAL_FLOW__TASK_STACK 128
+#define OPTICAL_FLOW_TASK_STACK 128
 //任务优先级
-#define OPTICAL_FLOW__TASK_PRIORITY 12
+#define OPTICAL_FLOW_TASK_PRIORITY 12
 //任务退出标志
 volatile uint8_t optical_flow_task_exit = 1;
 //声明任务句柄
@@ -49,8 +49,8 @@ portTASK_FUNCTION(optical_flow_task, pvParameters)
         pmw3901_read_motion(&dx, &dy, &qual);
         if (qual) {
             //用于补偿的角速度
-            float gyro_data_x = gyroDataFilter.x * GYRO_CALIBRATION_COFF * DEG2RAD;
-            float gyro_data_y = gyroDataFilter.y * GYRO_CALIBRATION_COFF * DEG2RAD;
+            float gyro_data_x = gyroDataFilterOptical.x * GYRO_CALIBRATION_COFF * DEG2RAD;
+            float gyro_data_y = gyroDataFilterOptical.y * GYRO_CALIBRATION_COFF * DEG2RAD;
             //补偿后的光流速度
             float opt_data_x = dx * OPTICAL_SCALS / 100 + gyro_data_y / 10;
             float opt_data_y = dy * OPTICAL_SCALS / 100 - gyro_data_x / 10;
@@ -79,5 +79,5 @@ portTASK_FUNCTION(optical_flow_task, pvParameters)
 void optical_flow_task_create(void)
 {
     optical_flow_task_exit = 0;
-    xTaskCreate(optical_flow_task, "optical_flow_task", OPTICAL_FLOW__TASK_STACK, NULL, OPTICAL_FLOW__TASK_PRIORITY, &optical_flow_task_handle);
+    xTaskCreate(optical_flow_task, "optical_flow_task", OPTICAL_FLOW_TASK_STACK, NULL, OPTICAL_FLOW_TASK_PRIORITY, &optical_flow_task_handle);
 }

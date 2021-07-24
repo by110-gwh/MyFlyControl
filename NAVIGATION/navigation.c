@@ -28,7 +28,7 @@ float speed_x, speed_y, speed_z;
 float acce_x, acce_y, acce_z;
 static float optical_flow_pos_x_integral;
 static float optical_flow_pos_y_integral;
-static float filter_weight_speed = 0.1;
+static float filter_weight_speed = 0.01;
 static float filter_weight_pos = 0.01;
 
 /**********************************************************************************************************
@@ -168,15 +168,19 @@ void high_kalman_filter()
     }
     pos_history[0] = pos_z;
 }
-
+#include <stdio.h>
+static float pos_history_x[40];
+static float pos_history_y[40];
+static float speed_history_x[40];
+static float speed_history_y[40];
 void pos_filter(void)
 {
     float dt = 0.005f;
     //Îó²î
-    float optical_flow_speed_err_x = optical_flow_speed_x - speed_x;
-    float optical_flow_speed_err_y = optical_flow_speed_y - speed_y;
-    float optical_flow_pos_err_x = optical_flow_pos_x - pos_x;
-    float optical_flow_pos_err_y = optical_flow_pos_y - pos_y;
+    float optical_flow_speed_err_x = optical_flow_speed_x - speed_history_x[39];
+    float optical_flow_speed_err_y = optical_flow_speed_y - speed_history_y[39];
+    float optical_flow_pos_err_x = optical_flow_pos_x - pos_history_x[39];
+    float optical_flow_pos_err_y = optical_flow_pos_y - pos_history_y[39];
     
     //»¥²¹ÂË²¨
     acce_x = -navigation_acce.x;
@@ -185,4 +189,19 @@ void pos_filter(void)
     speed_y += acce_y * dt + filter_weight_speed * optical_flow_speed_err_y;
     pos_x += speed_x * dt + 0.5f * acce_x * dt * dt + filter_weight_pos * optical_flow_pos_err_x;
     pos_y += speed_y * dt + 0.5f * acce_y * dt * dt + filter_weight_pos * optical_flow_pos_err_y;
+    
+    printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", navigation_acce.y / 10, speed_y, pos_y, optical_flow_pos_y, optical_flow_speed_y, optical_flow_speed_err_y, optical_flow_pos_err_y); 
+    
+    //±£´æÀúÊ·Öµ
+    uint8_t i;
+    for (i = 39; i > 0; i--) {
+        speed_history_x[i] = speed_history_x[i - 1];
+        speed_history_y[i] = speed_history_y[i - 1];
+        pos_history_x[i] = pos_history_x[i - 1];
+        pos_history_y[i] = pos_history_y[i - 1];
+    }
+    speed_history_x[0] = speed_x;
+    speed_history_y[0] = speed_y;
+    pos_history_x[0] = pos_x;
+    pos_history_y[0] = pos_y;
 }

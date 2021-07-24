@@ -46,6 +46,56 @@ void fly_high(uint8_t targer_high, float speed) {
 }
 
 /**********************************************************************************************************
+*函 数 名: fly_forward
+*功能说明: 向前飞控制
+*形    参: 目标位置 速度
+*返 回 值: 无
+**********************************************************************************************************/
+void fly_forward(uint8_t targer_distan, float speed) {
+    while (horizontal_pos_y_pid_data.expect != targer_distan) {
+        if (targer_distan > horizontal_pos_y_pid_data.expect) {
+            if (targer_distan - horizontal_pos_y_pid_data.expect > speed) {
+                horizontal_pos_y_pid_data.expect += speed;
+            } else {
+                horizontal_pos_y_pid_data.expect = targer_distan;
+            }
+        } else {
+            if (horizontal_pos_y_pid_data.expect - targer_distan > speed) {
+                horizontal_pos_y_pid_data.expect -= speed;
+            } else {
+                horizontal_pos_y_pid_data.expect = targer_distan;
+            }
+        }
+        vTaskDelay(10);
+    }
+}
+
+/**********************************************************************************************************
+*函 数 名: fly_right
+*功能说明: 向右飞控制
+*形    参: 目标位置 速度
+*返 回 值: 无
+**********************************************************************************************************/
+void fly_right(uint8_t targer_distan, float speed) {
+    while (horizontal_pos_x_pid_data.expect != targer_distan) {
+        if (targer_distan > horizontal_pos_x_pid_data.expect) {
+            if (targer_distan - horizontal_pos_x_pid_data.expect > speed) {
+                horizontal_pos_x_pid_data.expect += speed;
+            } else {
+                horizontal_pos_x_pid_data.expect = targer_distan;
+            }
+        } else {
+            if (horizontal_pos_x_pid_data.expect - targer_distan > speed) {
+                horizontal_pos_x_pid_data.expect -= speed;
+            } else {
+                horizontal_pos_x_pid_data.expect = targer_distan;
+            }
+        }
+        vTaskDelay(10);
+    }
+}
+
+/**********************************************************************************************************
 *函 数 名: route_plan_task
 *功能说明: 路径规划任务
 *形    参: 无
@@ -55,7 +105,11 @@ portTASK_FUNCTION(route_plan_task,  parameters)
 {
     //升高到100cm
     fly_high(100, 0.5);
-    vTaskDelay(3000);
+    vTaskDelay(1000);
+    fly_forward(100,0.5);
+    vTaskDelay(1000);
+    fly_right(100,0.5);
+    vTaskDelay(1000);
     //下降到0cm
     fly_high(0, 0.5);
     

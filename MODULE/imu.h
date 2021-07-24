@@ -40,6 +40,7 @@ typedef struct
 //传感器滤波后数据
 extern Vector3i_t accDataFilter;
 extern Vector3i_t gyroDataFilter;
+extern Vector3i_t gyroDataFilterOptical;
 extern Vector3i_t acceCorrectFilter;
 extern Vector3i_t MagDataFilter;
 extern float tempDataFilter;

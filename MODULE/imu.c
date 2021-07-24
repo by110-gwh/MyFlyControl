@@ -24,11 +24,13 @@ static Butter_Parameter Bandstop_Filter_Parameter_30_94={
 };
 //巴特沃斯滤波参数
 static Butter_Parameter Gyro_Parameter;
+static Butter_Parameter Gyro_Parameter_Optical;
 static Butter_Parameter Accel_Parameter;
 static Butter_Parameter Acce_Correct_Parameter;
 //巴特沃斯滤波内部数据
 static Butter_BufferData Gyro_BufferData[3];
 static Butter_BufferData Gyro_BufferData_BPF[3];
+static Butter_BufferData Gyro_BuffeData_Optical[3];
 static Butter_BufferData Accel_BufferData_BPF[3];
 static Butter_BufferData Accel_BufferData[3];
 static Butter_BufferData Butter_Buffer_Correct[3];
@@ -41,6 +43,7 @@ static float Filter_Data_Z[Filter_Data_SIZE];
 //传感器原始数据
 Vector3i_t accDataFilter;
 Vector3i_t gyroDataFilter;
+Vector3i_t gyroDataFilterOptical;
 Vector3i_t acceCorrectFilter;
 Vector3i_t MagDataFilter;
 float tempDataFilter;
@@ -75,6 +78,7 @@ void imu_init()
 {
 	//设置传感器滤波参数
 	Set_Cutoff_Frequency(Sampling_Freq, 50,&Gyro_Parameter);
+	Set_Cutoff_Frequency(Sampling_Freq, 3.8,&Gyro_Parameter_Optical);
 	Set_Cutoff_Frequency(Sampling_Freq, 60,&Accel_Parameter);
 	Set_Cutoff_Frequency(Sampling_Freq, 1,&Acce_Correct_Parameter);
 	//MPU6050初始化
@@ -141,6 +145,10 @@ void get_imu_data()
 	gyroDataFilter.y = gyroRawData.y;
 	gyroDataFilter.z = gyroRawData.z;
 	
+	gyroDataFilterOptical.x = Butterworth_Filter(gyroRawData.x, &Gyro_BuffeData_Optical[0], &Gyro_Parameter_Optical);
+	gyroDataFilterOptical.y = Butterworth_Filter(gyroRawData.y, &Gyro_BuffeData_Optical[1], &Gyro_Parameter_Optical);
+	gyroDataFilterOptical.z = Butterworth_Filter(gyroRawData.z, &Gyro_BuffeData_Optical[2], &Gyro_Parameter_Optical);
+    
 	//加速计矫正数据带阻滤波
 	acceCorrectFilter.x = Butterworth_Filter(accRawData.x, &Butter_Buffer_Correct[0], &Acce_Correct_Parameter);
 	acceCorrectFilter.y = Butterworth_Filter(accRawData.y, &Butter_Buffer_Correct[1], &Acce_Correct_Parameter);

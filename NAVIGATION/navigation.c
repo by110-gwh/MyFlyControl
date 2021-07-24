@@ -23,6 +23,9 @@ static Butter_BufferData Butter_Buffer_Navigation[3];
 //用于惯性导航的加速度滤波参数
 static Butter_Parameter Butter_15HZ_Parameter_Navigation;
 
+static Butter_Parameter optical_err_filter_prarameter;
+static Butter_BufferData optical_err_filter_data[4];
+
 float pos_x, pos_y, pos_z;
 float speed_x, speed_y, speed_z;
 float acce_x, acce_y, acce_z;
@@ -51,7 +54,8 @@ static float constrain_float(float amt, float low, float high)
 void navigation_init(void)
 {
     //初始化滤波器参数
-	Set_Cutoff_Frequency(Sampling_Freq, 15,&Butter_15HZ_Parameter_Navigation);
+	Set_Cutoff_Frequency(Sampling_Freq, 15, &Butter_15HZ_Parameter_Navigation);
+	Set_Cutoff_Frequency(Sampling_Freq, 3.8, &optical_err_filter_prarameter);
 }
 
 /**********************************************************************************************************
@@ -168,40 +172,21 @@ void high_kalman_filter()
     }
     pos_history[0] = pos_z;
 }
-#include <stdio.h>
-static float pos_history_x[40];
-static float pos_history_y[40];
-static float speed_history_x[40];
-static float speed_history_y[40];
+
 void pos_filter(void)
 {
     float dt = 0.005f;
     //误差
-    float optical_flow_speed_err_x = optical_flow_speed_x - speed_history_x[39];
-    float optical_flow_speed_err_y = optical_flow_speed_y - speed_history_y[39];
-    float optical_flow_pos_err_x = optical_flow_pos_x - pos_history_x[39];
-    float optical_flow_pos_err_y = optical_flow_pos_y - pos_history_y[39];
+    float optical_flow_speed_err_x = optical_flow_speed_x - Butterworth_Filter(speed_x, &optical_err_filter_data[0], &optical_err_filter_prarameter);
+    float optical_flow_speed_err_y = optical_flow_speed_y - Butterworth_Filter(speed_y, &optical_err_filter_data[1], &optical_err_filter_prarameter);
+    float optical_flow_pos_err_x = optical_flow_pos_x - Butterworth_Filter(pos_x, &optical_err_filter_data[2], &optical_err_filter_prarameter);
+    float optical_flow_pos_err_y = optical_flow_pos_y - Butterworth_Filter(pos_y, &optical_err_filter_data[3], &optical_err_filter_prarameter);
     
     //互补滤波
-    acce_x = -navigation_acce.x;
+    acce_x = navigation_acce.x;
     acce_y = navigation_acce.y;
     speed_x += acce_x * dt + filter_weight_speed * optical_flow_speed_err_x;
     speed_y += acce_y * dt + filter_weight_speed * optical_flow_speed_err_y;
     pos_x += speed_x * dt + 0.5f * acce_x * dt * dt + filter_weight_pos * optical_flow_pos_err_x;
     pos_y += speed_y * dt + 0.5f * acce_y * dt * dt + filter_weight_pos * optical_flow_pos_err_y;
-    
-    printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", navigation_acce.y / 10, speed_y, pos_y, optical_flow_pos_y, optical_flow_speed_y, optical_flow_speed_err_y, optical_flow_pos_err_y); 
-    
-    //保存历史值
-    uint8_t i;
-    for (i = 39; i > 0; i--) {
-        speed_history_x[i] = speed_history_x[i - 1];
-        speed_history_y[i] = speed_history_y[i - 1];
-        pos_history_x[i] = pos_history_x[i - 1];
-        pos_history_y[i] = pos_history_y[i - 1];
-    }
-    speed_history_x[0] = speed_x;
-    speed_history_y[0] = speed_y;
-    pos_history_x[0] = pos_x;
-    pos_history_y[0] = pos_y;
 }

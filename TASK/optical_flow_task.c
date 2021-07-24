@@ -52,14 +52,14 @@ portTASK_FUNCTION(optical_flow_task, pvParameters)
             float gyro_data_x = gyroDataFilterOptical.x * GYRO_CALIBRATION_COFF * DEG2RAD;
             float gyro_data_y = gyroDataFilterOptical.y * GYRO_CALIBRATION_COFF * DEG2RAD;
             //补偿后的光流速度
-            float opt_data_x = dx * OPTICAL_SCALS / 100 + gyro_data_y / 10;
-            float opt_data_y = dy * OPTICAL_SCALS / 100 - gyro_data_x / 10;
-            optical_flow_speed_x = opt_data_x * pos_z * 10;
-            optical_flow_speed_y = opt_data_y * pos_z * 10;
+            float opt_data_x = dx * OPTICAL_SCALS * 10 + gyro_data_y;
+            float opt_data_y = dy * OPTICAL_SCALS * 10 - gyro_data_x;
+            optical_flow_speed_x = opt_data_x * pos_z;
+            optical_flow_speed_y = opt_data_y * pos_z;
             
             //光流累计移动
-            optical_flow_pos_x_integral += dx * OPTICAL_SCALS * pos_z / 100;
-            optical_flow_pos_y_integral += dy * OPTICAL_SCALS * pos_z / 100;
+            optical_flow_pos_x_integral += dx * OPTICAL_SCALS * pos_z;
+            optical_flow_pos_y_integral += dy * OPTICAL_SCALS * pos_z;
             //光流位置补偿
             optical_flow_pos_x = optical_flow_pos_x_integral + pos_z * tanf(Roll * DEG2RAD);
             optical_flow_pos_y = optical_flow_pos_y_integral - pos_z * tanf(Pitch * DEG2RAD);

@@ -2,6 +2,13 @@
 #include "pwm.h"
 #include "remote_control.h"
 #include "fly_task.h"
+#include "ahrs_aux.h"
+#include "beep.h"
+
+#include <stdbool.h>
+#include <stdint.h>
+#include "driverlib/interrupt.h"
+#include "inc/hw_ints.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -25,6 +32,7 @@ xTaskHandle safe_task_handle;
 void safe_task_motor_stop(void)
 {
     __disable_fiq();
+    beep_control(1);
     while (1) {
         pwm_set(1000, 1000, 1000, 1000);
     }
@@ -38,6 +46,11 @@ void safe_task_motor_stop(void)
 **********************************************************************************************************/
 portTASK_FUNCTION(safe_task, pvParameters)
 {
+    IntRegister(FAULT_NMI, safe_task_motor_stop);
+    IntRegister(FAULT_HARD, safe_task_motor_stop);
+    IntRegister(FAULT_MPU, safe_task_motor_stop);
+    IntRegister(FAULT_BUS, safe_task_motor_stop);
+    IntRegister(FAULT_USAGE, safe_task_motor_stop);
     //等待任务初始化
     vTaskDelay((1000 / portTICK_RATE_MS));
     while (!safe_task_exit) {
@@ -46,6 +59,9 @@ portTASK_FUNCTION(safe_task, pvParameters)
             safe_task_motor_stop();
         //飞行任务卡死
         if (fly_task_exit == 0 && fly_task_updata == 0)
+            safe_task_motor_stop();
+        //飞行姿态异常
+        if (Pitch > 40 || Roll > 40)
             safe_task_motor_stop();
         
         fly_task_updata = 0;

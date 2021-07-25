@@ -5,7 +5,7 @@
 #include "Filter.h"
 #include "math.h"
 #include "string.h"
-
+#include "navigation.h"
 
 pid_paramer_t pitch_gyro_pid_para = {
     .err_max = 500,
@@ -13,7 +13,7 @@ pid_paramer_t pitch_gyro_pid_para = {
     .integrate_max = 100,
     .kp = 1.8,
     .ki = 0,
-    .kd = 9,
+    .kd = 2.5,
     .feedforward_kp = 0,
     .feedforward_kd = 0,
     .control_output_limit = 500
@@ -25,7 +25,7 @@ pid_paramer_t roll_gyro_pid_para = {
     .integrate_max = 100,
     .kp = 1.8,
     .ki = 0,
-    .kd = 9,
+    .kd = 2.5,
     .feedforward_kp = 0,
     .feedforward_kd = 0,
     .control_output_limit = 500
@@ -180,6 +180,14 @@ void gyro_pid_integrate_reset()
 **********************************************************************************************************/
 void gyro_control()
 {
+    //只有起飞之后，高度大于30cm，积分才介入
+    if (pos_z > 30) {
+        roll_gyro_pid_para.ki = 2.5;
+        pitch_gyro_pid_para.ki = 2.5;
+    } else {
+        roll_gyro_pid_para.ki = 0;
+        pitch_gyro_pid_para.ki = 0;
+    }
 	
     //巴特沃斯低通后得到的微分项,30hz
     //pitch_gyro_pid.feedback = Butterworth_Filter(gyroDataFilter.x * GYRO_CALIBRATION_COFF, &pitch_pri_dat2, &gyro_filter_parameter_30Hz);

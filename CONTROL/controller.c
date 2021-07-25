@@ -158,8 +158,11 @@ void controller_run()
         //第一次运行路径控制器
         if (controller_last_state != 4) {
             high_pos_pid_data.expect = 20;
+            yaw_angle_pid_data.short_circuit_flag = 0;
             yaw_angle_pid_data.expect = Yaw;
+            horizontal_pos_y_pid_data.short_circuit_flag = 0;
             horizontal_pos_y_pid_data.expect = pos_y;
+            horizontal_pos_x_pid_data.short_circuit_flag = 0;
             horizontal_pos_x_pid_data.expect = pos_x;
             save_throttle_control = Throttle_Control;
             route_plan_finish = 0;

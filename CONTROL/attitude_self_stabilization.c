@@ -17,7 +17,7 @@ void attitude_self_stabilization_control()
 	roll_angle_pid_data.expect = Roll_Control;
     
     //Î´Æğ·ÉÊ±£¬×ËÌ¬¿ØÖÆÆ÷¹éÁã
-	if (Throttle_Control == 1000) {
+	if (Throttle_Control == 0) {
 		angle_pid_integrate_reset();
 		gyro_pid_integrate_reset();
 		yaw_angle_pid_data.expect = Yaw;

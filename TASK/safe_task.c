@@ -61,7 +61,7 @@ portTASK_FUNCTION(safe_task, pvParameters)
         if (fly_task_exit == 0 && fly_task_updata == 0)
             safe_task_motor_stop();
         //·ÉÐÐ×ËÌ¬Òì³£
-        if (Pitch > 40 || Roll > 40)
+        if (Pitch > 40 || Pitch < -40 || Roll > 40 || Roll < -40)
             safe_task_motor_stop();
         
         fly_task_updata = 0;

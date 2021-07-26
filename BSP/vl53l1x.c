@@ -1,12 +1,14 @@
 #include "vl53l1x.h"
 #include "VL53L1X_api.h"
 #include "paramer_save.h"
+#include "ahrs_aux.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
 
 //高度原始数据
-uint16_t high_raw_data;
+float high_raw_data;
+float high_speed_raw_data;
 
 /**********************************************************************************************************
 *函 数 名: vl53l1x_init
@@ -49,6 +51,7 @@ void vl53l1x_calibration()
 **********************************************************************************************************/
 void vl53l1x_task()
 {
+    static float last_high_raw_data;
     static uint8_t state;
     uint8_t status;
     uint8_t data_ready;
@@ -62,7 +65,9 @@ void vl53l1x_task()
             status = VL53L1X_GetDistance(0, &distance);
             status = VL53L1X_ClearInterrupt(0);
             if (range_status == 0) {
-                high_raw_data = distance;
+                last_high_raw_data = high_raw_data;
+                high_raw_data = distance * Cos_Roll * Cos_Pitch / 10;
+                high_speed_raw_data = (high_raw_data - last_high_raw_data) * 10;
             }
         }
         state = 0;

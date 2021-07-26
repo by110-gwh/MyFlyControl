@@ -50,7 +50,7 @@ portTASK_FUNCTION(display_task,  parameters)
 			oled_clear_line(0, 3);
 			oled_6x8_str(0, 3, "Pos_z:");
 			oled_6x8_number(40, 3, 7, pos_z);
-			oled_6x8_number(90, 3, 5, high_raw_data * Cos_Roll * Cos_Pitch / 10);
+			oled_6x8_number(90, 3, 5, high_raw_data);
 			oled_clear_line(0, 4);
 			oled_6x8_str(0, 4, "Pos_y:");
 			oled_6x8_number(40, 4, 7, pos_y);

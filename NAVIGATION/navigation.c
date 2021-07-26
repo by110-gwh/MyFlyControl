@@ -23,27 +23,16 @@ static Butter_BufferData Butter_Buffer_Navigation[3];
 //用于惯性导航的加速度滤波参数
 static Butter_Parameter Butter_15HZ_Parameter_Navigation;
 
+static Butter_Parameter tof_err_filter_prarameter;
 static Butter_Parameter optical_err_filter_prarameter;
+static Butter_BufferData tof_err_filter_data[2];
 static Butter_BufferData optical_err_filter_data[4];
 
 float pos_x, pos_y, pos_z;
 float speed_x, speed_y, speed_z;
 float acce_x, acce_y, acce_z;
-static float optical_flow_pos_x_integral;
-static float optical_flow_pos_y_integral;
 static float filter_weight_speed = 0.01;
 static float filter_weight_pos = 0.01;
-
-/**********************************************************************************************************
-*函 数 名: constrain_float
-*功能说明: 限制最大最小值
-*形    参: 要限制的值 最小值 最大值
-*返 回 值: 输出值
-**********************************************************************************************************/
-static float constrain_float(float amt, float low, float high)
-{
-	return ((amt) < (low) ? (low) : ((amt) > (high)? (high) : (amt)));
-}
 
 /**********************************************************************************************************
 *函 数 名: navigation_init
@@ -56,6 +45,7 @@ void navigation_init(void)
     //初始化滤波器参数
 	Set_Cutoff_Frequency(Sampling_Freq, 15, &Butter_15HZ_Parameter_Navigation);
 	Set_Cutoff_Frequency(Sampling_Freq, 3.8, &optical_err_filter_prarameter);
+	Set_Cutoff_Frequency(Sampling_Freq, 1.4, &tof_err_filter_prarameter);
 }
 
 /**********************************************************************************************************
@@ -100,79 +90,35 @@ void navigation_prepare(void)
 }
 
 /**********************************************************************************************************
-*函 数 名: high_kalman_filter
-*功能说明: 高度卡尔曼滤波
-*形    参: 高度观测量 观测传感器延时量 惯导加速度 
+*函 数 名: high_filter
+*功能说明: 高度位置互补滤波
+*形    参: 无
 *返 回 值: 无
 **********************************************************************************************************/
-void high_kalman_filter()
+void high_filter()
 {
-    static uint8_t cnt;
-    //加速度误差
-    static float acce_bias;
-    //用于计算时间差的结构体
-    static Testime Time_Delta;
-    //时间差
-    float dt;
-    static float pos_history[20];
-    //后验协方差
-    static float pos_conv[2][2] = {
-        {0.18, 0.1},
-        {0.1, 0.18}
-    };
-    //先验协方差
-    float prior_conv[2][2];
-    //系统过程协方差
-    float Q[2] = {5.0e-3f, 6.0e-3f};
-    float R = 100;
-    //卡尔曼增益矩阵
-    float K[2];
-    float temp;
-
-    //更新计算时间差
-    Get_Time_Period(&Time_Delta);
-    dt = Time_Delta.Time_Delta / 1000000.0;
-
-    //先验状态
-    acce_z = navigation_acce.z;
-    acce_z += acce_bias;
-    pos_z += speed_z * dt + (acce_z * dt * dt) / 2.0f;
-    speed_z += acce_z * dt;
-	
-    //当观测值更新时才进行融合
-    if(high_raw_data) {
-		//先验协方差
-		temp = pos_conv[0][1] + pos_conv[1][1] * dt;
-		prior_conv[0][0] = pos_conv[0][0] + pos_conv[1][0] * dt + temp * dt + Q[0];
-		prior_conv[0][1] = temp;
-		prior_conv[1][0] = pos_conv[1][0] + pos_conv[1][1] * dt;;
-		prior_conv[1][1] = pos_conv[1][1] + Q[1];
-        
-		//计算卡尔曼增益
-		K[0] = prior_conv[0][0] / (prior_conv[0][0] + R);
-		K[1] = prior_conv[1][0] / (prior_conv[0][0] + R);
-        
-		//融合数据输出
-		temp = high_raw_data * Cos_Roll * Cos_Pitch / 10 - pos_history[20 - 1];
-		pos_z += K[0] * temp;
-		speed_z += K[1] * temp;
-		acce_bias += 0.0015f * temp;
-		acce_bias = constrain_float(acce_bias, -200, 200);
-        
-		//更新状态协方差矩阵
-		pos_conv[0][0] = (1 - K[0]) * prior_conv[0][0];
-		pos_conv[0][1] = (1 - K[0]) * prior_conv[0][1];
-		pos_conv[1][0] = prior_conv[1][0] - K[1] * prior_conv[0][0];
-		pos_conv[1][1] = prior_conv[1][1] - K[1] * prior_conv[0][1];
-	}
+    static float acc_correction;
+    static float last_acce_z;
+    float dt = 0.005f;
     
-    //5ms滑动一次
-    for(cnt = 20 - 1; cnt > 0; cnt--) {
-       pos_history[cnt] = pos_history[cnt - 1];
-    }
-    pos_history[0] = pos_z;
+    //误差
+    float tof_speed_err_z = high_speed_raw_data - Butterworth_Filter(speed_z, &tof_err_filter_data[0], &tof_err_filter_prarameter);
+    float tof_pos_err_z = high_raw_data - Butterworth_Filter(pos_z, &tof_err_filter_data[1], &tof_err_filter_prarameter);
+    
+    acc_correction += tof_speed_err_z * 0.01f;
+    
+    last_acce_z = acce_z;
+    acce_z = navigation_acce.z + acc_correction;
+    speed_z += (last_acce_z + acce_z) / 2.0f * dt + 0.01f * tof_speed_err_z;
+    pos_z += speed_z * dt + 0.5f * (last_acce_z + acce_z) / 2.0f * dt * dt + 0.01f * tof_pos_err_z;
 }
 
+/**********************************************************************************************************
+*函 数 名: pos_filter
+*功能说明: 水平位置互补滤波
+*形    参: 无
+*返 回 值: 无
+**********************************************************************************************************/
 void pos_filter(void)
 {
     float dt = 0.005f;

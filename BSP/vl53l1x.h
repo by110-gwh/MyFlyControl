@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-extern uint16_t high_raw_data;
+extern float high_raw_data;
+extern float high_speed_raw_data;
 
 void vl53l1x_init(void);
 void vl53l1x_task(void);

@@ -12,7 +12,7 @@ extern float acce_x, acce_y, acce_z;
 
 void navigation_init(void);
 void navigation_prepare(void);
-void high_kalman_filter(void);
+void high_filter(void);
 void pos_filter(void);
 
 #endif

@@ -105,13 +105,14 @@ portTASK_FUNCTION(route_plan_task,  parameters)
 {
     //升高到100cm
     fly_high(100, 0.5);
-    vTaskDelay(1000);
-    fly_forward(100,0.5);
-    vTaskDelay(1000);
-    fly_right(100,0.5);
-    vTaskDelay(1000);
+    vTaskDelay(2000);
+    fly_forward(100,0.3);
+    vTaskDelay(2000);
+    fly_right(100,0.3);
+    vTaskDelay(2000);
     //下降到0cm
     fly_high(0, 0.5);
+    vTaskDelay(200);
     
     save_throttle_control = Throttle_Control;
     save_high_expect = high_pos_pid_data.expect;

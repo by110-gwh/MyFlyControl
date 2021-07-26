@@ -59,7 +59,7 @@ portTASK_FUNCTION(fly_task, pvParameters)
         //导航加速度计算
         navigation_prepare();
         //高度位置估计
-        high_kalman_filter();
+        high_filter();
         pos_filter();
         //控制器
         controller_run();

@@ -6,7 +6,7 @@ pid_paramer_t high_pos_pid_para = {
     .err_max = 0,
     .integrate_separation_err = 0,
     .integrate_max = 0,
-    .kp = 4,
+    .kp = 2.6,
     .ki = 0,
     .kd = 0,
     .feedforward_kp = 0,
@@ -18,12 +18,12 @@ pid_paramer_t high_speed_pid_para = {
     .err_max = 0,
     .integrate_separation_err = 0,
     .integrate_max = 0,
-    .kp = 4,
+    .kp = 1.6,
     .ki = 0.2,
-    .kd = 0,
+    .kd = 0.5,
     .feedforward_kp = 0,
     .feedforward_kd = 0,
-    .control_output_limit = 800
+    .control_output_limit = 200
 };
 
 pid_data_t high_pos_pid_data;

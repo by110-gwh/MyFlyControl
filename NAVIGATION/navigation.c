@@ -31,7 +31,7 @@ static Butter_BufferData optical_err_filter_data[4];
 float pos_x, pos_y, pos_z;
 float speed_x, speed_y, speed_z;
 float acce_x, acce_y, acce_z;
-static float filter_weight_speed = 0.01;
+static float filter_weight_speed = 0.03;
 static float filter_weight_pos = 0.01;
 
 /**********************************************************************************************************
@@ -44,7 +44,7 @@ void navigation_init(void)
 {
     //初始化滤波器参数
 	Set_Cutoff_Frequency(Sampling_Freq, 15, &Butter_15HZ_Parameter_Navigation);
-	Set_Cutoff_Frequency(Sampling_Freq, 3.8, &optical_err_filter_prarameter);
+	Set_Cutoff_Frequency(Sampling_Freq, 2.5, &optical_err_filter_prarameter);
 	Set_Cutoff_Frequency(Sampling_Freq, 1.4, &tof_err_filter_prarameter);
 }
 
@@ -109,8 +109,8 @@ void high_filter()
     
     last_acce_z = acce_z;
     acce_z = navigation_acce.z + acc_correction;
-    speed_z += (last_acce_z + acce_z) / 2.0f * dt + 0.01f * tof_speed_err_z;
-    pos_z += speed_z * dt + 0.5f * (last_acce_z + acce_z) / 2.0f * dt * dt + 0.01f * tof_pos_err_z;
+    speed_z += (last_acce_z + acce_z) / 2.0f * dt + 0.03f * tof_speed_err_z;
+    pos_z += speed_z * dt + 0.5f * (last_acce_z + acce_z) / 2.0f * dt * dt + 0.01f * tof_pos_err_z;   
 }
 
 /**********************************************************************************************************

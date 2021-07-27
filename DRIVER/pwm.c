@@ -9,8 +9,8 @@
 #include "driverlib/gpio.h"
 #include "driverlib/pwm.h"
 
-//最大PWM值 500Hz
-#define MAX_PWM 2500
+//最大PWM值 400Hz
+#define MAX_PWM 25000
 
 /**********************************************************************************************************
 *函 数 名: pwm_init
@@ -20,7 +20,7 @@
 **********************************************************************************************************/
 void pwm_init()
 {
-    ROM_SysCtlPWMClockSet(SYSCTL_PWMDIV_64);
+    ROM_SysCtlPWMClockSet(SYSCTL_PWMDIV_8);
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM0);
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
     
@@ -37,14 +37,14 @@ void pwm_init()
     ROM_PWMGenConfigure(PWM0_BASE, PWM_GEN_0, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC);
     ROM_PWMGenConfigure(PWM0_BASE, PWM_GEN_1, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC);
     
-    ROM_PWMGenPeriodSet(PWM0_BASE, PWM_GEN_0, MAX_PWM - 1); // Set the period
+    ROM_PWMGenPeriodSet(PWM0_BASE, PWM_GEN_0, MAX_PWM - 1);
     ROM_PWMGenPeriodSet(PWM0_BASE, PWM_GEN_1, MAX_PWM - 1);
     
     ROM_PWMGenEnable(PWM0_BASE, PWM_GEN_0);
     ROM_PWMGenEnable(PWM0_BASE, PWM_GEN_1);
 
     ROM_PWMOutputState(PWM0_BASE, PWM_OUT_0_BIT | PWM_OUT_1_BIT | PWM_OUT_2_BIT | PWM_OUT_3_BIT, true);
-    pwm_set(1000,1000,1000,1000);
+    pwm_set(1000, 1000, 1000, 1000);
 }
 
 /**********************************************************************************************************
@@ -55,8 +55,8 @@ void pwm_init()
 **********************************************************************************************************/
 void pwm_set(uint16_t pwm1, uint16_t pwm2, uint16_t pwm3, uint16_t pwm4)
 {
-    PWMPulseWidthSet(PWM0_BASE,PWM_OUT_0,pwm1);
-    PWMPulseWidthSet(PWM0_BASE,PWM_OUT_1,pwm2);
-    PWMPulseWidthSet(PWM0_BASE,PWM_OUT_2,pwm3);
-    PWMPulseWidthSet(PWM0_BASE,PWM_OUT_3,pwm4);
+    PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, pwm1 * 10);
+    PWMPulseWidthSet(PWM0_BASE, PWM_OUT_1, pwm2 * 10);
+    PWMPulseWidthSet(PWM0_BASE, PWM_OUT_2, pwm3 * 10);
+    PWMPulseWidthSet(PWM0_BASE, PWM_OUT_3, pwm4 * 10);
 }

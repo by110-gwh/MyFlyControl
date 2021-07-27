@@ -54,8 +54,8 @@ static uint16_t throttle_angle_compensate(uint16_t throttle)
 	uint16_t throttle_output;
 	float CosPitch_CosRoll = Cos_Pitch * Cos_Roll;
 	//补偿限制
-	if(CosPitch_CosRoll<=0.50f)
-		CosPitch_CosRoll=0.50f;
+	if(CosPitch_CosRoll <= 0.50f)
+		CosPitch_CosRoll = 0.50f;
 	//大于起转油门量
 	if(throttle >= 1000) {
 		//油门倾角补偿
@@ -138,7 +138,7 @@ void controller_run()
         //角速度控制器
         gyro_control();
         //油门补偿
-        throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1700);
+        throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1720);
     //定点模式
     } else if (controller_state == 3) {
         //定高控制器
@@ -152,7 +152,7 @@ void controller_run()
         //角速度控制器
         gyro_control();
         //油门补偿
-        throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1700);
+        throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1720);
     //路径规划模式
     } else if (controller_state == 4) {
         //第一次运行路径控制器
@@ -188,7 +188,7 @@ void controller_run()
             //角速度控制器
             gyro_control();
             //油门补偿
-            throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1700);
+            throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1720);
         }
     }
 }

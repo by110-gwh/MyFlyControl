@@ -138,7 +138,7 @@ void controller_run()
         //角速度控制器
         gyro_control();
         //油门补偿
-        throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1720);
+        throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1700);
     //定点模式
     } else if (controller_state == 3) {
         //定高控制器
@@ -152,7 +152,7 @@ void controller_run()
         //角速度控制器
         gyro_control();
         //油门补偿
-        throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1720);
+        throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1700);
     //路径规划模式
     } else if (controller_state == 4) {
         //第一次运行路径控制器
@@ -188,7 +188,7 @@ void controller_run()
             //角速度控制器
             gyro_control();
             //油门补偿
-            throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1720);
+            throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1700);
         }
     }
 }

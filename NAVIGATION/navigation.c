@@ -31,7 +31,7 @@ static Butter_BufferData optical_err_filter_data[4];
 float pos_x, pos_y, pos_z;
 float speed_x, speed_y, speed_z;
 float acce_x, acce_y, acce_z;
-static float filter_weight_speed = 0.03;
+static float filter_weight_speed = 0.02;
 static float filter_weight_pos = 0.01;
 
 /**********************************************************************************************************
@@ -95,6 +95,7 @@ void navigation_prepare(void)
 *形    参: 无
 *返 回 值: 无
 **********************************************************************************************************/
+float tof_speed_err_z;
 void high_filter()
 {
     static float acc_correction;
@@ -102,14 +103,14 @@ void high_filter()
     float dt = 0.005f;
     
     //误差
-    float tof_speed_err_z = high_speed_raw_data - Butterworth_Filter(speed_z, &tof_err_filter_data[0], &tof_err_filter_prarameter);
+    tof_speed_err_z = high_speed_raw_data - Butterworth_Filter(speed_z, &tof_err_filter_data[0], &tof_err_filter_prarameter);
     float tof_pos_err_z = high_raw_data - Butterworth_Filter(pos_z, &tof_err_filter_data[1], &tof_err_filter_prarameter);
     
     acc_correction += tof_speed_err_z * 0.01f;
     
     last_acce_z = acce_z;
     acce_z = navigation_acce.z + acc_correction;
-    speed_z += (last_acce_z + acce_z) / 2.0f * dt + 0.03f * tof_speed_err_z;
+    speed_z += (last_acce_z + acce_z) / 2.0f * dt + 0.02f * tof_speed_err_z;
     pos_z += speed_z * dt + 0.5f * (last_acce_z + acce_z) / 2.0f * dt * dt + 0.01f * tof_pos_err_z;   
 }
 

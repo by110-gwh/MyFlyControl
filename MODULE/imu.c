@@ -12,16 +12,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-//巴特沃斯滤波参数 200hz---30hz-98hz 采样-阻带
-static Butter_Parameter Bandstop_Filter_Parameter_30_98={
-	1,					0.6270403082828,	-0.2905268567319,
-	0.354736571634,		0.6270403082828,	0.354736571634
-};
-//巴特沃斯滤波参数 200hz---30hz-94hz  采样-阻带
-static Butter_Parameter Bandstop_Filter_Parameter_30_94={
-	1,   				0.5334540355829,	-0.2235264828971,
-	0.3882367585514,	0.5334540355829,	0.3882367585514
-};
 //巴特沃斯滤波参数
 static Butter_Parameter Gyro_Parameter;
 static Butter_Parameter Gyro_Parameter_Optical;
@@ -29,9 +19,7 @@ static Butter_Parameter Accel_Parameter;
 static Butter_Parameter Acce_Correct_Parameter;
 //巴特沃斯滤波内部数据
 static Butter_BufferData Gyro_BufferData[3];
-static Butter_BufferData Gyro_BufferData_BPF[3];
 static Butter_BufferData Gyro_BuffeData_Optical[3];
-static Butter_BufferData Accel_BufferData_BPF[3];
 static Butter_BufferData Accel_BufferData[3];
 static Butter_BufferData Butter_Buffer_Correct[3];
 //窗口滤波保存序列大小
@@ -79,7 +67,7 @@ void imu_init()
 	//设置传感器滤波参数
 	Set_Cutoff_Frequency(Sampling_Freq, 50,&Gyro_Parameter);
 	Set_Cutoff_Frequency(Sampling_Freq, 3.8,&Gyro_Parameter_Optical);
-	Set_Cutoff_Frequency(Sampling_Freq, 60,&Accel_Parameter);
+	Set_Cutoff_Frequency(Sampling_Freq, 30,&Accel_Parameter);
 	Set_Cutoff_Frequency(Sampling_Freq, 1,&Acce_Correct_Parameter);
 	//MPU6050初始化
 	MPU6050_Detect();
@@ -132,40 +120,25 @@ void get_imu_data()
 	gyroRawData.y = gyroRawData.y - paramer_save_data.gyro_y_offset;
 	gyroRawData.z = gyroRawData.z - paramer_save_data.gyro_z_offset;
 	
-	//陀螺仪数据带阻滤波
-	gyroDataFilter.x = Butterworth_Filter(gyroRawData.x, &Gyro_BufferData_BPF[0], &Bandstop_Filter_Parameter_30_98);
-	gyroDataFilter.y = Butterworth_Filter(gyroRawData.y, &Gyro_BufferData_BPF[1], &Bandstop_Filter_Parameter_30_98);
-	gyroDataFilter.z = Butterworth_Filter(gyroRawData.z, &Gyro_BufferData_BPF[2], &Bandstop_Filter_Parameter_30_98);
+    //陀螺仪数据滤波
+	gyroDataFilter.x = Butterworth_Filter(gyroRawData.x, &Gyro_BufferData[0], &Gyro_Parameter);
+	gyroDataFilter.y = Butterworth_Filter(gyroRawData.y, &Gyro_BufferData[1], &Gyro_Parameter);
+	gyroDataFilter.z = Butterworth_Filter(gyroRawData.z, &Gyro_BufferData[2], &Gyro_Parameter);
 	
-	gyroRawData.x = Butterworth_Filter(gyroRawData.x, &Gyro_BufferData[0], &Gyro_Parameter);
-	gyroRawData.y = Butterworth_Filter(gyroRawData.y, &Gyro_BufferData[1], &Gyro_Parameter);
-	gyroRawData.z = Butterworth_Filter(gyroRawData.z, &Gyro_BufferData[2], &Gyro_Parameter);
-	
-	gyroDataFilter.x = gyroRawData.x;
-	gyroDataFilter.y = gyroRawData.y;
-	gyroDataFilter.z = gyroRawData.z;
-	
+    //光流补偿陀螺仪数据滤波
 	gyroDataFilterOptical.x = Butterworth_Filter(gyroRawData.x, &Gyro_BuffeData_Optical[0], &Gyro_Parameter_Optical);
 	gyroDataFilterOptical.y = Butterworth_Filter(gyroRawData.y, &Gyro_BuffeData_Optical[1], &Gyro_Parameter_Optical);
 	gyroDataFilterOptical.z = Butterworth_Filter(gyroRawData.z, &Gyro_BuffeData_Optical[2], &Gyro_Parameter_Optical);
     
-	//加速计矫正数据带阻滤波
+	//加速计矫正数据滤波
 	acceCorrectFilter.x = Butterworth_Filter(accRawData.x, &Butter_Buffer_Correct[0], &Acce_Correct_Parameter);
 	acceCorrectFilter.y = Butterworth_Filter(accRawData.y, &Butter_Buffer_Correct[1], &Acce_Correct_Parameter);
 	acceCorrectFilter.z = Butterworth_Filter(accRawData.z, &Butter_Buffer_Correct[2], &Acce_Correct_Parameter);
-	
-	//加速计数据带阻滤波
-	accRawData.x = Butterworth_Filter(accRawData.x, &Accel_BufferData_BPF[0], &Bandstop_Filter_Parameter_30_94);
-	accRawData.y = Butterworth_Filter(accRawData.y, &Accel_BufferData_BPF[1], &Bandstop_Filter_Parameter_30_94);
-	accRawData.z = Butterworth_Filter(accRawData.z, &Accel_BufferData_BPF[2], &Bandstop_Filter_Parameter_30_94);
-	
-	accRawData.x = Butterworth_Filter(accRawData.x, &Accel_BufferData[0], &Accel_Parameter);
-	accRawData.y = Butterworth_Filter(accRawData.y, &Accel_BufferData[1], &Accel_Parameter);
-	accRawData.z = Butterworth_Filter(accRawData.z, &Accel_BufferData[2], &Accel_Parameter);
-	
-	accDataFilter.x = accRawData.x;
-	accDataFilter.y = accRawData.y;
-	accDataFilter.z = accRawData.z;
+    
+    //加速度数据滤波
+	accDataFilter.x = Butterworth_Filter(accRawData.x, &Accel_BufferData[0], &Accel_Parameter);
+	accDataFilter.y = Butterworth_Filter(accRawData.y, &Accel_BufferData[1], &Accel_Parameter);
+	accDataFilter.z = Butterworth_Filter(accRawData.z, &Accel_BufferData[2], &Accel_Parameter);
 	
 	//温度数据不滤波
 	tempDataFilter = tempRawData;

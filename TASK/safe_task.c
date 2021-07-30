@@ -16,7 +16,7 @@
 //任务堆栈大小
 #define SAFE_TASK_STACK 128
 //任务优先级
-#define SAFE_TASK_PRIORITY 10
+#define SAFE_TASK_PRIORITY 15
 
 //任务退出标志
 volatile uint8_t safe_task_exit = 1;

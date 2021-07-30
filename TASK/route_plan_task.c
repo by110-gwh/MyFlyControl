@@ -5,6 +5,8 @@
 #include "route_plan_attitude_stabilization.h"
 #include "ahrs_aux.h"
 #include "remote_control.h"
+#include <math.h>
+#include "openmv.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -26,23 +28,22 @@ volatile uint8_t route_plan_task_exit;
 *形    参: 目标高度 速度
 *返 回 值: 无
 **********************************************************************************************************/
-void fly_high(uint8_t targer_high, float speed) {
-    while (high_pos_pid_data.expect != targer_high) {
-        if (targer_high > high_pos_pid_data.expect) {
-            if (targer_high - high_pos_pid_data.expect > speed) {
-                high_pos_pid_data.expect += speed;
-            } else {
-                high_pos_pid_data.expect = targer_high;
-            }
-        } else {
-            if (high_pos_pid_data.expect - targer_high > speed) {
-                high_pos_pid_data.expect -= speed;
-            } else {
-                high_pos_pid_data.expect = targer_high;
-            }
-        }
-        vTaskDelay(10);
+static void fly_high(int targer_high, float speed) {
+    int cnt;
+    float last_dstan;
+    
+    if ((targer_high > 0 && speed < 0) || (targer_high < 0 && speed > 0)) {
+        speed = -speed;
     }
+    
+    cnt = targer_high / speed * 20;
+    last_dstan = targer_high - (cnt * speed / 20);
+    
+    while (cnt--) {
+        high_pos_pid_data.expect += speed / 20;
+        vTaskDelay(50);
+    }
+    high_pos_pid_data.expect += last_dstan;
 }
 
 /**********************************************************************************************************
@@ -51,23 +52,22 @@ void fly_high(uint8_t targer_high, float speed) {
 *形    参: 目标位置 速度
 *返 回 值: 无
 **********************************************************************************************************/
-void fly_forward(uint8_t targer_distan, float speed) {
-    while (horizontal_pos_y_pid_data.expect != targer_distan) {
-        if (targer_distan > horizontal_pos_y_pid_data.expect) {
-            if (targer_distan - horizontal_pos_y_pid_data.expect > speed) {
-                horizontal_pos_y_pid_data.expect += speed;
-            } else {
-                horizontal_pos_y_pid_data.expect = targer_distan;
-            }
-        } else {
-            if (horizontal_pos_y_pid_data.expect - targer_distan > speed) {
-                horizontal_pos_y_pid_data.expect -= speed;
-            } else {
-                horizontal_pos_y_pid_data.expect = targer_distan;
-            }
-        }
-        vTaskDelay(10);
+static void fly_forward(int targer_distan, float speed) {
+    int cnt;
+    float last_dstan;
+    
+    if ((targer_distan > 0 && speed < 0) || (targer_distan < 0 && speed > 0)) {
+        speed = -speed;
     }
+    
+    cnt = targer_distan / speed * 20;
+    last_dstan = targer_distan - (cnt * speed / 20);
+    
+    while (cnt--) {
+        horizontal_pos_y_pid_data.expect += speed / 20;
+        vTaskDelay(50);
+    }
+    horizontal_pos_y_pid_data.expect += last_dstan;
 }
 
 /**********************************************************************************************************
@@ -76,22 +76,183 @@ void fly_forward(uint8_t targer_distan, float speed) {
 *形    参: 目标位置 速度
 *返 回 值: 无
 **********************************************************************************************************/
-void fly_right(uint8_t targer_distan, float speed) {
-    while (horizontal_pos_x_pid_data.expect != targer_distan) {
-        if (targer_distan > horizontal_pos_x_pid_data.expect) {
-            if (targer_distan - horizontal_pos_x_pid_data.expect > speed) {
-                horizontal_pos_x_pid_data.expect += speed;
-            } else {
-                horizontal_pos_x_pid_data.expect = targer_distan;
-            }
-        } else {
-            if (horizontal_pos_x_pid_data.expect - targer_distan > speed) {
-                horizontal_pos_x_pid_data.expect -= speed;
-            } else {
-                horizontal_pos_x_pid_data.expect = targer_distan;
-            }
+static void fly_right(int targer_distan, float speed) {
+    int cnt;
+    float last_dstan;
+    
+    if ((targer_distan > 0 && speed < 0) || (targer_distan < 0 && speed > 0)) {
+        speed = -speed;
+    }
+    
+    cnt = targer_distan / speed * 20;
+    last_dstan = targer_distan - (cnt * speed / 20);
+    
+    while (cnt--) {
+        horizontal_pos_x_pid_data.expect += speed / 20;
+        vTaskDelay(50);
+    }
+    horizontal_pos_x_pid_data.expect += last_dstan;
+}
+
+/**********************************************************************************************************
+*函 数 名: fly_forward_high
+*功能说明: 原地向前45度起飞
+*形    参: 目标位置 速度
+*返 回 值: 无
+**********************************************************************************************************/
+static void fly_forward_high(int targer_distan, float speed) {
+    int cnt;
+    float last_dstan;
+    
+    if ((targer_distan > 0 && speed < 0) || (targer_distan < 0 && speed > 0)) {
+        speed = -speed;
+    }
+    
+    cnt = targer_distan / speed * 20;
+    last_dstan = targer_distan - (cnt * speed / 20);
+    
+    while (cnt--) {
+        high_pos_pid_data.expect += speed / 20;
+        horizontal_pos_y_pid_data.expect += speed / 20;
+        vTaskDelay(50);
+    }
+    high_pos_pid_data.expect += last_dstan;
+    horizontal_pos_y_pid_data.expect += last_dstan;
+}
+
+/**********************************************************************************************************
+*函 数 名: fly_circle
+*功能说明: 不动方向绕圈
+*形    参: 起始角度 终止角度 半径 速度度每秒
+*返 回 值: 无
+**********************************************************************************************************/
+static void fly_circle(int start_angle, int end_angle, int r, float speed) {
+    int cnt;
+    float last_angle;
+    float this_angle;
+    
+    last_angle = start_angle;
+    cnt = (end_angle - start_angle) / speed * 20;
+    if (cnt < 0) {
+        cnt = -cnt;
+    }
+    
+    while (cnt--) {
+        this_angle = last_angle + speed / 20;
+        float a = cos(this_angle / 57.3f);
+        float b = cos(last_angle / 57.3f);
+        horizontal_pos_x_pid_data.expect += r * (a - b);
+        horizontal_pos_y_pid_data.expect += r * (sin(this_angle / 57.3f) - sin(last_angle / 57.3f));
+        last_angle = this_angle;
+        vTaskDelay(50);
+    }
+}
+
+/**********************************************************************************************************
+*函 数 名: fly_turn
+*功能说明: 原地转弯
+*形    参: 目标角度 速度
+*返 回 值: 无
+**********************************************************************************************************/
+static void fly_turn(int targer_angle, float speed) {
+    int cnt;
+    float last_dstan;
+    
+    if ((targer_angle > 0 && speed < 0) || (targer_angle < 0 && speed > 0)) {
+        speed = -speed;
+    }
+    
+    cnt = targer_angle / speed * 20;
+    last_dstan = targer_angle - (cnt * speed / 20);
+    
+    while (cnt--) {
+        yaw_angle_pid_data.expect += speed / 20;
+        if (yaw_angle_pid_data.expect > 180)
+            yaw_angle_pid_data.expect -= 360;
+        if (yaw_angle_pid_data.expect < -180)
+            yaw_angle_pid_data.expect += 360;
+        vTaskDelay(50);
+    }
+    yaw_angle_pid_data.expect += last_dstan;
+    if (yaw_angle_pid_data.expect > 180)
+        yaw_angle_pid_data.expect -= 360;
+    if (yaw_angle_pid_data.expect < -180)
+        yaw_angle_pid_data.expect += 360;
+}
+
+/**********************************************************************************************************
+*函 数 名: find_pole
+*功能说明: 左右飞行寻找杆
+*形    参: 目标位置 速度
+*返 回 值: 无
+**********************************************************************************************************/
+static void find_pole(int max_distence, float speed) {
+    
+    int cnt;
+    float last_dstan;
+    
+    cnt = max_distence / speed * 20;
+    openmv_updata_flag = 0;
+    //向右飞直到找到杆
+    while ((openmv_updata_flag & (1 << 1)) == 0) {
+        //往相反方向寻找杆
+        if (cnt == 0) {
+            speed = -speed;
+            max_distence = -max_distence;
+            cnt = max_distence / speed * 20;
         }
-        vTaskDelay(10);
+        horizontal_pos_y_pid_data.expect += speed / 20;
+        vTaskDelay(50);
+        cnt--;
+    }
+    vTaskDelay(1000);
+    //等待杆在中间
+    while (pole_distance > 10 || pole_distance < -10) {
+        //更新杆的位置
+        openmv_updata_flag = 0;
+        vTaskDelay(50);
+        while ((openmv_updata_flag & (1 << 1)) == 0)
+            vTaskDelay(10);
+        //比例控制飞机位置
+        horizontal_pos_y_pid_data.expect += pole_distance * 0.001;
+    }
+}
+
+/**********************************************************************************************************
+*函 数 名: find_line
+*功能说明: 上下飞行寻找线
+*形    参: 最大移动高度 速度
+*返 回 值: 无
+**********************************************************************************************************/
+static void find_line(int max_high, float speed) {
+    
+    int cnt;
+    float last_dstan;
+    
+    cnt = max_high / speed * 20;
+    openmv_updata_flag = 0;
+    //上下飞直到找到线
+    while ((openmv_updata_flag & (1 << 2)) == 0) {
+        //往相反方向寻找线
+        if (cnt == 0) {
+            speed = -speed;
+            max_high = -max_high;
+            cnt = max_high / speed * 20;
+        }
+        high_pos_pid_data.expect += speed / 20;
+        vTaskDelay(50);
+        cnt--;
+    }
+    vTaskDelay(1000);
+    //等待线在中间
+    while (line_high > 10 || line_high < -10) {
+        //更新线的位置
+        openmv_updata_flag = 0;
+        vTaskDelay(50);
+        while ((openmv_updata_flag & (1 << 2)) == 0)
+            vTaskDelay(10);
+        //比例控制飞机高度
+        high_pos_pid_data.expect -= line_high * 0.001;
     }
 }
 
@@ -104,14 +265,16 @@ void fly_right(uint8_t targer_distan, float speed) {
 portTASK_FUNCTION(route_plan_task,  parameters)
 {
     //升高到100cm
-    fly_high(100, 0.5);
+    fly_high(120 - 20, 100);
     vTaskDelay(2000);
-    fly_forward(100,0.3);
+    find_pole(100, 10);
     vTaskDelay(2000);
-    fly_right(100,0.3);
+    fly_forward(20, 20);
+    fly_right(-15, 10);
     vTaskDelay(2000);
+    find_line(30, 10);
     //下降到0cm
-    fly_high(0, 0.5);
+    fly_high(0 - high_pos_pid_data.expect, 100);
     vTaskDelay(200);
     
     save_throttle_control = Throttle_Control;

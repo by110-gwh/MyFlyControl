@@ -417,6 +417,16 @@
               <FileType>1</FileType>
               <FilePath>..\BSP\pmw3901.c</FilePath>
             </File>
+            <File>
+              <FileName>w25qxx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\w25qxx.c</FilePath>
+            </File>
+            <File>
+              <FileName>openmv.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\openmv.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -536,6 +546,16 @@
               <FileName>spi0.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\DRIVER\spi0.c</FilePath>
+            </File>
+            <File>
+              <FileName>spi1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\DRIVER\spi1.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart7.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\DRIVER\uart7.c</FilePath>
             </File>
           </Files>
         </Group>

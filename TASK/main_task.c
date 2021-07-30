@@ -11,10 +11,14 @@
 #include "i2c.h"
 #include "i2c1.h"
 #include "spi0.h"
+#include "spi1.h"
+#include "uart7.h"
+#include "w25qxx.h"
 #include "motor_output.h"
 #include "angle_control.h"
 #include "gyro_control.h"
 #include "controller.h"
+#include "openmv.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -42,9 +46,13 @@ portTASK_FUNCTION(main_task, parameters)
 	i2c_init();
 	i2c1_init();
     spi0_init();
+    spi1_init();
+    w25qxx_init();
 	motor_output_init();
 	usmart_task_create();
     beep_task_create();
+    uart7_init();
+    openmv_init();
 	//¼ì²âÒ£¿ØÆ÷ÊÇ·ñÁ¬½Ó
 	page_number = 17;
 	while (!rc_is_on())

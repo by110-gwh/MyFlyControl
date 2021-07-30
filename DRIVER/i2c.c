@@ -121,6 +121,7 @@ void I2C2_IRQHandle(void)
         if (I2CMasterErr(I2C2_BASE)) {
             uint8_t data;
             BaseType_t xResult;
+            last_len = 0;
             //发出停止位
             I2CMasterControl(I2C2_BASE, I2C_MASTER_CMD_BURST_SEND_ERROR_STOP);
             //发通知错误
@@ -158,6 +159,7 @@ void I2C2_IRQHandle(void)
         if (I2CMasterErr(I2C2_BASE)) {
             uint8_t data;
             BaseType_t xResult;
+            last_len = 0;
             //发出停止位
             I2CMasterControl(I2C2_BASE, I2C_MASTER_CMD_BURST_SEND_ERROR_STOP);
             //发通知错误
@@ -253,8 +255,10 @@ int i2c_transmit(uint8_t slave_address, uint8_t is_write, uint8_t *pdata, uint8_
     
     //等待I2C传输完成
     xQueueReceive(i2c_queue, (void *) &res, portMAX_DELAY);
-	if (res & I2C_EVENT_ERROR)
+	if (res & I2C_EVENT_ERROR) {
+        i2c_fail_recover();
 		return -1;
+    }
 	
 	return 0;
 }
@@ -333,8 +337,10 @@ int i2c_multi_write(uint8_t slave_address, uint8_t reg_address, uint8_t *reg_dat
     
     //等待I2C传输完成
     xQueueReceive(i2c_queue, (void *) &res, portMAX_DELAY);
-	if (res & I2C_EVENT_ERROR)
+	if (res & I2C_EVENT_ERROR) {
+        i2c_fail_recover();
 		return -1;
+    }
 	
 	return 0;
 }

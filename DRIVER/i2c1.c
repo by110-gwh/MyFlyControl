@@ -98,7 +98,7 @@ void i2c1_init(void)
     
     //Ê¹ÄÜI2CÖÐ¶Ï
     ROM_I2CMasterIntEnable(I2C1_BASE);
-    ROM_IntPrioritySet(INT_I2C1, 2 << 5);
+    ROM_IntPrioritySet(INT_I2C1, 3 << 5);
     IntRegister(INT_I2C1, I2C1_IRQHandle);
     ROM_IntEnable(INT_I2C1);
     

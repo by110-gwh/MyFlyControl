@@ -10,8 +10,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#define key0 GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_3)
-#define key1 GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_2)
+#define key0 (GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_3) & GPIO_PIN_3)
+#define key1 (GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_2) & GPIO_PIN_2)
 
 
 //长按时间，单位ms
@@ -45,7 +45,7 @@ uint8_t key_scan()
 	static uint8_t key1_press_flag;
 	
 	//按键一
-	if(GPIOPinRead(GPIO_PORTE_BASE, GPIO_PIN_3) == 0 && !key0_press_flag) {
+	if(key0 == 0 && !key0_press_flag) {
 		vTaskDelay(10);
 		if(key0 == 0) {
 			press_time = 0;
@@ -60,7 +60,7 @@ uint8_t key_scan()
 			else
 				return KEY0 << 1;
 		}
-	} else if (key0 == 1) {
+	} else if (key0 != 0) {
 		key0_press_flag = 0;
 	}
   
@@ -80,7 +80,7 @@ uint8_t key_scan()
 			else
 				return KEY1 << 1;
 		}
-	} else if (key1 == 1) {
+	} else if (key1 != 0) {
 		key1_press_flag = 0;
 	}
 	return 0;

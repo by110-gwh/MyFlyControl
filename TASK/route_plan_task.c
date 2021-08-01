@@ -7,6 +7,7 @@
 #include "remote_control.h"
 #include <math.h>
 #include "openmv.h"
+#include "beep_task.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -189,7 +190,6 @@ static void fly_turn(int targer_angle, float speed) {
 static void find_pole(int max_distence, float speed) {
     
     int cnt;
-    float last_dstan;
     
     cnt = max_distence / speed * 20;
     openmv_updata_flag = 0;
@@ -211,10 +211,11 @@ static void find_pole(int max_distence, float speed) {
         //更新杆的位置
         openmv_updata_flag = 0;
         vTaskDelay(50);
-        while ((openmv_updata_flag & (1 << 1)) == 0)
-            vTaskDelay(10);
-        //比例控制飞机位置
-        horizontal_pos_y_pid_data.expect += pole_distance * 0.001;
+        if ((openmv_updata_flag & (1 << 1)) == 0)
+            horizontal_pos_y_pid_data.expect += pole_distance * 0.001;
+        else
+            //比例控制飞机位置
+            horizontal_pos_y_pid_data.expect += pole_distance * 0.005;
     }
 }
 
@@ -227,7 +228,6 @@ static void find_pole(int max_distence, float speed) {
 static void find_line(int max_high, float speed) {
     
     int cnt;
-    float last_dstan;
     
     cnt = max_high / speed * 20;
     openmv_updata_flag = 0;
@@ -249,11 +249,39 @@ static void find_line(int max_high, float speed) {
         //更新线的位置
         openmv_updata_flag = 0;
         vTaskDelay(50);
-        while ((openmv_updata_flag & (1 << 2)) == 0)
-            vTaskDelay(10);
-        //比例控制飞机高度
-        high_pos_pid_data.expect -= line_high * 0.001;
+        //比例控制飞机位置
+        if ((openmv_updata_flag & (1 << 1)) == 0)
+            high_pos_pid_data.expect -= line_high * 0.001;
+        else
+            high_pos_pid_data.expect -= line_high * 0.005;
     }
+}
+
+/**********************************************************************************************************
+*函 数 名: find_line
+*功能说明: 寻找条形码
+*形    参: 要走的距离 速度
+*返 回 值: 剩余距离
+**********************************************************************************************************/
+static int find_bar_code(int targer_distan, float speed) {
+    
+    int cnt;
+    float last_dstan;
+    
+    if ((targer_distan > 0 && speed < 0) || (targer_distan < 0 && speed > 0)) {
+        speed = -speed;
+    }
+    
+    cnt = targer_distan / speed * 20;
+    last_dstan = targer_distan - (cnt * speed / 20);
+    
+    while (cnt && (openmv_updata_flag & (1 << 3)) == 0) {
+        horizontal_pos_y_pid_data.expect += speed / 20;
+        cnt--;
+        vTaskDelay(50);
+    }
+    horizontal_pos_y_pid_data.expect += last_dstan;
+    return cnt * speed / 20;
 }
 
 /**********************************************************************************************************
@@ -264,15 +292,26 @@ static void find_line(int max_high, float speed) {
 **********************************************************************************************************/
 portTASK_FUNCTION(route_plan_task,  parameters)
 {
-    //升高到100cm
+    int last_distance;
+    //升高到120cm
     fly_high(120 - 20, 100);
     vTaskDelay(2000);
     find_pole(100, 10);
-    vTaskDelay(2000);
     fly_forward(20, 20);
-    fly_right(-15, 10);
-    vTaskDelay(2000);
+    fly_right(-10, 10);
     find_line(30, 10);
+    last_distance = find_bar_code(280, 20);
+    beep_duty = 50;
+    vTaskDelay(5000);
+    fly_forward(last_distance, 20);
+    vTaskDelay(5000);
+    fly_forward(50, 20);
+    fly_right(-100, 20);
+    fly_turn(90, 20);
+    fly_turn(90, 20);
+    fly_right(-50, 20);
+    vTaskDelay(2000);
+    
     //下降到0cm
     fly_high(0 - high_pos_pid_data.expect, 100);
     vTaskDelay(200);

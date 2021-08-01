@@ -57,7 +57,7 @@ void spi0_init(void)
     ROM_SSIEnable(SSI0_BASE);
     
     //使能相应中断
-    ROM_IntPrioritySet(INT_SSI0, 2 << 5);
+    ROM_IntPrioritySet(INT_SSI0, 3 << 5);
     IntRegister(INT_SSI0, SPI0_IRQHandle);
     ROM_IntEnable(INT_SSI0);
     

@@ -62,7 +62,7 @@ void debug_uart_init()
 
 	//串口中断初始化
     ROM_UARTIntEnable(UART2_BASE, UART_INT_RX);
-    ROM_IntPrioritySet(INT_UART2, 4 << 5);
+    ROM_IntPrioritySet(INT_UART2, 5 << 5);
     IntRegister(INT_UART2, UART2_IRQHandler);
     ROM_IntEnable(INT_UART2);
 	

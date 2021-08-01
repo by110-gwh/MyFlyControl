@@ -30,6 +30,7 @@ volatile uint8_t fly_task_updata;
 #include "angle_control.h"
 #include "high_control.h"
 #include "horizontal_control.h"
+#include "openmv.h"
 /**********************************************************************************************************
 *函 数 名: fly_task
 *功能说明: 飞行定时任务
@@ -66,11 +67,28 @@ portTASK_FUNCTION(fly_task, pvParameters)
         //控制器输出
 		motor_output_output();
         
+        static uint8_t aa;
+        if (aa == 3) {
+            printf("%0.1f,%0.1f,%0.1f,%0.1f,",
+                high_pos_pid_data.expect,
+                horizontal_pos_x_pid_data.expect,
+                horizontal_pos_y_pid_data.expect,
+                yaw_angle_pid_data.expect);
+            aa++;
+        } else if (aa == 6) {
+            printf("%d,%d\r\n",
+            pole_distance,
+            line_high);
+            aa = 1;
+        } else {
+            aa++;
+        }
+        
         extern float pos_x, pos_y;
         extern float speed_x, speed_y;
 //        printf("%0.3f,%0.3f,%0.3f,%0.3f\r\n", Pitch, Roll, (float)atan2(accDataFilter.y, accDataFilter.z) * 57.3, -(float)atan2(accDataFilter.x, accDataFilter.z) * 57.3);
 //        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", speed_z, high_raw_data / 10., pos_z, acce_z, navigation_acce.z); 
-        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_pos_pid_data.expect, high_pos_pid_data.feedback, high_speed_pid_data.expect, high_speed_pid_data.feedback, high_speed_pid_data.control_output); 
+//        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", high_pos_pid_data.expect, high_pos_pid_data.feedback, high_speed_pid_data.expect, high_speed_pid_data.feedback, high_speed_pid_data.control_output); 
 //        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", horizontal_pos_y_pid_data.expect, horizontal_pos_y_pid_data.feedback, horizontal_speed_y_pid_data.expect,
 //            horizontal_speed_y_pid_data.feedback, horizontal_speed_y_pid_data.control_output, pitch_angle_pid_data.expect); 
 //        printf("%0.3f,%0.3f,%0.3f,%0.3f,%0.3f\r\n", navigation_acce.y / 10, speed_y, pos_y, optical_flow_pos_y, optical_flow_speed_y); 

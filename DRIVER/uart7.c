@@ -49,7 +49,7 @@ void uart7_init()
 
 	//串口中断初始化
     ROM_UARTIntEnable(UART7_BASE, UART_INT_RX);
-    ROM_IntPrioritySet(INT_UART7, 3 << 5);
+    ROM_IntPrioritySet(INT_UART7, 4 << 5);
     IntRegister(INT_UART7, UART7_IRQHandler);
     ROM_IntEnable(INT_UART7);
 	

@@ -22,7 +22,7 @@ static xTaskHandle display_task_handle;
 //任务退出标志
 volatile uint8_t display_task_exit;
 //当前页
-int16_t page_number;
+volatile int16_t page_number;
 
 /**********************************************************************************************************
 *函 数 名: display_task
@@ -34,6 +34,10 @@ portTASK_FUNCTION(display_task,  parameters)
 {
 	oled_init();
 	while (!display_task_exit) {
+		if(page_number == 0) {
+			oled_clear_line(0, 7);
+			oled_6x8_str(0, 7, "main");
+        }
 		if(page_number == 1) {
 			oled_clear_line(0, 0);
 			oled_6x8_str(0, 0, "Yaw:");
@@ -89,6 +93,17 @@ portTASK_FUNCTION(display_task,  parameters)
 			oled_6x8_str(0, 1, "remote control reset OK");
 			oled_clear_line(0, 2);
 			oled_6x8_str(0, 2, "engine starting");
+			oled_clear_line(0, 3);
+			oled_clear_line(0, 4);
+			oled_clear_line(0, 5);
+			oled_clear_line(0, 6);
+			oled_clear_line(0, 7);
+		} else if(page_number == 5) {
+			oled_clear_line(0, 0);
+			oled_6x8_str(0, 0, "key1 to task1");
+			oled_clear_line(0, 1);
+			oled_6x8_str(0, 1, "key2 to task2");
+			oled_clear_line(0, 2);
 			oled_clear_line(0, 3);
 			oled_clear_line(0, 4);
 			oled_clear_line(0, 5);

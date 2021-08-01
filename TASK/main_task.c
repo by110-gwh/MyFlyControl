@@ -19,6 +19,7 @@
 #include "gyro_control.h"
 #include "controller.h"
 #include "openmv.h"
+#include "sr04.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -32,6 +33,7 @@
 xTaskHandle main_task_handle;
 //任务退出标志
 volatile uint8_t main_task_exit;
+uint8_t fly_task_num;
 
 /**********************************************************************************************************
 *函 数 名: main_task
@@ -53,6 +55,7 @@ portTASK_FUNCTION(main_task, parameters)
     beep_task_create();
     uart7_init();
     openmv_init();
+    sr04_init();
 	//检测遥控器是否连接
 	page_number = 17;
 	while (!rc_is_on())
@@ -62,11 +65,62 @@ portTASK_FUNCTION(main_task, parameters)
         uint8_t key;
 		key = key_scan();
 		//key0长按进行遥控器行程校准
-		if ((key & KEY0) << 1 && key & 1) {
+		if ((key & (KEY0 << 1)) && key & 1) {
 			page_number = 14;
 			rc_calibration_task();
 			page_number = 0;
-		}
+		} else if ((key & (KEY1 << 1)) && key & 1) {
+            uint8_t i;
+            i = 200;
+            while (i--) {
+                page_number = 5;
+                key = key_scan();
+                if ((key & (KEY0 << 1))) {
+                    fly_task_num = 1;
+                }
+                if ((key & (KEY1 << 1))) {
+                    fly_task_num = 1;
+                }
+                if ((key & (KEY0 << 1)) || (key & (KEY1 << 1))) {
+                    vTaskDelay(2000);
+                    //陀螺仪校准
+                    page_number = 2;
+                    gyro_calibration();
+                    //飞行任务创建
+                    page_number = 3;
+                    beep_duty = 5;
+                    beep_cycle = 100;
+                    beep_time = 0xFF;
+                    fly_task_create();
+                    vTaskDelay(5000);
+                    page_number = 4;
+                    safe_task_create();
+                    //清PID积分
+                    controller_init();
+                    //电机解锁
+                    motor_output_unlock();
+                    //等待电机启动时间姿态融合完毕后，更新偏航期待
+                    yaw_angle_pid_data.short_circuit_flag = 1;
+                    page_number = 1;
+                    while(1) {
+                        key = rc_scan();
+                        if (key == 0x08) {
+                            break;
+                        }
+                        vTaskDelay(10);
+                    }
+                    safe_task_exit = 1;
+                    fly_task_exit = 1;
+                    vTaskDelay(5);
+                    motor_output_lock();
+                    beep_time = 0;
+                    break;
+                }
+                vTaskDelay(10);
+            }
+            fly_task_num = 0;
+            page_number = 0;
+        }
 		
 		key = rc_scan();
 		//上内八进行电调校准

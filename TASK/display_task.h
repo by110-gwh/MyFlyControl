@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-extern int16_t page_number;
+extern volatile int16_t page_number;
 
 void display_task_create(void);
 

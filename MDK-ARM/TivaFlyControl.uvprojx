@@ -557,6 +557,11 @@
               <FileType>1</FileType>
               <FilePath>..\DRIVER\uart7.c</FilePath>
             </File>
+            <File>
+              <FileName>sr04.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\DRIVER\sr04.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

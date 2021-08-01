@@ -13,9 +13,11 @@
 #include "route_plan_task.h"
 #include "beep_task.h"
 #include "navigation.h"
+#include "main_task.h"
 
-uint8_t controller_last_state;
+static uint8_t controller_last_state;
 uint8_t controller_state;
+uint16_t engine_start_cnt;
 
 /**********************************************************************************************************
 *函 数 名: control_init
@@ -30,6 +32,7 @@ void controller_init()
     high_control_init();
     horizontal_control_init();
     controller_state = 0;
+    engine_start_cnt = 0;
 }
 
 /**********************************************************************************************************
@@ -77,7 +80,17 @@ void controller_run()
     static uint16_t route_plan_enter_cnt;
     controller_last_state = controller_state;
     
-    if ((rc_raw_data[4] < 1250 || Throttle_Control < 500) && (controller_state != 4 || high_pos_pid_data.expect < 5)) {
+    if (fly_task_num) {
+        if (engine_start_cnt == 6000 / 5) {
+            controller_state = 4;
+        } else if (engine_start_cnt > 4000 / 5) {
+            controller_state = 5;
+            engine_start_cnt++;
+        } else {
+            controller_state = 0;
+            engine_start_cnt++;
+        }
+    } else if ((rc_raw_data[4] < 1250 || Throttle_Control < 500) && (controller_state != 4 || high_pos_pid_data.expect < 5)) {
         //纯姿态模式
         controller_state = 1;
         route_plan_enter_cnt = 0;
@@ -190,5 +203,21 @@ void controller_run()
             //油门补偿
             throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1700);
         }
+    //电机起转
+    } else if (controller_state == 5) {
+        if (controller_last_state != 5) {
+            high_pos_pid_integrate_reset();
+            high_speed_pid_integrate_reset();
+            horizontal_pos_x_pid_integrate_reset();
+            horizontal_pos_y_pid_integrate_reset();
+            horizontal_speed_x_pid_integrate_reset();
+            horizontal_speed_y_pid_integrate_reset();
+            horizontal_pos_x_pid_data.short_circuit_flag = 1;
+            horizontal_pos_y_pid_data.short_circuit_flag = 1;
+        }
+        throttle_motor_output = 500 * ((float)engine_start_cnt - 4000 / 5) / (2000 / 5) + 1000;
+    //电机停转
+    } else if (controller_state == 0) {
+        throttle_motor_output = 1000;
     }
 }

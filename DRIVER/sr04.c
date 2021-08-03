@@ -76,6 +76,7 @@ void sr04_irq(void)
         //记录时间
         Get_Time_Period(&timer);
         //设置为下降沿触发中断
+        GPIOIntClear(GPIO_PORTD_BASE, GPIO_INT_PIN_1);
         GPIOIntTypeSet(GPIO_PORTD_BASE, GPIO_PIN_1, GPIO_FALLING_EDGE);
         wait_fall = 1;
     //接收下降沿
@@ -87,8 +88,9 @@ void sr04_irq(void)
         if (sr04_distance > 200)
             sr04_distance = 0;
         //设置为下降沿触发中断
+        GPIOIntClear(GPIO_PORTD_BASE, GPIO_INT_PIN_1);
         GPIOIntTypeSet(GPIO_PORTD_BASE, GPIO_PIN_1, GPIO_RISING_EDGE);
-        wait_fall =-0;
+        wait_fall = 0;
     }
-    GPIOIntClear(GPIO_PORTD_BASE, GPIO_INT_PIN_4);
+    GPIOIntClear(GPIO_PORTD_BASE, GPIO_INT_PIN_1);
 }

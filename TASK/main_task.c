@@ -70,18 +70,16 @@ portTASK_FUNCTION(main_task, parameters)
 			rc_calibration_task();
 			page_number = 0;
 		} else if ((key & (KEY1 << 1)) && key & 1) {
-            uint8_t i;
-            i = 200;
-            while (i--) {
+            while (1) {
                 page_number = 5;
                 key = key_scan();
-                if ((key & (KEY0 << 1))) {
+                if ((key & (KEY0 << 1)) && key & 1) {
                     fly_task_num = 1;
                 }
-                if ((key & (KEY1 << 1))) {
-                    fly_task_num = 1;
+                if ((key & (KEY1 << 1)) && key & 1) {
+                    fly_task_num = 2;
                 }
-                if ((key & (KEY0 << 1)) || (key & (KEY1 << 1))) {
+                if (((key & (KEY0 << 1))  && key & 1) || ((key & (KEY1 << 1)) && key & 1)) {
                     vTaskDelay(2000);
                     //ÍÓÂÝÒÇÐ£×¼
                     page_number = 2;

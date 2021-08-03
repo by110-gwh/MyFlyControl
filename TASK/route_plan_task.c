@@ -8,6 +8,7 @@
 #include <math.h>
 #include "openmv.h"
 #include "beep_task.h"
+#include "main_task.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -285,12 +286,12 @@ static int find_bar_code(int targer_distan, float speed) {
 }
 
 /**********************************************************************************************************
-*函 数 名: route_plan_task
+*函 数 名: route_plan_task1
 *功能说明: 路径规划任务
 *形    参: 无
 *返 回 值: 无
 **********************************************************************************************************/
-portTASK_FUNCTION(route_plan_task,  parameters)
+portTASK_FUNCTION(route_plan_task1,  parameters)
 {
     int last_distance;
     //升高到120cm
@@ -324,6 +325,30 @@ portTASK_FUNCTION(route_plan_task,  parameters)
 }
 
 /**********************************************************************************************************
+*函 数 名: route_plan_task1
+*功能说明: 路径规划任务
+*形    参: 无
+*返 回 值: 无
+**********************************************************************************************************/
+portTASK_FUNCTION(route_plan_task2,  parameters)
+{
+    int last_distance;
+    //升高到120cm
+    fly_high(120 - 20, 50);
+    vTaskDelay(2000);
+    
+    //下降到0cm
+    fly_high(0 - high_pos_pid_data.expect, 50);
+    vTaskDelay(200);
+    
+    save_throttle_control = Throttle_Control;
+    save_high_expect = high_pos_pid_data.expect;
+    route_plan_finish = 1;
+    route_plan_stop_flag = 1;
+    vTaskDelete(NULL);
+}
+
+/**********************************************************************************************************
 *函 数 名: route_plan_task_create
 *功能说明: 路径规划相关任务创建
 *形    参: 无
@@ -332,7 +357,10 @@ portTASK_FUNCTION(route_plan_task,  parameters)
 void route_plan_task_create(void)
 {
 	route_plan_task_exit = 0;
-	xTaskCreate(route_plan_task, "route_plan_task", ROUTE_PLAN_TASK_STACK, NULL, ROUTE_PLAN_TASK_PRIORITY, &route_plan_task_handle);
+    if (fly_task_num == 2)
+        xTaskCreate(route_plan_task2, "route_plan_task", ROUTE_PLAN_TASK_STACK, NULL, ROUTE_PLAN_TASK_PRIORITY, &route_plan_task_handle);
+    else 
+        xTaskCreate(route_plan_task1, "route_plan_task", ROUTE_PLAN_TASK_STACK, NULL, ROUTE_PLAN_TASK_PRIORITY, &route_plan_task_handle);
 }
 
 /**********************************************************************************************************

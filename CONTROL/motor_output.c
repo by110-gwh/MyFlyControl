@@ -2,6 +2,7 @@
 #include "pwm.h"
 #include "remote_control.h"
 #include "gyro_control.h"
+#include "main_task.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -61,7 +62,7 @@ void motor_output_init(void)
 void motor_output_unlock(void)
 {
 	//停转模式
-	if (rc_raw_data[5] > rc_calibration_data[5].middle) {
+	if (rc_raw_data[5] > 1500) {
 		motor_lock = 1;
 		Motor_PWM_1 = Thr_Min;
 		Motor_PWM_2 = Thr_Min;
@@ -87,7 +88,7 @@ void motor_output_output(void)
 	int16_t yaw_motor_output;
 
 	//紧急停机
-	if (rc_raw_data[5] > rc_calibration_data[5].middle || motor_lock == 1) {
+	if (rc_raw_data[5] > 1500 || motor_lock == 1) {
 		motor_lock = 1;
 		//四个电机停转
 		Motor_PWM_1 = Thr_Min;
@@ -111,6 +112,10 @@ void motor_output_output(void)
 		Motor_PWM_2 = throttle_motor_output + roll_motor_output - pitch_motor_output - yaw_motor_output;
 		Motor_PWM_3 = throttle_motor_output - roll_motor_output - pitch_motor_output + yaw_motor_output;
 		Motor_PWM_4 = throttle_motor_output - roll_motor_output + pitch_motor_output - yaw_motor_output;
+        
+        if (fly_task_num == 2 || rc_raw_data[7] > 1500)
+            Motor_PWM_3 += 100;;
+        
 		//总输出限幅
 		Motor_PWM_1 = value_limit(Thr_Min, 2000, Motor_PWM_1);
         Motor_PWM_2 = value_limit(Thr_Min, 2000, Motor_PWM_2);

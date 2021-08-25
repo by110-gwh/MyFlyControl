@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+void high_attitude_stabilization_init(void);
 void high_attitude_stabilization_control(void);
 
 #endif

@@ -78,7 +78,7 @@ void UART2_IRQHandler(void)
 {
     uint8_t Res;
     //发送中断
-    if (UARTIntStatus(UART2_BASE, true) == UART_INT_TX) {
+    if (UARTIntStatus(UART2_BASE, true) & UART_INT_TX) {
 		BaseType_t xTaskWokenByReceive = pdFALSE;
 		//发送队列中有数据需要发送
 		if (xQueueReceiveFromISR(tx_queue, (void *) &Res, &xTaskWokenByReceive) == pdPASS) {
@@ -92,7 +92,7 @@ void UART2_IRQHandler(void)
         if(xTaskWokenByReceive)
             portYIELD_FROM_ISR(xTaskWokenByReceive);
     //接收中断
-    } else if (UARTIntStatus(UART2_BASE, true) == UART_INT_RX) {
+    } else if (UARTIntStatus(UART2_BASE, true) & UART_INT_RX) {
         //读取接收字节
         Res = UARTCharGetNonBlocking(UART2_BASE);
         if ((USART_RX_STA & 0x8000) == 0) {

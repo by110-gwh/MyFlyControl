@@ -15,6 +15,8 @@ typedef struct
   float q3;
 } Vector4q;
 
+#define YAW_FUSION_MODE_QUAD 0
+
 #define PI 3.1415926f
 #define DEG2RAD (PI / 180.0f)
 #define RAD2DEG (180.0f / PI)

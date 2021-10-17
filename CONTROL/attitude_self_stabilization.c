@@ -2,22 +2,7 @@
 #include "remote_control.h"
 #include "angle_control.h"
 #include "gyro_control.h"
-#include "high_control.h"
-#include "horizontal_control.h"
 #include "ahrs_aux.h"
-#include "controller.h"
-#include "motor_output.h"
-
-/**********************************************************************************************************
-*函 数 名: attitude_self_stabilization_init
-*功能说明: 姿态自稳控制器初始化
-*形    参: 无
-*返 回 值: 无
-**********************************************************************************************************/
-void attitude_self_stabilization_init(void)
-{
-    
-}
 
 /**********************************************************************************************************
 *函 数 名: attitude_self_stabilization_control
@@ -53,11 +38,4 @@ void attitude_self_stabilization_control()
 		//偏航角期望给0,不进行角度控制
 		yaw_angle_pid_data.expect = Yaw_Control;
 	}
-    
-    //角度环控制器
-    angle_control();
-    //角速度控制器
-    gyro_control();
-    //油门补偿
-    throttle_motor_output = throttle_angle_compensate(Throttle_Control + 1000);
 }

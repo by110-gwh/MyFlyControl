@@ -14,6 +14,7 @@
 #include "driverlib/interrupt.h"
 
 #include "FreeRTOS.h"
+#include "task.h"
 #include "queue.h"
 
 #define I2C_EVENT_SUCCESSFUL 1 << 0
@@ -89,6 +90,8 @@ void i2c1_init(void)
     ROM_GPIOPinConfigure(GPIO_PA7_I2C1SDA);
     ROM_GPIOPinTypeI2CSCL(GPIO_PORTA_BASE, GPIO_PIN_6);
     ROM_GPIOPinTypeI2C(GPIO_PORTA_BASE, GPIO_PIN_7);
+    
+    vTaskDelay(100);
     
     //初始化I2C外设
     ROM_I2CMasterInitExpClk(I2C1_BASE, ROM_SysCtlClockGet(), true);

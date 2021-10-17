@@ -3,10 +3,9 @@
 
 #include <stdint.h>
 
-#define HOLD_THROTTLE 500
+#define HOLD_THROTTLE 450
 
 void controller_init(void);
 void controller_run(void);
-uint16_t throttle_angle_compensate(uint16_t throttle);
 
 #endif

@@ -7,25 +7,8 @@
 #include "navigation.h"
 #include "high_control.h"
 #include "horizontal_control.h"
-#include "controller.h"
 
 #define HORIZONTAL_SPEED_MAX 250
-
-/**********************************************************************************************************
-*函 数 名: horizontal_attitude_stabilization_init
-*功能说明: 定点控制器初始化
-*形    参: 无
-*返 回 值: 无
-**********************************************************************************************************/
-void horizontal_attitude_stabilization_init(void)
-{
-    horizontal_pos_x_pid_integrate_reset();
-    horizontal_pos_y_pid_integrate_reset();
-    horizontal_speed_x_pid_integrate_reset();
-    horizontal_speed_y_pid_integrate_reset();
-    horizontal_pos_x_pid_data.short_circuit_flag = 1;
-    horizontal_pos_y_pid_data.short_circuit_flag = 1;
-}
 
 /**********************************************************************************************************
 *函 数 名: horizontal_attitude_stabilization_control
@@ -33,7 +16,7 @@ void horizontal_attitude_stabilization_init(void)
 *形    参: 无
 *返 回 值: 无
 **********************************************************************************************************/
-void horizontal_attitude_stabilization_control(void)
+void horizontal_attitude_stabilization_control()
 {
     high_pos_pid_data.expect = (Throttle_Control - HOLD_THROTTLE) / (float)(1000 - HOLD_THROTTLE) * 200 + 10;
     
@@ -94,14 +77,4 @@ void horizontal_attitude_stabilization_control(void)
 		//偏航角期望给0,不进行角度控制
 		yaw_angle_pid_data.expect = Yaw_Control;
 	}
-    //位置控制器
-    horizontal_control();
-    //高度环控制器
-    high_control();
-    //角度环控制器
-    angle_control();
-    //角速度控制器
-    gyro_control();
-    //油门补偿
-    throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + HOLD_THROTTLE + 1000);
 }

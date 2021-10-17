@@ -295,46 +295,9 @@ portTASK_FUNCTION(route_plan_task1,  parameters)
 {
     int last_distance;
     //升高到120cm
-    fly_high(120 - 20, 100);
+    fly_high(100 - 20, 50);
     vTaskDelay(2000);
-    find_pole(100, 10);
-    fly_forward(20, 20);
-    fly_right(-10, 10);
-    find_line(30, 10);
-    last_distance = find_bar_code(280, 20);
-    beep_duty = 50;
-    vTaskDelay(5000);
-    fly_forward(last_distance, 20);
-    vTaskDelay(5000);
-    fly_forward(50, 20);
-    fly_right(-100, 20);
     fly_turn(90, 20);
-    fly_turn(90, 20);
-    fly_right(-50, 20);
-    vTaskDelay(2000);
-    
-    //下降到0cm
-    fly_high(0 - high_pos_pid_data.expect, 100);
-    vTaskDelay(200);
-    
-    save_throttle_control = Throttle_Control;
-    save_high_expect = high_pos_pid_data.expect;
-    route_plan_finish = 1;
-    route_plan_stop_flag = 1;
-    vTaskDelete(NULL);
-}
-
-/**********************************************************************************************************
-*函 数 名: route_plan_task1
-*功能说明: 路径规划任务
-*形    参: 无
-*返 回 值: 无
-**********************************************************************************************************/
-portTASK_FUNCTION(route_plan_task2,  parameters)
-{
-    int last_distance;
-    //升高到120cm
-    fly_high(120 - 20, 50);
     vTaskDelay(2000);
     
     //下降到0cm
@@ -357,10 +320,7 @@ portTASK_FUNCTION(route_plan_task2,  parameters)
 void route_plan_task_create(void)
 {
 	route_plan_task_exit = 0;
-    if (fly_task_num == 2)
-        xTaskCreate(route_plan_task2, "route_plan_task", ROUTE_PLAN_TASK_STACK, NULL, ROUTE_PLAN_TASK_PRIORITY, &route_plan_task_handle);
-    else 
-        xTaskCreate(route_plan_task1, "route_plan_task", ROUTE_PLAN_TASK_STACK, NULL, ROUTE_PLAN_TASK_PRIORITY, &route_plan_task_handle);
+    xTaskCreate(route_plan_task1, "route_plan_task", ROUTE_PLAN_TASK_STACK, NULL, ROUTE_PLAN_TASK_PRIORITY, &route_plan_task_handle);
 }
 
 /**********************************************************************************************************

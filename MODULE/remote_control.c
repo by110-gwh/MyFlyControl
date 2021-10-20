@@ -21,7 +21,7 @@ uint16_t rc_raw_data[RC_DEADBAND_CHANNEL];
 static Butter_Parameter Butter_5HZ_Parameter_RC;
 //遥控输出期待
 uint16_t Throttle_Control;
-int16_t Pitch_Control, Roll_Control, Yaw_Control, High_Control;
+float Pitch_Control, Roll_Control, Yaw_Control, High_Control;
 //遥控器更新标志，用于安全检查
 volatile uint8_t remote_control_updata;
 
@@ -34,6 +34,21 @@ volatile uint8_t remote_control_updata;
 int16_t constrain_int16_t(int16_t amt, int16_t low, int16_t high)
 {
 	return ((amt) < (low) ? (low) : ((amt) > (high)? (high) : (amt)));
+}
+
+/**********************************************************************************************************
+*函 数 名: constrain_float_t
+*功能说明: 限制最大最小值
+*形    参: 要限制的值 最小值 最大值
+*返 回 值: 输出值
+**********************************************************************************************************/
+float constrain_float_t(float value, const float min_val, const float max_val)
+{
+  if (value >= max_val)
+    value = max_val;
+  if (value <= min_val)
+    value = min_val;
+  return value;
 }
 
 /**********************************************************************************************************
@@ -152,39 +167,39 @@ void rc_callback(uint16_t buf[8])
 	}
 	//计算缩放后的横滚期待
 	if(rc_raw_data[0] <= rc_calibration_data[0].deadband_buttom)
-		Roll_Control = (rc_calibration_data[0].deadband_buttom - rc_data[0])
+		Roll_Control = (float)(rc_calibration_data[0].deadband_buttom - rc_data[0])
 			* Pit_Rol_Max /(rc_calibration_data[0].deadband_buttom - rc_calibration_data[0].min);
 	else if(rc_raw_data[0] >= rc_calibration_data[0].deadband_top)
-		Roll_Control = -(rc_calibration_data[0].deadband_top - rc_data[0])
+		Roll_Control = -(float)(rc_calibration_data[0].deadband_top - rc_data[0])
 			* Pit_Rol_Max /(rc_calibration_data[0].deadband_top - rc_calibration_data[0].max);
 	else
 		Roll_Control = 0;
-	Roll_Control = constrain_int16_t(Roll_Control, -Pit_Rol_Max, Pit_Rol_Max);
+	Roll_Control = constrain_float_t(Roll_Control, -Pit_Rol_Max, Pit_Rol_Max);
 	Roll_Control = -Roll_Control;
 	//计算缩放后的俯仰期待
 	if(rc_raw_data[1] <= rc_calibration_data[1].deadband_buttom)
-		Pitch_Control = (rc_calibration_data[1].deadband_buttom - rc_data[1])
+		Pitch_Control = (float)(rc_calibration_data[1].deadband_buttom - rc_data[1])
 			* Pit_Rol_Max /(rc_calibration_data[1].deadband_buttom - rc_calibration_data[1].min);
 	else if(rc_raw_data[1] >= rc_calibration_data[1].deadband_top)
-		Pitch_Control = -(rc_calibration_data[1].deadband_top - rc_data[1])
+		Pitch_Control = -(float)(rc_calibration_data[1].deadband_top - rc_data[1])
 			* Pit_Rol_Max /(rc_calibration_data[1].deadband_top - rc_calibration_data[1].max);
 	else
 		Pitch_Control = 0;
-	Pitch_Control = constrain_int16_t(Pitch_Control, -Pit_Rol_Max, Pit_Rol_Max);
+	Pitch_Control = constrain_float_t(Pitch_Control, -Pit_Rol_Max, Pit_Rol_Max);
 	//计算缩放后的油门期待
 	//为了安全，油门杆低位死区为Buttom_Safe_Deadband
 	Throttle_Control = (rc_data[2] - (rc_calibration_data[2].min + THROTTLE_BUTTOM_SAFE_DEADBAND));
 	Throttle_Control = constrain_int16_t(Throttle_Control, 0, 1000);
 	//计算缩放后的偏航期待
 	if(rc_raw_data[3] <= rc_calibration_data[3].deadband_buttom)
-		Yaw_Control = (rc_calibration_data[3].deadband_buttom - rc_data[3])
+		Yaw_Control = (float)(rc_calibration_data[3].deadband_buttom - rc_data[3])
 			* Yaw_Max /(rc_calibration_data[3].deadband_buttom - rc_calibration_data[3].min);
 	else if(rc_raw_data[3] >= rc_calibration_data[3].deadband_top)
-		Yaw_Control = -(rc_calibration_data[3].deadband_top - rc_data[3])
+		Yaw_Control = -(float)(rc_calibration_data[3].deadband_top - rc_data[3])
 			* Yaw_Max /(rc_calibration_data[3].deadband_top - rc_calibration_data[3].max);
 	else
 		Yaw_Control = 0;
-	Yaw_Control = constrain_int16_t(Yaw_Control, -Yaw_Max, Yaw_Max);
+	Yaw_Control = constrain_float_t(Yaw_Control, -Yaw_Max, Yaw_Max);
     //遥控器工作正常
     remote_control_updata = 1;
 }

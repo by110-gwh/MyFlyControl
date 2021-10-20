@@ -25,7 +25,7 @@ typedef struct
 extern rc_calibration_data_t rc_calibration_data[RC_DEADBAND_CHANNEL];
 extern uint16_t rc_raw_data[RC_DEADBAND_CHANNEL];
 extern uint16_t Throttle_Control;
-extern int16_t Pitch_Control, Roll_Control, Yaw_Control, High_Control;
+extern float Pitch_Control, Roll_Control, Yaw_Control, High_Control;
 extern volatile uint8_t remote_control_updata;
 
 void rc_init(void);

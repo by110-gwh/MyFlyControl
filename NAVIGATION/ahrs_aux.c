@@ -15,7 +15,7 @@ typedef struct
   float q3;
 } Vector4q;
 
-#define YAW_FUSION_MODE_QUAD 0
+#define YAW_FUSION_MODE_QUAD 1
 
 #define PI 3.1415926f
 #define DEG2RAD (PI / 180.0f)
@@ -87,7 +87,7 @@ void ahrs_init(void)
 *形    参: value
 *返 回 值: 修正后的value
 **********************************************************************************************************/
-float constrain(float value, const float min_val, const float max_val)
+static float constrain(float value, const float min_val, const float max_val)
 {
   if (value >= max_val)
     value = max_val;
@@ -333,10 +333,10 @@ void ahrs_update()
 	//反正切得到磁力计观测角度
 	Mag_Yaw=atan2(Mag_ethx, Mag_ethy) * RAD2DEG;
     if ((Mag_Yaw > 90 && Yaw < -90) || (Mag_Yaw < -90 && Yaw > 90))
-      Yaw = -Yaw * (1 - Yaw_Fusion_Beta) + Mag_Yaw * Yaw_Fusion_Beta;
+        Yaw = -Yaw * (1 - Yaw_Fusion_Beta) + Mag_Yaw * Yaw_Fusion_Beta;
     else
-      Yaw = Yaw * (1 - Yaw_Fusion_Beta) + Mag_Yaw * Yaw_Fusion_Beta;
+        Yaw = Yaw * (1 - Yaw_Fusion_Beta) + Mag_Yaw * Yaw_Fusion_Beta;
 #endif
-  ComputeRotationMatrix();
+    ComputeRotationMatrix();
 }
 

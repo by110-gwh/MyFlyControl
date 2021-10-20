@@ -9,6 +9,7 @@
 #include "openmv.h"
 #include "beep_task.h"
 #include "main_task.h"
+#include "sr04.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -22,7 +23,6 @@
 static xTaskHandle route_plan_task_handle;
 //任务退出标志
 volatile uint8_t route_plan_task_exit;
-
 
 /**********************************************************************************************************
 *函 数 名: fly_high
@@ -221,41 +221,44 @@ static void find_pole(int max_distence, float speed) {
 }
 
 /**********************************************************************************************************
-*函 数 名: find_line
-*功能说明: 上下飞行寻找线
-*形    参: 最大移动高度 速度
+*函 数 名: find_pole_sr04
+*功能说明: 通过超声波左右飞行寻找杆
+*形    参: 最远距离 速度
 *返 回 值: 无
 **********************************************************************************************************/
-static void find_line(int max_high, float speed) {
+static void find_pole_sr04(int max_distence, float speed) {
     
     int cnt;
     
-    cnt = max_high / speed * 20;
-    openmv_updata_flag = 0;
-    //上下飞直到找到线
-    while ((openmv_updata_flag & (1 << 2)) == 0) {
-        //往相反方向寻找线
+    cnt = max_distence / speed * 20;
+    //向前飞直到找到杆
+    while (sr04_distance == 0) {
+        //往相反方向寻找杆
         if (cnt == 0) {
             speed = -speed;
-            max_high = -max_high;
-            cnt = max_high / speed * 20;
+            max_distence = -max_distence;
+            cnt = max_distence / speed * 20;
         }
-        high_pos_pid_data.expect += speed / 20;
+        horizontal_pos_y_pid_data.expect += speed / 20;
         vTaskDelay(50);
         cnt--;
     }
-    vTaskDelay(1000);
-    //等待线在中间
-    while (line_high > 10 || line_high < -10) {
-        //更新线的位置
-        openmv_updata_flag = 0;
+    
+    //向右飞定杆的距离
+    while (sr04_distance > 35 || sr04_distance < 25) {
+        //更新杆的位置
+		//比例控制飞机位置
+		if (sr04_distance) {
+            //速度限幅
+            if (sr04_distance - 30 > 50)
+                horizontal_pos_x_pid_data.expect -= (70 - 30) * 0.015;
+            else
+                horizontal_pos_x_pid_data.expect -= (sr04_distance - 30) * 0.015;
+        } else
+            horizontal_pos_y_pid_data.expect += speed / 2 / 20;  
         vTaskDelay(50);
-        //比例控制飞机位置
-        if ((openmv_updata_flag & (1 << 1)) == 0)
-            high_pos_pid_data.expect -= line_high * 0.001;
-        else
-            high_pos_pid_data.expect -= line_high * 0.005;
     }
+	horizontal_pos_x_pid_data.expect = horizontal_pos_x_pid_data.feedback;
 }
 
 /**********************************************************************************************************
@@ -294,21 +297,55 @@ static int find_bar_code(int targer_distan, float speed) {
 portTASK_FUNCTION(route_plan_task1,  parameters)
 {
     int last_distance;
+    
     //升高到120cm
-    fly_high(100 - 20, 50);
-    vTaskDelay(2000);
-    fly_turn(90, 20);
-    vTaskDelay(2000);
+    fly_high(70 - 20, 30);
+    vTaskDelay(1000);
+    //定杆距离
+	find_pole_sr04(100, 20);
+    //找条形码
+    last_distance = find_bar_code(250, 20);
+    //成功识别到条形码
+    if (last_distance > 50) {
+        //停留一下
+        vTaskDelay(5000);
+        //发出提示
+        beep_duty = 50;
+    }
+    //飞完剩下的距离
+    fly_forward(last_distance, 20);
     
     //下降到0cm
-    fly_high(0 - high_pos_pid_data.expect, 50);
-    vTaskDelay(200);
+    fly_high(0 - high_pos_pid_data.expect, 35);
     
+    vTaskDelay(400);
     save_throttle_control = Throttle_Control;
     save_high_expect = high_pos_pid_data.expect;
     route_plan_finish = 1;
     route_plan_stop_flag = 1;
-    vTaskDelete(NULL);
+    route_plan_task_delete();
+}
+
+/**********************************************************************************************************
+*函 数 名: route_plan_task2
+*功能说明: 路径规划任务
+*形    参: 无
+*返 回 值: 无
+**********************************************************************************************************/
+portTASK_FUNCTION(route_plan_task2,  parameters)
+{
+    //升高到120cm
+    fly_high(70 - 20, 30);
+    vTaskDelay(1000);
+    //下降到0cm
+    fly_high(0 - high_pos_pid_data.expect, 35);
+    
+    vTaskDelay(400);
+    save_throttle_control = Throttle_Control;
+    save_high_expect = high_pos_pid_data.expect;
+    route_plan_finish = 1;
+    route_plan_stop_flag = 1;
+    route_plan_task_delete();
 }
 
 /**********************************************************************************************************
@@ -320,7 +357,10 @@ portTASK_FUNCTION(route_plan_task1,  parameters)
 void route_plan_task_create(void)
 {
 	route_plan_task_exit = 0;
-    xTaskCreate(route_plan_task1, "route_plan_task", ROUTE_PLAN_TASK_STACK, NULL, ROUTE_PLAN_TASK_PRIORITY, &route_plan_task_handle);
+    if (fly_task_num == 1)
+        xTaskCreate(route_plan_task1, "route_plan_task", ROUTE_PLAN_TASK_STACK, NULL, ROUTE_PLAN_TASK_PRIORITY, &route_plan_task_handle);
+    else
+        xTaskCreate(route_plan_task2, "route_plan_task", ROUTE_PLAN_TASK_STACK, NULL, ROUTE_PLAN_TASK_PRIORITY, &route_plan_task_handle);
 }
 
 /**********************************************************************************************************
@@ -331,5 +371,9 @@ void route_plan_task_create(void)
 **********************************************************************************************************/
 void route_plan_task_delete(void)
 {
-    vTaskDelete(route_plan_task_handle);
+    if (route_plan_task_handle) {
+        void *p_temp = route_plan_task_handle;
+        route_plan_task_handle = NULL;
+        vTaskDelete(p_temp);
+    }
 }

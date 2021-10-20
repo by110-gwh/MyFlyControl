@@ -36,6 +36,51 @@ volatile uint8_t main_task_exit;
 uint8_t fly_task_num;
 
 /**********************************************************************************************************
+*函 数 名: fly_enter
+*功能说明: 进入飞行任务
+*形    参: 无
+*返 回 值: 无
+**********************************************************************************************************/
+static void fly_enter(void)
+{
+    //陀螺仪校准
+    page_number = 2;
+    gyro_calibration();
+    //飞行任务创建
+    page_number = 3;
+    beep_duty = 5;
+    beep_cycle = 100;
+    beep_time = 0xFF;
+    fly_task_create();
+    vTaskDelay(2000);
+    page_number = 4;
+    safe_task_create();
+    //清PID积分
+    controller_init();
+    //电机解锁
+    motor_output_unlock();
+    //等待电机启动时间姿态融合完毕后，更新偏航期待
+    yaw_angle_pid_data.short_circuit_flag = 1;
+    page_number = 1;
+}
+
+/**********************************************************************************************************
+*函 数 名: fly_exit
+*功能说明: 退出飞行任务
+*形    参: 无
+*返 回 值: 无
+**********************************************************************************************************/
+static void fly_exit(void)
+{
+    safe_task_exit = 1;
+    fly_task_exit = 1;
+    vTaskDelay(5);
+    motor_output_lock();
+    beep_time = 0;
+    page_number = 0;
+}
+
+/**********************************************************************************************************
 *函 数 名: main_task
 *功能说明: 主任务
 *形    参: 无
@@ -56,20 +101,49 @@ portTASK_FUNCTION(main_task, parameters)
     uart7_init();
     openmv_init();
     sr04_init();
+    
 	//检测遥控器是否连接
 	page_number = 17;
 	while (!rc_is_on())
 		vTaskDelay(1);
-	page_number = 0;
     while (!main_task_exit) {
         uint8_t key;
+        page_number = 0;
 		key = key_scan();
 		//key0长按进行遥控器行程校准
 		if ((key & (KEY0 << 1)) && key & 1) {
 			page_number = 14;
 			rc_calibration_task();
 			page_number = 0;
-		}
+		} else if ((key & (KEY1 << 1)) && key & 1) {
+            uint32_t i = 5 * 100;
+            while (i--) {
+                page_number = 5;
+                key = key_scan();
+                //通过按键确定执行哪个任务
+                if ((key & (KEY0 << 1)) && key & 1) {
+                    fly_task_num = 1;
+                }
+                if ((key & (KEY1 << 1)) && key & 1) {
+                    fly_task_num = 2;
+                }
+                //启动飞行任务
+                if (((key & (KEY0 << 1))  && key & 1) || ((key & (KEY1 << 1)) && key & 1)) {
+                    vTaskDelay(3000);
+                    fly_enter();
+                    while(1) {
+                        key = rc_scan();
+                        if (key == 0x08) {
+                            break;
+                        }
+                        vTaskDelay(50);
+                    }
+                    fly_exit();
+                    break;
+                }
+                vTaskDelay(10);
+            }
+        }
 		
 		key = rc_scan();
 		//上内八进行电调校准
@@ -88,40 +162,17 @@ portTASK_FUNCTION(main_task, parameters)
 			page_number = 0;
 		//下内八进行解锁
 		} else if (key == 0x08) {
-			//陀螺仪校准
-			page_number = 2;
-			gyro_calibration();
-			//飞行任务创建
-			page_number = 3;
-            beep_duty = 5;
-            beep_cycle = 100;
-            beep_time = 0xFF;
-			fly_task_create();
-            vTaskDelay(2000);
-			//等到遥控器方向遥感归位
-			while (rc_direct_is_reset() == 0);
-			page_number = 4;
-            safe_task_create();
-			//电机解锁
-			motor_output_unlock();
-			//清PID积分
-            controller_init();
-			//等待电机启动时间姿态融合完毕后，更新偏航期待
-			yaw_angle_pid_data.short_circuit_flag = 1;
-			page_number = 1;
+            //等到遥控器方向遥感归位
+            while (rc_direct_is_reset() == 0);
+			fly_enter();
 			while(1) {
 				key = rc_scan();
 				if (key == 0x08) {
 					break;
 				}
-				vTaskDelay(10);
+				vTaskDelay(50);
 			}
-            safe_task_exit = 1;
-			fly_task_exit = 1;
-			vTaskDelay(5);
-			motor_output_lock();
-            beep_time = 0;
-			page_number = 0;
+            fly_exit();
 		}
 		vTaskDelay(6);
     }

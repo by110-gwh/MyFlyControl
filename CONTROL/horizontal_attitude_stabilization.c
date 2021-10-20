@@ -7,6 +7,7 @@
 #include "navigation.h"
 #include "high_control.h"
 #include "horizontal_control.h"
+#include "controller.h"
 
 #define HORIZONTAL_SPEED_MAX 250
 

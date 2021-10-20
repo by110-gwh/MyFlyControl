@@ -6,6 +6,7 @@
 #include "ahrs_aux.h"
 #include "navigation.h"
 #include "high_control.h"
+#include "controller.h"
 
 /**********************************************************************************************************
 *函 数 名: high_attitude_stabilization_control
@@ -15,7 +16,7 @@
 **********************************************************************************************************/
 void high_attitude_stabilization_control()
 {
-    high_pos_pid_data.expect = (Throttle_Control - 450) / (float)(1000 - 450) * 200 + 10;
+    high_pos_pid_data.expect = (Throttle_Control - HOLD_THROTTLE) / (float)(1000 - HOLD_THROTTLE) * 200 + 10;
 
     //角度控制来自遥控器
     pitch_angle_pid_data.expect = Pitch_Control;

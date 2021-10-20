@@ -27,12 +27,18 @@ uint16_t engine_start_cnt;
 **********************************************************************************************************/
 void controller_init()
 {
+    vTaskSuspendAll();
+    
     angle_control_init();
     gyro_control_init();
     high_control_init();
     horizontal_control_init();
+    throttle_motor_output = 1000;
     controller_state = 0;
-    engine_start_cnt = 0;
+    //删除路径任务
+    route_plan_task_delete();
+    
+    xTaskResumeAll();
 }
 
 /**********************************************************************************************************
@@ -80,7 +86,11 @@ void controller_run()
     static uint16_t route_plan_enter_cnt;
     controller_last_state = controller_state;
     
-    if ((rc_raw_data[4] < 1250 || Throttle_Control < 450) && (controller_state != 4 || high_pos_pid_data.expect < 5)) {
+    if (fly_task_num == 1) {
+        controller_state = 5;
+    } else if (fly_task_num == 2) {
+        controller_state = 5;
+    } else if ((rc_raw_data[4] < 1250 || Throttle_Control < HOLD_THROTTLE) && (controller_state != 4 || high_pos_pid_data.expect < 5)) {
         //纯姿态模式
         controller_state = 1;
         route_plan_enter_cnt = 0;
@@ -144,7 +154,7 @@ void controller_run()
         throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1500);
     //定点模式
     } else if (controller_state == 3) {
-        //定高控制器
+        //定点控制器
         horizontal_attitude_stabilization_control();
         //位置控制器
         horizontal_control();
@@ -177,7 +187,7 @@ void controller_run()
         //如果路径自动运行完毕
         if (route_plan_stop_flag) {
             //电机停转
-            throttle_motor_output = 0;
+            throttle_motor_output = 1000;
             yaw_gyro_pid_data.control_output = 0;
             pitch_gyro_pid_data.control_output = 0;
             roll_gyro_pid_data.control_output = 0;
@@ -192,6 +202,54 @@ void controller_run()
             gyro_control();
             //油门补偿
             throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1500);
+        }
+    //按键起飞模式
+    } else if (controller_state == 5) {
+        static float engine_start_cnt;
+        //第一次运行路径控制器
+        if (controller_last_state != 5) {
+            engine_start_cnt = 0;
+        }
+        //升高电机转速阶段
+        if (engine_start_cnt < 400) {
+            engine_start_cnt += 400.0f / (3000 / 5);
+            throttle_motor_output = 1000 + engine_start_cnt;
+        } else {
+            if (engine_start_cnt != 1000) {
+                high_pos_pid_data.expect = 20;
+                yaw_angle_pid_data.short_circuit_flag = 0;
+                yaw_angle_pid_data.expect = Yaw;
+                horizontal_pos_y_pid_data.short_circuit_flag = 0;
+                horizontal_pos_y_pid_data.expect = pos_y;
+                horizontal_pos_x_pid_data.short_circuit_flag = 0;
+                horizontal_pos_x_pid_data.expect = pos_x;
+                save_throttle_control = Throttle_Control;
+                route_plan_finish = 0;
+                route_plan_stop_flag = 0;
+                route_plan_task_create();
+                engine_start_cnt = 1000;
+            }
+            //路径控制器
+            route_plan_attitude_stabilization_control();
+            //如果路径自动运行完毕
+            if (route_plan_stop_flag) {
+                //电机停转
+                throttle_motor_output = 1000;
+                yaw_gyro_pid_data.control_output = 0;
+                pitch_gyro_pid_data.control_output = 0;
+                roll_gyro_pid_data.control_output = 0;
+            } else {
+                //位置控制器
+                horizontal_control();
+                //高度环控制器
+                high_control();
+                //角度环控制器
+                angle_control();
+                //角速度控制器
+                gyro_control();
+                //油门补偿
+                throttle_motor_output = throttle_angle_compensate(high_speed_pid_data.control_output + 1500);
+            }
         }
     }
 }

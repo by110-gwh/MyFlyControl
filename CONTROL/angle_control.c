@@ -160,7 +160,7 @@ void angle_control()
     pitch_angle_pid_data.feedback = Pitch + 0;
     pid_control(&pitch_angle_pid_data, &pitch_angle_pid_para);
 
-    roll_angle_pid_data.feedback = Roll + 2;
+    roll_angle_pid_data.feedback = Roll + 0;
     pid_control(&roll_angle_pid_data, &roll_angle_pid_para);
 
     yaw_angle_pid_data.feedback = Yaw;

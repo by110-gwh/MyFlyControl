@@ -15,9 +15,11 @@
 #include "navigation.h"
 #include "main_task.h"
 
+#include "FreeRTOS.h"
+#include "task.h"
+
 static uint8_t controller_last_state;
-uint8_t controller_state;
-uint16_t engine_start_cnt;
+static uint8_t controller_state;
 
 /**********************************************************************************************************
 *函 数 名: control_init
@@ -89,6 +91,8 @@ void controller_run()
     if (fly_task_num == 1) {
         controller_state = 5;
     } else if (fly_task_num == 2) {
+        controller_state = 5;
+    } else if (fly_task_num == 3) {
         controller_state = 5;
     } else if ((rc_raw_data[4] < 1250 || Throttle_Control < HOLD_THROTTLE) && (controller_state != 4 || high_pos_pid_data.expect < 5)) {
         //纯姿态模式

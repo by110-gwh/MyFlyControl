@@ -70,6 +70,7 @@ portTASK_FUNCTION(optical_flow_task, pvParameters)
         //Ë¯Ãß100ms
         vTaskDelayUntil(&xLastWakeTime, (100 / portTICK_RATE_MS));
     }
+	vTaskDelete(NULL);
 }
 
 

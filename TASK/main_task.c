@@ -139,6 +139,7 @@ portTASK_FUNCTION(main_task, parameters)
                         vTaskDelay(50);
                     }
                     fly_exit();
+                    fly_task_num = 0;
                     break;
                 }
                 vTaskDelay(10);

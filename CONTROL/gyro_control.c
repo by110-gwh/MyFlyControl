@@ -6,6 +6,7 @@
 #include "math.h"
 #include "string.h"
 #include "navigation.h"
+#include "controller.h"
 
 pid_paramer_t pitch_gyro_pid_para = {
     .err_max = 500,
@@ -181,7 +182,7 @@ void gyro_pid_integrate_reset()
 void gyro_control()
 {
     //只有起飞之后，高度大于30cm，积分才介入
-    if (pos_z > 30) {
+    if (pos_z > 30 || controller_state > 1) {
         roll_gyro_pid_para.ki = 2.5;
         pitch_gyro_pid_para.ki = 2.5;
     } else {

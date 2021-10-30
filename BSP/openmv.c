@@ -7,6 +7,14 @@
 volatile int16_t pole_distance;
 //线上下距离
 volatile int16_t line_high;
+//前方寻迹值
+volatile int16_t front_line_offset;
+//右方寻迹值
+volatile int16_t right_line_offset;
+//左方寻迹值
+volatile int16_t left_line_offset;
+//后方寻迹值
+volatile int16_t back_line_offset;
 //更新标志
 volatile uint32_t openmv_updata_flag;
 
@@ -61,6 +69,18 @@ void openmv_rec_callback(uint8_t data)
                 break;
             case 2:
                 line_high = rec_data_y;
+                break;
+            case 3:
+                front_line_offset = rec_data_y;
+                break;
+            case 4:
+                right_line_offset = rec_data_y;
+                break;
+            case 5:
+                left_line_offset = rec_data_y;
+                break;
+            case 6:
+                back_line_offset = rec_data_y;
                 break;
         }
         openmv_updata_flag |= 1 << rec_type;

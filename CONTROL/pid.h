@@ -19,10 +19,6 @@ typedef struct pid_paramer {
     float ki;
     //控制参数kd
     float kd;
-    //前馈控制参数kdkp
-    float feedforward_kp;
-    //前馈控制参数kd
-    float feedforward_kd;
     //输出限幅
     float control_output_limit;
 } pid_paramer_t;

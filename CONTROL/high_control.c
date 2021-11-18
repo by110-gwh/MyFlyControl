@@ -9,8 +9,6 @@ pid_paramer_t high_pos_pid_para = {
     .kp = 1,//1.7 //1
     .ki = 0,//0
     .kd = 0,
-    .feedforward_kp = 0,
-    .feedforward_kd = 0,
     .control_output_limit = 100
 };
 
@@ -21,8 +19,6 @@ pid_paramer_t high_speed_pid_para = {
     .kp = 3,//1.5 //3
     .ki = 0.5,//0.3 //0.5
     .kd = 0,//0 //0
-    .feedforward_kp = 0,
-    .feedforward_kd = 0,
     .control_output_limit = 200
 };
 

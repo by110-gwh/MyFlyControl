@@ -18,8 +18,6 @@ pid_paramer_t horizontal_pos_x_pid_para = {
     .kp = 1,//1.3 //1.0
     .ki = 0,
     .kd = 0,
-    .feedforward_kp = 0,
-    .feedforward_kd = 0,
     .control_output_limit = 200
 };
 
@@ -30,8 +28,6 @@ pid_paramer_t horizontal_pos_y_pid_para = {
     .kp = 1,//1.3 //1.0
     .ki = 0,
     .kd = 0,
-    .feedforward_kp = 0,
-    .feedforward_kd = 0,
     .control_output_limit = 200
 };
 
@@ -42,8 +38,6 @@ pid_paramer_t horizontal_speed_x_pid_para = {
     .kp = 3.6,//2.6 //3.6
     .ki = 0.3,//0.1 //0.3
     .kd = 0.1,
-    .feedforward_kp = 0,
-    .feedforward_kd = 0,
     .control_output_limit = 200
 };
 
@@ -54,8 +48,6 @@ pid_paramer_t horizontal_speed_y_pid_para = {
     .kp = 3.6,//2.6 //3.6
     .ki = 0.3,//0.1 //0.3
     .kd = 0.1,
-    .feedforward_kp = 0,
-    .feedforward_kd = 0,
     .control_output_limit = 200
 };
 

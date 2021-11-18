@@ -12,15 +12,11 @@
 #include "i2c1.h"
 #include "spi0.h"
 #include "spi1.h"
-#include "uart0.h"
 #include "w25qxx.h"
 #include "motor_output.h"
 #include "angle_control.h"
 #include "gyro_control.h"
 #include "controller.h"
-#include "openmv.h"
-#include "laser_task.h"
-#include "sr04.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -99,12 +95,6 @@ portTASK_FUNCTION(main_task, parameters)
 	motor_output_init();
 	usmart_task_create();
     beep_task_create();
-    uart0_init();
-    openmv_init();
-    sr04_init();
-    laser_task_create();
-//    laser_init();
-//    laser_on();
     
 	//检测遥控器是否连接
 	page_number = 17;
@@ -119,36 +109,7 @@ portTASK_FUNCTION(main_task, parameters)
 			page_number = 14;
 			rc_calibration_task();
 			page_number = 0;
-		} else if ((key & (KEY1 << 1)) && key & 1) {
-            uint32_t i = 5 * 100;
-            while (i--) {
-                page_number = 5;
-                key = key_scan();
-                //通过按键确定执行哪个任务
-                if ((key & (KEY0 << 1)) && key & 1) {
-                    fly_task_num = 1;
-                }
-                if ((key & (KEY1 << 1)) && key & 1) {
-                    fly_task_num = 2;
-                }
-                //启动飞行任务
-                if (((key & (KEY0 << 1))  && key & 1) || ((key & (KEY1 << 1)) && key & 1)) {
-                    vTaskDelay(3000);
-                    fly_enter();
-                    while(1) {
-                        key = rc_scan();
-                        if (key == 0x08) {
-                            break;
-                        }
-                        vTaskDelay(50);
-                    }
-                    fly_exit();
-                    fly_task_num = 0;
-                    break;
-                }
-                vTaskDelay(10);
-            }
-        }
+		}
 		
 		key = rc_scan();
 		//上内八进行电调校准
@@ -159,11 +120,6 @@ portTASK_FUNCTION(main_task, parameters)
 		} else if (key == 0x01) {
 			page_number = 18;
 			accel_calibration();
-			page_number = 0;
-		//上外八进行磁力计校准
-		} else if (key == 0x07) {
-			page_number = 19;
-			mag_calibration();
 			page_number = 0;
 		//下内八进行解锁
 		} else if (key == 0x08) {

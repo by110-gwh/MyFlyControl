@@ -10,8 +10,6 @@ pid_paramer_t pitch_angle_pid_para = {
     .kp = 5,
     .ki = 0,
     .kd = 0,
-    .feedforward_kp = 0,
-    .feedforward_kd = 0,
     .control_output_limit = 450
 };
 
@@ -22,8 +20,6 @@ pid_paramer_t roll_angle_pid_para = {
     .kp = 5,
     .ki = 0,
     .kd = 0,
-    .feedforward_kp = 0,
-    .feedforward_kd = 0,
     .control_output_limit = 450
 };
 
@@ -34,8 +30,6 @@ pid_paramer_t yaw_angle_pid_para = {
     .kp = 5,
     .ki = 0,
     .kd = 0,
-    .feedforward_kp = 0,
-    .feedforward_kd = 0,
     .control_output_limit = 20
 };
 

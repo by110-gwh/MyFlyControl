@@ -231,45 +231,6 @@ portTASK_FUNCTION(display_task,  parameters)
 			oled_6x8_number(0, 6, 6, acce_calibration_data[5].x);
 			oled_6x8_number(42, 6, 6, acce_calibration_data[5].y);
 			oled_6x8_number(84, 6, 6, acce_calibration_data[5].z);
-		//磁力计校准界面
-		} else if (page_number == 19) {
-			uint8_t i;
-			oled_clear_line(0, 0);
-			oled_6x8_str(10, 0, "Mag_Correct");
-			oled_6x8_number(90, 0, 1, mag_calibration_flag);
-//			oled_clear_line(0, 1);
-//			oled_6x8_number(0, 1, Mag.x_offset);
-//			oled_6x8_number(40, 1, Mag.y_offset);
-//			oled_6x8_number(70, 1, Mag.z_offset);
-			oled_clear_line(0, 2);
-			oled_6x8_str(0, 2, "0 To 360");
-			oled_6x8_number(70, 2, 8, mag_correct_yaw);
-			oled_clear_line(0, 3);
-//			oled_6x8_str(0, 3, "Mag Is Okay?");
-//			oled_6x8_number(80, 3, Mag_Is_Okay_Flag[0]);
-//			oled_6x8_number(90, 3, Mag_Is_Okay_Flag[1]);
-//			oled_6x8_number(105, 3, Mag_Is_Okay_Flag[2]);
-			oled_clear_line(0, 4);
-			for(i = 0; i < 12; i++) {
-			  oled_6x8_number(10*i, 4, 1, mag_360_flag[0][3*i]);
-			}
-			oled_clear_line(0, 5);
-			for(i = 0; i < 12; i++) {
-			  oled_6x8_number(10*i, 5, 1, mag_360_flag[1][3*i]);
-			}
-			oled_clear_line(0, 6);
-			for(i = 0; i < 12; i++) {
-			  oled_6x8_number(10*i, 6, 1, mag_360_flag[2][3*i]);
-			}
-			oled_clear_line(0, 7);
-			if(mag_calibration_flag == 0)
-				oled_6x8_str(0, 7, "Make Z+ Upside Sky");
-			else if(mag_calibration_flag == 1)
-				oled_6x8_str(0, 7, "Make Y+ Upside Sky");
-			else if(mag_calibration_flag == 2)
-				oled_6x8_str(0, 7, "Make X+ Upside Sky");
-			else if(mag_calibration_flag == 3)
-				oled_6x8_str(0, 7, "Start With Yaw Move");
 		}
 		vTaskDelay(100);
 	}

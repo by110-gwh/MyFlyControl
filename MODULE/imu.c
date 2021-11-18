@@ -1,5 +1,4 @@
 #include "imu.h"
-#include "ist8310.h"
 #include "mpu6050.h"
 #include "paramer_save.h"
 #include <string.h>
@@ -22,39 +21,19 @@ static Butter_BufferData Gyro_BufferData[3];
 static Butter_BufferData Gyro_BuffeData_Optical[3];
 static Butter_BufferData Accel_BufferData[3];
 static Butter_BufferData Butter_Buffer_Correct[3];
-//窗口滤波保存序列大小
-#define Filter_Data_SIZE 5
-//窗口滤波保存序列
-static float Filter_Data_X[Filter_Data_SIZE];
-static float Filter_Data_Y[Filter_Data_SIZE];
-static float Filter_Data_Z[Filter_Data_SIZE];
 //传感器原始数据
 Vector3i_t accDataFilter;
 Vector3i_t gyroDataFilter;
 Vector3i_t gyroDataFilterOptical;
 Vector3i_t acceCorrectFilter;
-Vector3i_t MagDataFilter;
 float tempDataFilter;
 
 //加速计校准，保存6面待矫正数据
 Vector3f_t acce_calibration_data[6];
 //加速计校准状态
 uint8_t acce_calibration_flag;
-//磁力计校准三面的状态
-uint8_t mag_360_flag[3][36];
-//磁力计校准状态
-uint8_t mag_calibration_flag;
-//磁力计校准当前角度
-float mag_correct_yaw;
 //陀螺仪校准状态
 uint16_t gyro_calibration_flag;
-//磁力计矫正遍历角度，确保数据采集充分
-const int16_t mag_360_define[36]={
-  0,10,20,30,40,50,60,70,80,90,
-  100,110,120,130,140,150,160,170,180,190,
-  200,210,220,230,240,250,260,270,280,290,
-  300,310,320,330,340,350
-};
 
 /**********************************************************************************************************
 *函 数 名: imu_init
@@ -72,9 +51,6 @@ void imu_init()
 	//MPU6050初始化
 	MPU6050_Detect();
     MPU6050_Init();
-	//IST83100初始化
-	IST8310_Detect();
-    IST8310_Init();
 }
 
 /**********************************************************************************************************
@@ -88,29 +64,13 @@ void get_imu_data()
 	Vector3i_t accRawData;
 	Vector3i_t gyroRawData;
 	float tempRawData;
-	static uint8_t IST8310_Sample_Cnt = 0;
 	
-	//读取磁力计传感器
-	static Vector3i_t MagRawData;
 	//读取加速度传感器
 	MPU6050_ReadAcc(&accRawData);
 	//读取陀螺仪传感器
 	MPU6050_ReadGyro(&gyroRawData);
 	//读取温度传感器
 	MPU6050_ReadTemp(&tempRawData);
-	//读取磁力计传感器
-	IST8310_Sample_Cnt++;
-	if(IST8310_Sample_Cnt == 1) {
-		//单次测量模式，至少间隔6ms
-		IST8310_Single_Measurement();
-	} else if(IST8310_Sample_Cnt==4) {
-		//读取磁力计传感器
-		IST8310_ReadMag(&MagRawData);
-        MagRawData.x = MagRawData.x - paramer_save_data.mag_x_offset;
-        MagRawData.y = MagRawData.y - paramer_save_data.mag_y_offset;
-        MagRawData.z = MagRawData.z - paramer_save_data.mag_z_offset;
-		IST8310_Sample_Cnt=0;
-	}
 	
 	//数据校准
 	accRawData.x = paramer_save_data.accel_x_scale * accRawData.x - paramer_save_data.accel_x_offset / ACCEL_SCALE;
@@ -142,11 +102,6 @@ void get_imu_data()
 	
 	//温度数据不滤波
 	tempDataFilter = tempRawData;
-	
-	//磁力计窗口平均滤波，让数据平滑
-	MagDataFilter.x = GildeAverageValueFilter(MagRawData.x, Filter_Data_X, Filter_Data_SIZE);
-	MagDataFilter.y = GildeAverageValueFilter(MagRawData.y, Filter_Data_Y, Filter_Data_SIZE);
-	MagDataFilter.z = GildeAverageValueFilter(MagRawData.z, Filter_Data_Z, Filter_Data_SIZE);
 }
 
 /**********************************************************************************************************
@@ -395,322 +350,6 @@ void accel_calibration(void)
 		paramer_save_data.accel_z_scale = new_scales.z;
 		write_save_paramer();
 	}
-}
-
-/**********************************************************************************************************
-*函 数 名: mag_calibration_one_is_ok
-*功能说明: 判断单面陀螺仪
-*形    参: 单面校准状态位
-*返 回 值: 1：完成 0：未完成
-**********************************************************************************************************/
-static uint8_t mag_calibration_one_is_ok(uint8_t mag_360_flag[36])
-{
-	uint8_t i;
-	for (i = 0; i < 36; i++) {
-		if (mag_360_flag[i] == 0)
-			return 0;
-	}
-	return 1;
-}
-
-Least_Squares_Intermediate_Variable Mag_LS;
-void LS_Init(Least_Squares_Intermediate_Variable * pLSQ)
-{
-	memset(pLSQ, 0, sizeof(Least_Squares_Intermediate_Variable));
-}
-
-unsigned int LS_Accumulate(Least_Squares_Intermediate_Variable * pLSQ, float x, float y, float z)
-{
-	float x2 = x * x;
-	float y2 = y * y;
-	float z2 = z * z;
-
-	pLSQ->x_sumplain += x;
-	pLSQ->x_sumsq += x2;
-	pLSQ->x_sumcube += x2 * x;
-
-	pLSQ->y_sumplain += y;
-	pLSQ->y_sumsq += y2;
-	pLSQ->y_sumcube += y2 * y;
-
-	pLSQ->z_sumplain += z;
-	pLSQ->z_sumsq += z2;
-	pLSQ->z_sumcube += z2 * z;
-
-	pLSQ->xy_sum += x * y;
-	pLSQ->xz_sum += x * z;
-	pLSQ->yz_sum += y * z;
-
-	pLSQ->x2y_sum += x2 * y;
-	pLSQ->x2z_sum += x2 * z;
-
-	pLSQ->y2x_sum += y2 * x;
-	pLSQ->y2z_sum += y2 * z;
-
-	pLSQ->z2x_sum += z2 * x;
-	pLSQ->z2y_sum += z2 * y;
-
-	pLSQ->size++;
-
-	return pLSQ->size;
-}
-
-
-void LS_Calculate(Least_Squares_Intermediate_Variable * pLSQ,
-                  unsigned int max_iterations,
-                  float delta,
-                  float *sphere_x, float *sphere_y, float *sphere_z,
-                  float *sphere_radius)
-{
-	//
-	//Least Squares Fit a sphere A,B,C with radius squared Rsq to 3D data
-	//
-	//    P is a structure that has been computed with the data earlier.
-	//    P.npoints is the number of elements; the length of X,Y,Z are identical.
-	//    P's members are logically named.
-	//
-	//    X[n] is the x component of point n
-	//    Y[n] is the y component of point n
-	//    Z[n] is the z component of point n
-	//
-	//    A is the x coordiante of the sphere
-	//    B is the y coordiante of the sphere
-	//    C is the z coordiante of the sphere
-	//    Rsq is the radius squared of the sphere.
-	//
-	//This method should converge; maybe 5-100 iterations or more.
-	//
-	float x_sum = pLSQ->x_sumplain / pLSQ->size;        //sum( X[n] )
-	float x_sum2 = pLSQ->x_sumsq / pLSQ->size;    //sum( X[n]^2 )
-	float x_sum3 = pLSQ->x_sumcube / pLSQ->size;    //sum( X[n]^3 )
-	float y_sum = pLSQ->y_sumplain / pLSQ->size;        //sum( Y[n] )
-	float y_sum2 = pLSQ->y_sumsq / pLSQ->size;    //sum( Y[n]^2 )
-	float y_sum3 = pLSQ->y_sumcube / pLSQ->size;    //sum( Y[n]^3 )
-	float z_sum = pLSQ->z_sumplain / pLSQ->size;        //sum( Z[n] )
-	float z_sum2 = pLSQ->z_sumsq / pLSQ->size;    //sum( Z[n]^2 )
-	float z_sum3 = pLSQ->z_sumcube / pLSQ->size;    //sum( Z[n]^3 )
-
-	float XY = pLSQ->xy_sum / pLSQ->size;        //sum( X[n] * Y[n] )
-	float XZ = pLSQ->xz_sum / pLSQ->size;        //sum( X[n] * Z[n] )
-	float YZ = pLSQ->yz_sum / pLSQ->size;        //sum( Y[n] * Z[n] )
-	float X2Y = pLSQ->x2y_sum / pLSQ->size;    //sum( X[n]^2 * Y[n] )
-	float X2Z = pLSQ->x2z_sum / pLSQ->size;    //sum( X[n]^2 * Z[n] )
-	float Y2X = pLSQ->y2x_sum / pLSQ->size;    //sum( Y[n]^2 * X[n] )
-	float Y2Z = pLSQ->y2z_sum / pLSQ->size;    //sum( Y[n]^2 * Z[n] )
-	float Z2X = pLSQ->z2x_sum / pLSQ->size;    //sum( Z[n]^2 * X[n] )
-	float Z2Y = pLSQ->z2y_sum / pLSQ->size;    //sum( Z[n]^2 * Y[n] )
-
-	//Reduction of multiplications
-	float F0 = x_sum2 + y_sum2 + z_sum2;
-	float F1 =  0.5f * F0;
-	float F2 = -8.0f * (x_sum3 + Y2X + Z2X);
-	float F3 = -8.0f * (X2Y + y_sum3 + Z2Y);
-	float F4 = -8.0f * (X2Z + Y2Z + z_sum3);
-
-	//Set initial conditions:
-	float A = x_sum;
-	float B = y_sum;
-	float C = z_sum;
-
-	//First iteration computation:
-	float A2 = A * A;
-	float B2 = B * B;
-	float C2 = C * C;
-	float QS = A2 + B2 + C2;
-	float QB = -2.0f * (A * x_sum + B * y_sum + C * z_sum);
-
-	//Set initial conditions:
-	float Rsq = F0 + QB + QS;
-
-	//First iteration computation:
-	float Q0 = 0.5f * (QS - Rsq);
-	float Q1 = F1 + Q0;
-	float Q2 = 8.0f * (QS - Rsq + QB + F0);
-	float aA, aB, aC, nA, nB, nC, dA, dB, dC;
-
-	//Iterate N times, ignore stop condition.
-	unsigned int n = 0;
-
-	while (n < max_iterations) {
-		n++;
-
-		//Compute denominator:
-		aA = Q2 + 16.0f * (A2 - 2.0f * A * x_sum + x_sum2);
-		aB = Q2 + 16.0f * (B2 - 2.0f * B * y_sum + y_sum2);
-		aC = Q2 + 16.0f * (C2 - 2.0f * C * z_sum + z_sum2);
-		aA = (aA == 0.0f) ? 1.0f : aA;
-		aB = (aB == 0.0f) ? 1.0f : aB;
-		aC = (aC == 0.0f) ? 1.0f : aC;
-
-		//Compute next iteration
-		nA = A - ((F2 + 16.0f * (B * XY + C * XZ + x_sum * (-A2 - Q0) + A * (x_sum2 + Q1 - C * z_sum - B * y_sum))) / aA);
-		nB = B - ((F3 + 16.0f * (A * XY + C * YZ + y_sum * (-B2 - Q0) + B * (y_sum2 + Q1 - A * x_sum - C * z_sum))) / aB);
-		nC = C - ((F4 + 16.0f * (A * XZ + B * YZ + z_sum * (-C2 - Q0) + C * (z_sum2 + Q1 - A * x_sum - B * y_sum))) / aC);
-
-		//Check for stop condition
-		dA = (nA - A);
-		dB = (nB - B);
-		dC = (nC - C);
-
-		if ((dA * dA + dB * dB + dC * dC) <= delta) { break; }
-
-		//Compute next iteration's values
-		A = nA;
-		B = nB;
-		C = nC;
-		A2 = A * A;
-		B2 = B * B;
-		C2 = C * C;
-		QS = A2 + B2 + C2;
-		QB = -2.0f * (A * x_sum + B * y_sum + C * z_sum);
-		Rsq = F0 + QB + QS;
-		Q0 = 0.5f * (QS - Rsq);
-		Q1 = F1 + Q0;
-		Q2 = 8.0f * (QS - Rsq + QB + F0);
-	}
-
-	*sphere_x = A;
-	*sphere_y = B;
-	*sphere_z = C;
-	*sphere_radius = sqrt(Rsq);
-}
-
-/**********************************************************************************************************
-*函 数 名: mag_calibration
-*功能说明: 磁力计校准
-*形    参: 无
-*返 回 值: 无
-**********************************************************************************************************/
-void mag_calibration(void)
-{
-	static Testime Time_Delta;
-	float dt;
-	float mag_a, mag_b, mag_c, mag_r;
-	uint8_t i, j;
-	UBaseType_t this_task_priority;
-    portTickType xLastWakeTime;
-	
-	//清空磁力计校准全部标志
-	mag_calibration_flag = 0;
-	for (i = 0; i < 3; i++) {
-		for (j = 0; j < 36; j++) {
-			mag_360_flag[i][j] = 0;
-		}
-	}
-	paramer_save_data.mag_x_offset = 0;
-	paramer_save_data.mag_y_offset = 0;
-	paramer_save_data.mag_z_offset = 0;
-	//初始化imu
-	imu_init();
-	//等待遥控器给出相应
-	while (rc_scan() != 0x07);
-	//提高本任务优先级
-	this_task_priority = uxTaskPriorityGet(NULL);
-	vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);
-	//当前角度归0
-	mag_correct_yaw = 0;
-	//得到初始时间
-	xLastWakeTime = xTaskGetTickCount();
-	while(mag_calibration_one_is_ok(mag_360_flag[0]) == 0) {
-		//更新计算时间差
-		Get_Time_Period(&Time_Delta);
-		dt = Time_Delta.Time_Delta / 1000000.0;
-		//获取imu数据
-		get_imu_data();
-		//更新角度
-		mag_correct_yaw += gyroDataFilter.z * GYRO_CALIBRATION_COFF * dt;
-		
-		if(mag_correct_yaw < 0)
-			mag_correct_yaw += 360;
-		if(mag_correct_yaw > 360)
-			mag_correct_yaw -= 360;
-		for (i = 0; i < 36; i++) {
-			if(mag_360_flag[0][i] == 0 && fabsf(mag_correct_yaw - mag_360_define[i]) <= 5.0f && acceCorrectFilter.z >= ACCEL_MAX_1G / 2) {
-				mag_360_flag[0][i] = 1;
-				LS_Accumulate(&Mag_LS, MagDataFilter.x, MagDataFilter.y, MagDataFilter.z);
-				LS_Calculate(&Mag_LS, 36*3, 0.0f, &mag_a, &mag_b, &mag_c,&mag_r);
-			}
-		}
-		//5ms周期定时
-		vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
-	}
-	//恢复本任务优先级
-	vTaskPrioritySet(NULL, this_task_priority);
-	
-	//等待遥控器给出相应
-	while (rc_scan() != 0x07);
-	//提高本任务优先级
-	this_task_priority = uxTaskPriorityGet(NULL);
-	vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);
-	//当前角度归0
-	mag_correct_yaw = 0;
-	//得到初始时间
-	xLastWakeTime = xTaskGetTickCount();
-	while(mag_calibration_one_is_ok(mag_360_flag[1]) == 0) {
-		//更新计算时间差
-		Get_Time_Period(&Time_Delta);
-		dt = Time_Delta.Time_Delta / 1000000.0;
-		//获取imu数据
-		get_imu_data();
-		//更新角度
-		mag_correct_yaw += gyroDataFilter.y * GYRO_CALIBRATION_COFF * dt;
-		
-		if(mag_correct_yaw < 0)
-			mag_correct_yaw += 360;
-		if(mag_correct_yaw > 360)
-			mag_correct_yaw -= 360;
-		for (i = 0; i < 36; i++) {
-			if(mag_360_flag[1][i] == 0 && fabsf(mag_correct_yaw - mag_360_define[i]) <= 5.0f && acceCorrectFilter.y >= ACCEL_MAX_1G / 2) {
-				mag_360_flag[1][i] = 1;
-				LS_Accumulate(&Mag_LS, MagDataFilter.x, MagDataFilter.y, MagDataFilter.z);
-				LS_Calculate(&Mag_LS, 36*3, 0.0f, &mag_a, &mag_b, &mag_c,&mag_r);
-			}
-		}
-		//5ms周期定时
-		vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
-	}
-	//恢复本任务优先级
-	vTaskPrioritySet(NULL, this_task_priority);
-	
-	//等待遥控器给出相应
-	while (rc_scan() != 0x07);
-	//提高本任务优先级
-	this_task_priority = uxTaskPriorityGet(NULL);
-	vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);
-	//当前角度归0
-	mag_correct_yaw = 0;
-	//得到初始时间
-	xLastWakeTime = xTaskGetTickCount();
-	while(mag_calibration_one_is_ok(mag_360_flag[2]) == 0) {
-		//更新计算时间差
-		Get_Time_Period(&Time_Delta);
-		dt = Time_Delta.Time_Delta / 1000000.0;
-		//获取imu数据
-		get_imu_data();
-		//更新角度
-		mag_correct_yaw += gyroDataFilter.x * GYRO_CALIBRATION_COFF * dt;
-		
-		if(mag_correct_yaw < 0)
-			mag_correct_yaw += 360;
-		if(mag_correct_yaw > 360)
-			mag_correct_yaw -= 360;
-		for (i = 0; i < 36; i++) {
-			if(mag_360_flag[2][i] == 0 && fabsf(mag_correct_yaw - mag_360_define[i]) <= 5.0f && acceCorrectFilter.x >= ACCEL_MAX_1G / 2) {
-				mag_360_flag[2][i] = 1;
-				LS_Accumulate(&Mag_LS, MagDataFilter.x, MagDataFilter.y, MagDataFilter.z);
-				LS_Calculate(&Mag_LS, 36 * 3, 0.0f, &mag_a, &mag_b, &mag_c,&mag_r);
-			}
-		}
-		//5ms周期定时
-		vTaskDelayUntil(&xLastWakeTime, (5 / portTICK_RATE_MS));
-	}
-	//恢复本任务优先级
-	vTaskPrioritySet(NULL, this_task_priority);
-	//保存参数
-	paramer_save_data.mag_x_offset = mag_a;
-	paramer_save_data.mag_y_offset = mag_b;
-	paramer_save_data.mag_z_offset = mag_c;
-	write_save_paramer();
 }
 
 /**********************************************************************************************************

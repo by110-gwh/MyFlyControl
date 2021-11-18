@@ -383,11 +383,6 @@
           <GroupName>bsp</GroupName>
           <Files>
             <File>
-              <FileName>ist8310.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BSP\ist8310.c</FilePath>
-            </File>
-            <File>
               <FileName>mpu6050.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\BSP\mpu6050.c</FilePath>
@@ -421,11 +416,6 @@
               <FileName>w25qxx.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\BSP\w25qxx.c</FilePath>
-            </File>
-            <File>
-              <FileName>openmv.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BSP\openmv.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -552,26 +542,6 @@
               <FileType>1</FileType>
               <FilePath>..\DRIVER\spi1.c</FilePath>
             </File>
-            <File>
-              <FileName>uart7.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\DRIVER\uart7.c</FilePath>
-            </File>
-            <File>
-              <FileName>uart0.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\DRIVER\uart0.c</FilePath>
-            </File>
-            <File>
-              <FileName>laser.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\DRIVER\laser.c</FilePath>
-            </File>
-            <File>
-              <FileName>sr04.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\DRIVER\sr04.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -651,6 +621,11 @@
               <FileName>imu.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\MODULE\imu.c</FilePath>
+            </File>
+            <File>
+              <FileName>Filter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MODULE\Filter.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -881,21 +856,6 @@
               <FileName>route_plan_task.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\TASK\route_plan_task.c</FilePath>
-            </File>
-            <File>
-              <FileName>laser_task.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\TASK\laser_task.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>user</GroupName>
-          <Files>
-            <File>
-              <FileName>Filter.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\USER\Filter.c</FilePath>
             </File>
           </Files>
         </Group>

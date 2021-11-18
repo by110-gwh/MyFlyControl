@@ -15,8 +15,6 @@ pid_paramer_t pitch_gyro_pid_para = {
     .kp = 1,
     .ki = 0,
     .kd = 0.225,
-    .feedforward_kp = 0,
-    .feedforward_kd = 0,
     .control_output_limit = 500
 };
 
@@ -27,8 +25,6 @@ pid_paramer_t roll_gyro_pid_para = {
     .kp = 1,
     .ki = 0,
     .kd = 0.225,
-    .feedforward_kp = 0,
-    .feedforward_kd = 0,
     .control_output_limit = 500
 };
 
@@ -39,8 +35,6 @@ pid_paramer_t yaw_gyro_pid_para = {
     .kp = 4,
     .ki = 0,
     .kd = 0,
-    .feedforward_kp = 0,
-    .feedforward_kd = 0,
     .control_output_limit = 500
 };
 
@@ -57,8 +51,6 @@ static pitch_roll_err_correct_t pitch_pri_dat;
 static pitch_roll_err_correct_t roll_pri_dat;
 static pitch_roll_err_correct_t yaw_pri_dat;
 
-static Butter_BufferData pitch_pri_dat2;
-static Butter_BufferData roll_pri_dat2;
 static Butter_BufferData yaw_pri_dat2;
 
 static Butter_Parameter gyro_filter_parameter_30Hz;
@@ -191,18 +183,15 @@ void gyro_control()
     }
 	
     //巴特沃斯低通后得到的微分项,30hz
-    //pitch_gyro_pid.feedback = Butterworth_Filter(gyroDataFilter.x * GYRO_CALIBRATION_COFF, &pitch_pri_dat2, &gyro_filter_parameter_30Hz);
     pitch_gyro_pid_data.feedback = gyroDataFilter.x * GYRO_CALIBRATION_COFF;
     pitch_gyro_pid_data.expect = pitch_angle_pid_data.control_output;
     pid_control(&pitch_gyro_pid_data, &pitch_gyro_pid_para);
 
-    //roll_gyro_pid.feedback = Butterworth_Filter(gyroDataFilter.y * GYRO_CALIBRATION_COFF, &roll_pri_dat2, &gyro_filter_parameter_30Hz);
     roll_gyro_pid_data.feedback = gyroDataFilter.y * GYRO_CALIBRATION_COFF;
     roll_gyro_pid_data.expect = roll_angle_pid_data.control_output;
     pid_control(&roll_gyro_pid_data, &roll_gyro_pid_para);
 
     yaw_gyro_pid_data.feedback = Butterworth_Filter(gyroDataFilter.z * GYRO_CALIBRATION_COFF, &yaw_pri_dat2, &gyro_filter_parameter_30Hz);
-    //yaw_gyro_pid.feedback = gyroDataFilter.z * GYRO_CALIBRATION_COFF;
     yaw_gyro_pid_data.expect = yaw_angle_pid_data.control_output;
     pid_control(&yaw_gyro_pid_data, &yaw_gyro_pid_para);
 }

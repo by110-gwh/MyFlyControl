@@ -5,7 +5,6 @@
 #include "navigation.h"
 #include "imu.h"
 #include "Filter.h"
-#include "sr04.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -64,7 +63,6 @@ portTASK_FUNCTION(optical_flow_task, pvParameters)
             optical_flow_pos_x = optical_flow_pos_x_integral + pos_z * tanf(Roll * DEG2RAD);
             optical_flow_pos_y = optical_flow_pos_y_integral - pos_z * tanf(Pitch * DEG2RAD);
         }
-        sr04_start();
         //Ë¯Ãß100ms
         vTaskDelayUntil(&xLastWakeTime, (100 / portTICK_RATE_MS));
     }

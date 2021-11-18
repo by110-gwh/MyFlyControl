@@ -15,8 +15,6 @@ typedef struct
   float q3;
 } Vector4q;
 
-#define YAW_FUSION_MODE_QUAD 1
-
 #define PI 3.1415926f
 #define DEG2RAD (PI / 180.0f)
 #define RAD2DEG (180.0f / PI)
@@ -194,9 +192,6 @@ void ahrs_update()
 	float _2q0, _2q1, _2q2, _2q3, _4q0, _4q1, _4q2, _8q1, _8q2, q0q0, q1q1, q2q2, q3q3;
 	static Vector3f_t gyro_tmp;
 	float delta;
-	float Yaw_Gyro_Earth_Frame;
-	float Mag_ethx, Mag_ethy;
-	float Mag_Yaw;
 	
 	//更新计算时间差
 	Get_Time_Period(&Time_Delta);
@@ -322,21 +317,8 @@ void ahrs_update()
 	//四元数到欧拉角转换,转换顺序为Z-Y-X,参见<Representing Attitude: Euler Angles, Unit Quaternions, and Rotation Vectors>.pdf一文,P24 */
 	Pitch = atan2(2.0f * this_quad.q2 * this_quad.q3 + 2.0f * this_quad.q0 * this_quad.q1, -2.0f * this_quad.q1 * this_quad.q1 - 2.0f * this_quad.q2 * this_quad.q2 + 1.0f) * RAD2DEG;
 	Roll = asin(2.0f * this_quad.q0 * this_quad.q2 - 2.0f * this_quad.q1 * this_quad.q3) * RAD2DEG;
-	
-#if (YAW_FUSION_MODE_QUAD)
 	Yaw = atan2(2.0f * this_quad.q1 * this_quad.q2 + 2.0f * this_quad.q0 * this_quad.q3, -2.0f * this_quad.q3 * this_quad.q3 - 2.0f * this_quad.q2 * this_quad.q2 + 1.0f) * RAD2DEG;
-#else
-	Yaw_Gyro_Earth_Frame = -Sin_Roll * this_gyro.x + Cos_Roll * Sin_Pitch * this_gyro.y + Cos_Pitch * Cos_Roll * this_gyro.z;
-	Yaw += Yaw_Gyro_Earth_Frame * dt;
-	Mag_ethx = MagDataFilter.x * Cos_Roll+ MagDataFilter.z * Sin_Roll;
-	Mag_ethy = MagDataFilter.x * Sin_Pitch*Sin_Roll + MagDataFilter.y * Cos_Pitch- MagDataFilter.z * Cos_Roll*Sin_Pitch;
-	//反正切得到磁力计观测角度
-	Mag_Yaw=atan2(Mag_ethx, Mag_ethy) * RAD2DEG;
-    if ((Mag_Yaw > 90 && Yaw < -90) || (Mag_Yaw < -90 && Yaw > 90))
-        Yaw = -Yaw * (1 - Yaw_Fusion_Beta) + Mag_Yaw * Yaw_Fusion_Beta;
-    else
-        Yaw = Yaw * (1 - Yaw_Fusion_Beta) + Mag_Yaw * Yaw_Fusion_Beta;
-#endif
+
     ComputeRotationMatrix();
 }
 

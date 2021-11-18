@@ -9,7 +9,9 @@
 #include "openmv.h"
 #include "beep_task.h"
 #include "main_task.h"
-#include "sr04.h"
+#include "laser_task.h"
+#include "laser.h"
+#include "uart0.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -22,10 +24,14 @@
 //任务优先级
 #define ROUTE_PLAN_TASK_PRIORITY         11
 
+#define open_size 30
+
 //声明任务句柄
 static xTaskHandle route_plan_task_handle;
 //任务退出标志
 volatile uint8_t route_plan_task_exit;
+
+#define ABS(X)  (((X) > 0)? (X) : -(X))
 
 /**********************************************************************************************************
 *函 数 名: fly_high
@@ -191,136 +197,291 @@ static void fly_turn(int targer_angle, float speed)
         yaw_angle_pid_data.expect += 360;
 }
 
-/**********************************************************************************************************
-*函 数 名: find_pole
-*功能说明: 左右飞行寻找杆
-*形    参: 目标位置 速度
-*返 回 值: 无
-**********************************************************************************************************/
-static void find_pole(int max_distence, float speed)
+void local_A(void)
 {
+    int err1 = 0;
+    int err2 = 0;
+    float distance_adj_x = 0;
+    float distance_adj_y = 0;
+    int time_cnt = 20 * 5;
     
-    int cnt;
+    openmv_updata_flag &= ~(1 << 27 | 1 << 20);
     
-    cnt = max_distence / speed * 20;
-    openmv_updata_flag = 0;
-    //向右飞直到找到杆
-    while ((openmv_updata_flag & (1 << 1)) == 0) {
-        //往相反方向寻找杆
-        if (cnt == 0) {
-            speed = -speed;
-            max_distence = -max_distence;
-            cnt = max_distence / speed * 20;
+    while (--time_cnt && (line_fr >= -open_size + 5 || line_fr <= -open_size - 5 || line_lb >= open_size + 5 || line_lb <= open_size - 5)) {
+        if (err1 > 20 || err2 > 20)
+            return;
+        //openmv采样到中心点的距离
+        if (openmv_updata_flag & (1 << 27) && (line_fr < open_size)) {
+            distance_adj_x = line_fr + open_size;
+            openmv_updata_flag &= ~(1 << 27);
+            err1 = 0;
+        } else {
+            err1++;
         }
+        if (openmv_updata_flag & (1 << 20) && (line_lb > -open_size)) {
+            distance_adj_y = line_lb - open_size;
+            openmv_updata_flag &= ~(1 << 20);
+            err2 = 0;
+        } else {
+            err2++;
+        }
+        //x方向调整
+        if (distance_adj_x) {
+            //速度限幅
+            if (distance_adj_x > 25) {
+                horizontal_pos_x_pid_data.expect -= 25 * 0.02;
+                distance_adj_x -= 25 * 0.02;
+            } else if (distance_adj_x < -25) {
+                horizontal_pos_x_pid_data.expect -= -25 * 0.02;
+                distance_adj_x -= 25 * 0.02;
+            } else {
+                horizontal_pos_x_pid_data.expect -= distance_adj_x * 0.02;
+                distance_adj_x -= distance_adj_x * 0.02;
+            }
+        }
+        //y方向调整
+        if (distance_adj_y) {
+            //速度限幅
+            if (distance_adj_y > 25) {
+                horizontal_pos_y_pid_data.expect -= 25 * 0.02;
+                distance_adj_y -= 25 * 0.02;
+            } else if (distance_adj_y < -25) {
+                horizontal_pos_y_pid_data.expect -= -25 * 0.02;
+                distance_adj_y -= 25 * 0.02;
+            } else {
+                horizontal_pos_y_pid_data.expect -= distance_adj_y * 0.02;
+                distance_adj_y -= distance_adj_y * 0.02;
+            }
+        }
+        vTaskDelay(50);
+    }
+    horizontal_pos_x_pid_data.expect = horizontal_pos_x_pid_data.feedback;
+    horizontal_pos_y_pid_data.expect = horizontal_pos_y_pid_data.feedback;
+}
+
+void local_22(void)
+{
+    int err1 = 0;
+    int err2 = 0;
+    float distance_adj_x = 0;
+    float distance_adj_y = 0;
+    int time_cnt = 20 * 5;
+    
+    openmv_updata_flag &= ~(1 << 21 | 1 << 26);
+    while (--time_cnt && (line_bl >= open_size + 5 || line_bl <= open_size - 5 || line_rf >= -open_size + 5 || line_rf <= -open_size - 5)) {
+        if (err1 > 20 || err2 > 20)
+            return;
+        //openmv采样到中心点的距离
+        if (openmv_updata_flag & (1 << 21) && (line_bl > -open_size)) {
+            distance_adj_x = line_bl - open_size;
+            openmv_updata_flag &= ~(1 << 21);
+            err1 = 0;
+        } else {
+            err1++;
+        }
+        if (openmv_updata_flag & (1 << 26) && (line_rf < open_size)) {
+            distance_adj_y = line_rf + open_size;
+            openmv_updata_flag &= ~(1 << 26);
+            err2 = 0;
+        } else {
+            err2++;
+        }
+        //x方向调整
+        if (distance_adj_x) {
+            //速度限幅
+            if (distance_adj_x > 25) {
+                horizontal_pos_x_pid_data.expect -= 25 * 0.02;
+                distance_adj_x -= 25 * 0.02;
+            } else if (distance_adj_x < -25) {
+                horizontal_pos_x_pid_data.expect -= -25 * 0.02;
+                distance_adj_x -= 25 * 0.02;
+            } else {
+                horizontal_pos_x_pid_data.expect -= distance_adj_x * 0.02;
+                distance_adj_x -= distance_adj_x * 0.02;
+            }
+        }
+        //y方向调整
+        if (distance_adj_y) {
+            //速度限幅
+            if (distance_adj_y > 25) {
+                horizontal_pos_y_pid_data.expect -= 25 * 0.02;
+                distance_adj_y -= 25 * 0.02;
+            } else if (distance_adj_y < -25) {
+                horizontal_pos_y_pid_data.expect -= -25 * 0.02;
+                distance_adj_y -= 25 * 0.02;
+            } else {
+                horizontal_pos_y_pid_data.expect -= distance_adj_y * 0.02;
+                distance_adj_y -= distance_adj_y * 0.02;
+            }
+        }
+        vTaskDelay(50);
+    }
+    horizontal_pos_x_pid_data.expect = horizontal_pos_x_pid_data.feedback;
+    horizontal_pos_y_pid_data.expect = horizontal_pos_y_pid_data.feedback;
+}
+
+void local_11(void)
+{
+    int err1 = 0;
+    int err2 = 0;
+    float distance_adj_x = 0;
+    float distance_adj_y = 0;
+    int time_cnt = 20 * 5;
+    
+    openmv_updata_flag &= ~(1 << 21 | 1 << 26);
+    while (--time_cnt && (line_br >= -open_size + 5 || line_br <= -open_size - 5 || line_lf >= -open_size + 5 || line_lf <= -open_size - 5)) {
+        if (err1 > 20 || err2 > 20)
+            return;
+        //openmv采样到中心点的距离
+        if (openmv_updata_flag & (1 << 21) && (line_br > -open_size)) {
+            distance_adj_x = line_br + open_size;
+            openmv_updata_flag &= ~(1 << 21);
+            err1 = 0;
+        } else {
+            err1++;
+        }
+        if (openmv_updata_flag & (1 << 26) && (line_lf < open_size)) {
+            distance_adj_y = line_lf + open_size;
+            openmv_updata_flag &= ~(1 << 26);
+            err2 = 0;
+        } else {
+            err2++;
+        }
+        //x方向调整
+        if (distance_adj_x) {
+            //速度限幅
+            if (distance_adj_x > 25) {
+                horizontal_pos_x_pid_data.expect -= 25 * 0.02;
+                distance_adj_x -= 25 * 0.02;
+            } else if (distance_adj_x < -25) {
+                horizontal_pos_x_pid_data.expect -= -25 * 0.02;
+                distance_adj_x -= 25 * 0.02;
+            } else {
+                horizontal_pos_x_pid_data.expect -= distance_adj_x * 0.02;
+                distance_adj_x -= distance_adj_x * 0.02;
+            }
+        }
+        //y方向调整
+        if (distance_adj_y) {
+            //速度限幅
+            if (distance_adj_y > 25) {
+                horizontal_pos_y_pid_data.expect -= 25 * 0.02;
+                distance_adj_y -= 25 * 0.02;
+            } else if (distance_adj_y < -25) {
+                horizontal_pos_y_pid_data.expect -= -25 * 0.02;
+                distance_adj_y -= 25 * 0.02;
+            } else {
+                horizontal_pos_y_pid_data.expect -= distance_adj_y * 0.02;
+                distance_adj_y -= distance_adj_y * 0.02;
+            }
+        }
+        vTaskDelay(50);
+    }
+    horizontal_pos_x_pid_data.expect = horizontal_pos_x_pid_data.feedback;
+    horizontal_pos_y_pid_data.expect = horizontal_pos_y_pid_data.feedback;
+}
+
+static void fly_work_end_rf(int max_distance, float speed)
+{
+    int cnt;
+    float last_dstan;
+    int state = 0;
+    
+    if ((max_distance > 0 && speed < 0) || (max_distance < 0 && speed > 0)) {
+        speed = -speed;
+    }
+    
+    openmv_updata_flag &= ~(1 << 26);
+    cnt = max_distance / speed * 20;
+    last_dstan = max_distance - (cnt * speed / 20);
+    
+    while (cnt-- && !(openmv_updata_flag & (1 << 26))) {
+        state = 1;
         horizontal_pos_y_pid_data.expect += speed / 20;
         vTaskDelay(50);
-        cnt--;
     }
-    vTaskDelay(1000);
-    //等待杆在中间
-    while (pole_distance > 10 || pole_distance < -10) {
-        //更新杆的位置
-        openmv_updata_flag = 0;
-        vTaskDelay(50);
-        if ((openmv_updata_flag & (1 << 1)) == 0)
-            horizontal_pos_y_pid_data.expect += pole_distance * 0.001;
+    horizontal_pos_y_pid_data.expect += last_dstan;
+    
+    if (state) {
+        if (speed > 0)
+            fly_forward(20, 25);
         else
-            //比例控制飞机位置
-            horizontal_pos_y_pid_data.expect += pole_distance * 0.005;
+            fly_forward(-20, 25);
     }
 }
 
-/**********************************************************************************************************
-*函 数 名: find_pole_sr04
-*功能说明: 通过超声波左右飞行寻找杆
-*形    参: 最远距离 速度
-*返 回 值: 无
-**********************************************************************************************************/
-static void find_pole_sr04(int max_distence, float speed)
+static void fly_work_end_lf(int max_distance, float speed)
 {
-    int cnt;
-    
-    cnt = max_distence / speed * 20;
-    //向前飞直到找到杆
-    while (sr04_distance == 0) {
-        //往相反方向寻找杆
-        if (cnt == 0) {
-            speed = -speed;
-            max_distence = -max_distence;
-            cnt = max_distence / speed * 20;
-        }
-        horizontal_pos_y_pid_data.expect += speed / 20;
-        vTaskDelay(50);
-        cnt--;
-    }
-    
-    //向左飞定杆的距离
-    while (sr04_distance > DISTANCE_TO_POLE + 5 || sr04_distance < DISTANCE_TO_POLE - 5) {
-        //更新杆的位置
-		//比例控制飞机位置
-		if (sr04_distance) {
-            //速度限幅
-            if (sr04_distance - DISTANCE_TO_POLE > 50)
-                horizontal_pos_x_pid_data.expect -= (70 - DISTANCE_TO_POLE) * 0.015;
-            else
-                horizontal_pos_x_pid_data.expect -= (sr04_distance - DISTANCE_TO_POLE) * 0.015;
-        } else
-            horizontal_pos_y_pid_data.expect += speed / 2 / 20;  
-        vTaskDelay(50);
-    }
-	horizontal_pos_x_pid_data.expect = horizontal_pos_x_pid_data.feedback;
-}
-
-/**********************************************************************************************************
-*函 数 名: run_out_pole
-*功能说明: 飞离杆
-*形    参: 最远距离 速度
-*返 回 值: 无
-**********************************************************************************************************/
-static void run_out_pole(int distence, float speed)
-{
-    int cnt;
-    
-    cnt = distence / speed * 20;
-    
-    while (cnt) {
-        if (sr04_distance) {
-            cnt = distence / speed * 20;
-        }
-        horizontal_pos_y_pid_data.expect += speed / 20;
-        vTaskDelay(50);
-        cnt--;
-    }
-    
-	horizontal_pos_x_pid_data.expect = horizontal_pos_x_pid_data.feedback;
-}
-
-/**********************************************************************************************************
-*函 数 名: find_bar_code
-*功能说明: 寻找条形码
-*形    参: 要走的距离 速度
-*返 回 值: 剩余距离
-**********************************************************************************************************/
-static int find_bar_code(int targer_distan, float speed)
-{
-    //距离绳的距离调整距离
-    float distance_adj_x = 0;
     int cnt;
     float last_dstan;
+    int state = 0;
     
-    if ((targer_distan > 0 && speed < 0) || (targer_distan < 0 && speed > 0)) {
+    if ((max_distance > 0 && speed < 0) || (max_distance < 0 && speed > 0)) {
         speed = -speed;
     }
     
-    cnt = targer_distan / speed * 20;
-    last_dstan = targer_distan - (cnt * speed / 20);
+    openmv_updata_flag &= ~(1 << 22);
+    cnt = max_distance / speed * 20;
+    last_dstan = max_distance - (cnt * speed / 20);
     
-    while (cnt && (openmv_updata_flag & (1 << 3)) == 0) {
-        
-        //超声波采样到绳的距离
-        if (sr04_distance) {
-            distance_adj_x = sr04_distance - DISTANCE_TO_POLE;
+    while (cnt-- && !(openmv_updata_flag & (1 << 22))) {
+        state = 1;
+        horizontal_pos_y_pid_data.expect += speed / 20;
+        vTaskDelay(50);
+    }
+    horizontal_pos_y_pid_data.expect += last_dstan;
+    
+    if (state) {
+        if (speed > 0)
+            fly_forward(20, 25);
+        else
+            fly_forward(-20, 25);
+    }
+}
+
+static void fly_work_end_lb(int max_distance, float speed)
+{
+    int cnt;
+    float last_dstan;
+    int state = 0;
+    
+    if ((max_distance > 0 && speed < 0) || (max_distance < 0 && speed > 0)) {
+        speed = -speed;
+    }
+    
+    openmv_updata_flag &= ~(1 << 20);
+    cnt = max_distance / speed * 20;
+    last_dstan = max_distance - (cnt * speed / 20);
+    
+    while (cnt-- && !(openmv_updata_flag & (1 << 20))) {
+        state = 1;
+        horizontal_pos_y_pid_data.expect += speed / 20;
+        vTaskDelay(50);
+    }
+    horizontal_pos_y_pid_data.expect += last_dstan;
+    
+    if (state) {
+        if (speed > 0)
+            fly_forward(20, 25);
+        else
+            fly_forward(-20, 25);
+    }
+}
+
+void find_landing(void)
+{
+    float distance_adj_x = 0;
+    float distance_adj_y = 0;
+    
+    openmv_updata_flag &= ~(1 << 1);
+    while (land_x > 3 || land_x < -3 || land_y > 3 || land_y < -3) {
+        //openmv采样到中心点的距离
+        if (openmv_updata_flag & (1 << 1)) {
+            distance_adj_x = land_y;
             distance_adj_x -= horizontal_pos_x_pid_data.feedback - horizontal_pos_x_pid_data.expect;
+            distance_adj_y = land_x;
+            distance_adj_y -= horizontal_pos_y_pid_data.feedback - horizontal_pos_y_pid_data.expect;
+            openmv_updata_flag &= ~(1 << 1);
         }
         //x方向调整
         if (distance_adj_x) {
@@ -328,183 +489,88 @@ static int find_bar_code(int targer_distan, float speed)
             if (distance_adj_x > 50) {
                 horizontal_pos_x_pid_data.expect -= 50 * 0.015;
                 distance_adj_x -= 50 * 0.015;
+            } else if (distance_adj_x < -50) {
+                horizontal_pos_x_pid_data.expect -= -50 * 0.015;
+                distance_adj_x -= -50 * 0.015;
             } else {
                 horizontal_pos_x_pid_data.expect -= distance_adj_x * 0.015;
                 distance_adj_x -= distance_adj_x * 0.015;
             }
         }
-        
-        horizontal_pos_y_pid_data.expect += speed / 20;
-        cnt--;
-        vTaskDelay(50);
-    }
-    horizontal_pos_y_pid_data.expect += last_dstan;
-    return cnt * speed / 20;
-}
-
-/**********************************************************************************************************
-*函 数 名: line_patrol
-*功能说明: 沿着线走
-*形    参: 要走的距离 速度
-*返 回 值: 剩余距离
-**********************************************************************************************************/
-static void line_patrol(int targer_distan, float speed)
-{
-    //距离绳的距离调整距离
-    float distance_adj_x = 0;
-    int cnt;
-    float last_dstan;
-    
-    if ((targer_distan > 0 && speed < 0) || (targer_distan < 0 && speed > 0)) {
-        speed = -speed;
-    }
-    
-    cnt = targer_distan / speed * 20;
-    last_dstan = targer_distan - (cnt * speed / 20);
-    
-    while (cnt) {
-        
-        //超声波采样到绳的距离
-        if (sr04_distance) {
-            distance_adj_x = sr04_distance - DISTANCE_TO_POLE;
-            distance_adj_x -= horizontal_pos_x_pid_data.feedback - horizontal_pos_x_pid_data.expect;
-        }
-        //x方向调整
-        if (distance_adj_x) {
+        //y方向调整
+        if (distance_adj_y) {
             //速度限幅
-            if (distance_adj_x > 50) {
-                horizontal_pos_x_pid_data.expect -= 50 * 0.015;
-                distance_adj_x -= 50 * 0.015;
+            if (distance_adj_y > 50) {
+                horizontal_pos_y_pid_data.expect -= 50 * 0.015;
+                distance_adj_y -= 50 * 0.015;
+            } else if (distance_adj_y < -50) {
+                horizontal_pos_y_pid_data.expect -= -50 * 0.015;
+                distance_adj_y -= -50 * 0.015;
             } else {
-                horizontal_pos_x_pid_data.expect -= distance_adj_x * 0.015;
-                distance_adj_x -= distance_adj_x * 0.015;
+                horizontal_pos_y_pid_data.expect -= distance_adj_y * 0.015;
+                distance_adj_y -= distance_adj_y * 0.015;
             }
         }
-        
-        horizontal_pos_y_pid_data.expect += speed / 20;
-        cnt--;
         vTaskDelay(50);
     }
-    horizontal_pos_y_pid_data.expect += last_dstan;
+    horizontal_pos_x_pid_data.expect = horizontal_pos_x_pid_data.feedback;
+    horizontal_pos_y_pid_data.expect = horizontal_pos_y_pid_data.feedback;
 }
 
-/**********************************************************************************************************
-*函 数 名: front_follow_line
-*功能说明: 向前飞行寻迹到下一个路口
-*形    参: 速度
-*返 回 值: 无
-**********************************************************************************************************/
-static void front_follow_line(float speed)
+///**********************************************************************************************************
+//*函 数 名: find_pole_sr04
+//*功能说明: 通过超声波左右飞行寻找杆
+//*形    参: 最远距离 速度
+//*返 回 值: 无
+//**********************************************************************************************************/
+//static void find_pole_sr04(int max_distence, float speed)
+//{
+//    int cnt;
+//    
+//    cnt = max_distence / speed * 20;
+//    //向前飞直到找到杆
+//    while (sr04_distance == 0 && cnt) {
+//        //往相反方向寻找杆
+//        if (cnt == 0) {
+//            return;
+//        }
+//        horizontal_pos_y_pid_data.expect -= speed / 20;
+//        vTaskDelay(50);
+//        cnt--;
+//    }
+//    
+//    //向左飞定杆的距离
+//    while (sr04_distance > DISTANCE_TO_POLE + 5 || sr04_distance < DISTANCE_TO_POLE - 5) {
+//        //更新杆的位置
+//		//比例控制飞机位置
+//		if (sr04_distance) {
+//            //速度限幅
+//            if (sr04_distance - DISTANCE_TO_POLE > 50)
+//                horizontal_pos_x_pid_data.expect -= (70 - DISTANCE_TO_POLE) * 0.015;
+//            else
+//                horizontal_pos_x_pid_data.expect -= (sr04_distance - DISTANCE_TO_POLE) * 0.015;
+//        } else
+//            horizontal_pos_y_pid_data.expect -= speed / 2 / 20;  
+//        vTaskDelay(50);
+//    }
+//	horizontal_pos_x_pid_data.expect = horizontal_pos_x_pid_data.feedback;
+//}
+
+static void laser_start(void)
 {
-    //左右调整距离
-    float distance_adj_x = 0;
-    
-    //向前飞直到找到下一个路口
-    while ((openmv_updata_flag & (1 << 4 | 1 << 5)) == 0) {
-        //openmv返回了线偏移量
-        if (openmv_updata_flag & (1 << 3)) {
-            openmv_updata_flag &= ~(1 << 3);
-            distance_adj_x = front_line_offset;
-            distance_adj_x -= horizontal_pos_x_pid_data.feedback - horizontal_pos_x_pid_data.expect;
-        }
-        //x方向调整
-        if (distance_adj_x) {
-            //速度限幅
-            if (distance_adj_x > 750) {
-                horizontal_pos_x_pid_data.expect -= 50 * 0.001;
-                distance_adj_x -= 50 * 0.001;
-            } else {
-                horizontal_pos_x_pid_data.expect -= distance_adj_x * 0.001;
-                distance_adj_x -= distance_adj_x * 0.001;
-            }
-        }
-        
-        //向前移动
-        horizontal_pos_y_pid_data.expect += speed / 20;
-        vTaskDelay(50);
-    }
+    laser_duty = 10;
+    laser_cycle = 100;
+    laser_time = 0xFF;
 }
 
-/**********************************************************************************************************
-*函 数 名: front_follow_line_w
-*功能说明: 通过改变偏航的方式，向前飞行寻迹到下一个路口
-*形    参: 速度
-*返 回 值: 无
-**********************************************************************************************************/
-static void front_follow_line_w(float speed)
+static void laser_stop(void)
 {
-    //向前飞直到找到下一个路口
-    while ((openmv_updata_flag & (1 << 4 | 1 << 5)) == 0) {
-        //openmv返回了线偏移量
-        if (openmv_updata_flag & (1 << 3)) {
-            openmv_updata_flag &= ~(1 << 3);
-            yaw_angle_pid_data.expect += front_line_offset * 0.001;
-        }
-        
-        //向前移动
-        horizontal_pos_y_pid_data.expect += speed / 20;
-        vTaskDelay(50);
-    }
+    laser_duty = 0;
+    laser_cycle = 100;
+    laser_time = 0xFF;
+    laser_on();
 }
 
-/**********************************************************************************************************
-*函 数 名: rotate_around_pole
-*功能说明: 绕杆旋转，切线方式
-*形    参: 角度 速度
-*返 回 值: 无
-**********************************************************************************************************/
-static void rotate_around_pole(int targer_angle, float speed)
-{
-    int cnt;
-    float turned_angle = 0;
-    
-    if (speed < 0) {
-        speed = -speed;
-    }
-    while (1) {
-        fly_forward(20, 20);
-        //向前走直到远离杆
-        while (sr04_distance) {
-            //速度限幅
-            if (sr04_distance - DISTANCE_TO_POLE > 50)
-                horizontal_pos_x_pid_data.expect -= (70 - DISTANCE_TO_POLE) * 0.015;
-            else
-                horizontal_pos_x_pid_data.expect -= (sr04_distance - DISTANCE_TO_POLE) * 0.015;
-            horizontal_pos_y_pid_data.expect += speed / 20;
-            vTaskDelay(50);
-        }
-        horizontal_pos_y_pid_data.expect = horizontal_pos_y_pid_data.feedback;
-        
-        //改变偏航重新找到杆
-        cnt = 10 / speed * 20;
-        while (cnt--) {
-            yaw_angle_pid_data.expect += speed / 20;
-            turned_angle += speed / 20;
-            if (yaw_angle_pid_data.expect > 180)
-                yaw_angle_pid_data.expect -= 360;
-            if (yaw_angle_pid_data.expect < -180)
-                yaw_angle_pid_data.expect += 360;
-            //转完制定角度
-            if (turned_angle >= targer_angle)
-                return;
-            vTaskDelay(50);
-        }
-        while (sr04_distance) {
-            yaw_angle_pid_data.expect += speed / 20;
-            turned_angle += speed / 20;
-            if (yaw_angle_pid_data.expect > 180)
-                yaw_angle_pid_data.expect -= 360;
-            if (yaw_angle_pid_data.expect < -180)
-                yaw_angle_pid_data.expect += 360;
-            //转完制定角度
-            if (turned_angle >= targer_angle)
-                return;
-            vTaskDelay(50);
-        }
-        turned_angle -= yaw_angle_pid_data.expect - yaw_angle_pid_data.feedback;
-        yaw_angle_pid_data.expect = yaw_angle_pid_data.feedback;
-    }
-}
 
 /**********************************************************************************************************
 *函 数 名: route_plan_task1
@@ -514,57 +580,102 @@ static void rotate_around_pole(int targer_angle, float speed)
 **********************************************************************************************************/
 portTASK_FUNCTION(route_plan_task1,  parameters)
 {
+    float last_distance_adj;
     int last_distance;
+    int i;
     
     //升高到90cm
-    fly_high(90 - high_pos_pid_data.expect, 30);
+    fly_high(130 - high_pos_pid_data.expect, 50);
     vTaskDelay(1000);
-    //定杆距离
-	find_pole_sr04(100, 20);
-    //找条形码
-    last_distance = find_bar_code(300, 20);
-    //成功识别到条形码
-    if (last_distance > 50) {
-        //停留一下
-        vTaskDelay(5000);
-        //发出提示
-        beep_duty = 50;
-    }
-    //飞完剩下的距离
-    line_patrol(last_distance, 20);
-    //定杆距离
-	find_pole_sr04(100, 20);
-    //离开杆
-    run_out_pole(10, 20);
-    //转90度
-    fly_turn(90, 20);
-    vTaskDelay(2000);
-    //定杆距离
-	find_pole_sr04(100, 20);
-    //离开杆
-    run_out_pole(20, 20);
-    //转90度
-    fly_turn(90, 20);
-    vTaskDelay(2000);
-    //定杆距离
-	find_pole_sr04(100, 20);
-    //找条形码
-    last_distance = find_bar_code(300, 20);
-    //成功识别到条形码
-    if (last_distance > 50) {
-        //停留一下
-        vTaskDelay(5000);
-        //发出提示
-        beep_duty = 50;
-    }
-    //飞完剩下的距离
-    line_patrol(last_distance, 20);
+    //移动到A
+    fly_right(-20, 20);
+    fly_right(-180, 40);
+    fly_right(-20, 20);
+    fly_forward(50, 30);
     
-//    rotate_around_pole(45, 20);
-    vTaskDelay(2000);
+    //定A
+    local_A();
+    laser_on();
+    vTaskDelay(200);
+    laser_off();
+
+    //到28
+    fly_right(-50, 25);
+    vTaskDelay(200);
+    laser_start();
+
+    //28到22
+    fly_forward(300, 25);
+    fly_work_end_rf(50, 25);
+    laser_stop();
+    local_22();
+
+    //到15
+    fly_right(50, 20);
+    vTaskDelay(200);
+    laser_start();
+
+    //到A
+    fly_forward(-300, 25);
+    fly_work_end_lb(-50, 25);
+    laser_stop();
+    local_A();
     
+    //到14
+    fly_right(50, 20);
+    fly_forward(150, 25);
+    vTaskDelay(500);
+    laser_start();
+    
+    //到11
+    fly_forward(150, 25);
+    fly_work_end_lf(50, 25);
+    laser_stop();
+    local_11();
+    
+    //到9
+    fly_right(50, 20);
+    fly_forward(-100, 25);
+    vTaskDelay(500);
+    laser_off();
+    laser_start();
+    
+    //到10
+    fly_forward(-50, 25);
+    fly_work_end_lb(-50, 25);
+    laser_stop();
+    
+    //到8
+    fly_right(50, 20);
+    vTaskDelay(200);
+    laser_start();
+    
+    //到5
+    fly_forward(150, 25);
+    fly_work_end_rf(25, 25);
+    laser_stop();
+    local_22();
+    
+    //到1
+    fly_right(50, 20);
+    vTaskDelay(200);
+    laser_start();
+    
+    //到起降点
+    fly_forward(-150, 25);
+    vTaskDelay(500);
+    laser_stop();
+    laser_off();
+    
+    uart0_send_data(0x01);
+    fly_forward(-200, 25);
+    fly_high(100 - high_pos_pid_data.expect, 50);
+    vTaskDelay(1000);
+    
+    find_landing();
+
     //下降到0cm
-    fly_high(-10 - high_pos_pid_data.expect, 35);
+    fly_high(-20 - high_pos_pid_data.expect, 50);
     
     vTaskDelay(400);
     save_throttle_control = Throttle_Control;

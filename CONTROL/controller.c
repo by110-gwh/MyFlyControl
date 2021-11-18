@@ -19,7 +19,7 @@
 #include "task.h"
 
 static uint8_t controller_last_state;
-static uint8_t controller_state;
+uint8_t controller_state;
 
 /**********************************************************************************************************
 *º¯ Êı Ãû: control_init

@@ -558,6 +558,16 @@
               <FilePath>..\DRIVER\uart7.c</FilePath>
             </File>
             <File>
+              <FileName>uart0.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\DRIVER\uart0.c</FilePath>
+            </File>
+            <File>
+              <FileName>laser.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\DRIVER\laser.c</FilePath>
+            </File>
+            <File>
               <FileName>sr04.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\DRIVER\sr04.c</FilePath>
@@ -871,6 +881,11 @@
               <FileName>route_plan_task.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\TASK\route_plan_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>laser_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\TASK\laser_task.c</FilePath>
             </File>
           </Files>
         </Group>

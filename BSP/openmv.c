@@ -3,18 +3,18 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 
-//杆的左右距离
-volatile int16_t pole_distance;
-//线上下距离
-volatile int16_t line_high;
-//前方寻迹值
-volatile int16_t front_line_offset;
-//右方寻迹值
-volatile int16_t right_line_offset;
-//左方寻迹值
-volatile int16_t left_line_offset;
-//后方寻迹值
-volatile int16_t back_line_offset;
+//起落点的距离中心
+volatile int16_t land_x;
+volatile int16_t land_y;
+//线的距离中心
+volatile int16_t line_fl;
+volatile int16_t line_fr;
+volatile int16_t line_rf;
+volatile int16_t line_rb;
+volatile int16_t line_lf;
+volatile int16_t line_lb;
+volatile int16_t line_bl;
+volatile int16_t line_br;
 //更新标志
 volatile uint32_t openmv_updata_flag;
 
@@ -56,31 +56,57 @@ void openmv_rec_callback(uint8_t data)
     } else if (openmc_rec_state == 3) {
         rec_data_x |= data;
         openmc_rec_state = 4;
-    //数据x高8位
+    //数据y高8位
     } else if (openmc_rec_state == 4) {
         rec_data_y = data << 8;
         openmc_rec_state = 5;
-    //数据x低8位
+    //数据y低8位
     } else if (openmc_rec_state == 5) {
         rec_data_y |= data;
         switch (rec_type) {
             case 1:
-                pole_distance = rec_data_x;
-                break;
-            case 2:
-                line_high = rec_data_y;
+                land_x = rec_data_x;
+                land_y = rec_data_y;
                 break;
             case 3:
-                front_line_offset = rec_data_y;
+                if (rec_data_x != -80) {
+                    line_lb = rec_data_x;
+                    openmv_updata_flag |= 1 << 20;
+                }
+                if (rec_data_x != -60) {
+                    line_bl = rec_data_y;
+                    openmv_updata_flag |= 1 << 21;
+                }
                 break;
             case 4:
-                right_line_offset = rec_data_y;
+                if (rec_data_x != 80) {
+                    line_lf = rec_data_x;
+                    openmv_updata_flag |= 1 << 22;
+                }
+                if (rec_data_y != -60) {
+                    line_fl = rec_data_y;
+                    openmv_updata_flag |= 1 << 23;
+                }
                 break;
             case 5:
-                left_line_offset = rec_data_y;
+                if (rec_data_x != -80) {
+                    line_rb = rec_data_x;
+                    openmv_updata_flag |= 1 << 24;
+                }
+                if (rec_data_y != 60) {
+                    line_br = rec_data_y;
+                    openmv_updata_flag |= 1 << 25;
+                }
                 break;
             case 6:
-                back_line_offset = rec_data_y;
+                if (rec_data_x != 80) {
+                    line_rf = rec_data_x;
+                    openmv_updata_flag |= 1 << 26;
+                }
+                if (rec_data_y != 60) {
+                    line_fr = rec_data_y;
+                    openmv_updata_flag |= 1 << 27;
+                }
                 break;
         }
         openmv_updata_flag |= 1 << rec_type;

@@ -3,13 +3,17 @@
 
 #include <stdint.h>
 
+extern volatile int16_t land_x;
+extern volatile int16_t land_y;
+extern volatile int16_t line_fr;
+extern volatile int16_t line_fl;
+extern volatile int16_t line_rf;
+extern volatile int16_t line_rb;
+extern volatile int16_t line_lf;
+extern volatile int16_t line_lb;
+extern volatile int16_t line_bl;
+extern volatile int16_t line_br;
 extern volatile uint32_t openmv_updata_flag;
-extern volatile int16_t pole_distance;
-extern volatile int16_t line_high;
-extern volatile int16_t front_line_offset;
-extern volatile int16_t right_line_offset;
-extern volatile int16_t left_line_offset;
-extern volatile int16_t back_line_offset;
 
 void openmv_init(void);
 void openmv_rec_callback(uint8_t data);
